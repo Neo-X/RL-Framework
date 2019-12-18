@@ -42,7 +42,8 @@ class ExperienceMemory(object):
         self._history_update_index=0 # where the next experience should write
         self._samples=0 # Number of inserts since last clear()
         self._inserts=0 # total number of inserts
-        self._action_bounds = np.array(settings["action_bounds"])
+        if self._continuous_actions:
+            self._action_bounds = np.array(settings["action_bounds"])
         self.clear()
         
     def clear(self):
@@ -50,7 +51,7 @@ class ExperienceMemory(object):
         self._samples=0 ## How many samples are in the buffer
         
         if (self._settings['float_type'] == 'float32'):
-            
+            print ("(self._history_size, self._state_length) ", (self._history_size, self._state_length))
             self._state_history = (np.zeros((self._history_size, self._state_length), dtype='float32'))
             if self._continuous_actions:
                 self._action_history = (np.zeros((self._history_size, self._action_length), dtype='float32'))
@@ -291,8 +292,9 @@ class ExperienceMemory(object):
             state = state[:,:len(self.getStateBounds()[0])]
             nextState = np.array(nextState)
             nextState = nextState[:,:len(self.getResultStateBounds()[0])]
-        assert self._state_length == len(state[0]), "self._state_length == len(state[0]): " + str(self._state_length) + " state shape: " + str(np.asarray(state).shape) 
-        assert len(action[0]) == self._action_length, "len(action[0]) == self._action_length: " + str(len(action[0])) + " == " + str(self._action_length)
+        assert self._state_length == len(state[0]), "self._state_length == len(state[0]): " + str(self._state_length) + " state shape: " + str(np.asarray(state).shape)
+        if self._continuous_actions: 
+            assert len(action[0]) == self._action_length, "len(action[0]) == self._action_length: " + str(len(action[0])) + " == " + str(self._action_length)
         assert len(nextState[0]) == self._result_state_length, "len(nextState[0]) == self._result_state shape: " + str(np.asarray(nextState).shape) + " == " + str(self._result_state_length)
         assert len(reward[0]) == 1
         assert len(fall[0]) == 1

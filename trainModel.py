@@ -352,6 +352,10 @@ def trainModelParallel(inputData):
         action_space_continuous=settings['action_space_continuous']
         if action_space_continuous:
             action_bounds = settings["action_bounds"]
+        else:
+            action_bounds = [None]
+            # action_bounds = [[-1] * settings["discrete_actions"],
+            #                    [1] * settings["discrete_actions"]]
             
             
         if (settings['num_available_threads'] == -1):
@@ -513,9 +517,10 @@ def trainModelParallel(inputData):
         ### Using a wrapper for the type of actor now
         actor = createActor(settings['environment_type'], settings, None)
         exp_val = None
-        for i in range(len(action_bounds)):
+        for i in range(len(state_bounds)):
             # print ("state_bounds[i]: ", state_bounds[i])
-            if ((action_bounds[i] != "ask_env")
+            if (action_space_continuous 
+                and (action_bounds[i] != "ask_env")
                 and (isinstance(action_bounds[i], list))
                 and
                 not validBounds(action_bounds[i])):
@@ -567,6 +572,7 @@ def trainModelParallel(inputData):
                 eval_sim_workers[0].start()
         
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
+        # sys.exit()
         forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
             forwardDynamicsModel = createNewFDModel(settings, exp_val, model)
@@ -678,7 +684,8 @@ def trainModelParallel(inputData):
                 # print ("****** state bounds mean: ", np.mean(masterAgent.getFDExperience().getStateBounds()))
                 # print ("****** fd exp mem insters ***: ", masterAgent.getFDExperience().inserts())
             
-        if (not validBounds(action_bounds)):
+        if (action_space_continuous
+            and not validBounds(action_bounds)):
             # Check that the action bounds are spcified correctly
             print("Action bounds invalid: ", action_bounds)
             sys.exit()

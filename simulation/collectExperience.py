@@ -271,77 +271,75 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print ("Skipping bootstrap samples from simulation")
             print ("State length: ", model.getStateBounds())
-        if settings['action_space_continuous']:
+        
+        if ("perform_multiagent_training" in settings):
+            experience = []
+            for i in range(settings["perform_multiagent_training"]):
+                settings__ = copy.deepcopy(settings)
+                settings__["agent_id"] = i
+                settings__["action_bounds"] = settings["action_bounds"][i]
+                settings__["state_bounds"] = settings["state_bounds"][i]
+                if ("policy_connections" in settings
+                    and (any([i == m[1] for m in settings["policy_connections"]])) ):
+                    other_agent_id = 1
+                    # b_lo = list(model.getActionBounds()[i][0])
+                    # b_hi = list(model.getActionBounds()[i][1])
+                    b_lo = []
+                    b_hi = []
+                    for _ in range(settings__["hlc_timestep"]):
+                        b_lo.extend(model.getActionBounds()[other_agent_id][0])
+                        b_hi.extend(model.getActionBounds()[other_agent_id][1])
+                    settings__["action_bounds"] = [b_lo,
+                                                    b_hi]
+                    action_length = len(b_hi)
+                    print ("adjusted bounds: ", settings__["action_bounds"])
+                    # state_length = 51
+                    # settings__["state_bounds"] = [np.ones((state_length)) * -1.5,
+                    #                                np.ones((state_length)) * 1.5]
+                    # print ("adjusted state bounds: ", settings__["state_bounds"])
+                else:
+                    if settings['action_space_continuous']:
+                        action_length = len(model.getActionBounds()[i][0])
+                    else:
+                        action_length = 1
+                exp_ = ExperienceMemory(len(model.getStateBounds()[i][0]), action_length, 
+                                        settings['experience_length'][i], continuous_actions=settings['action_space_continuous'], settings = settings__)
+                experience.append(exp_)
+        else:
+            experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['experience_length'], 
+                                            continuous_actions=settings['action_space_continuous'], settings = settings)
+            
+        if ( "keep_seperate_fd_exp_buffer" in settings 
+            and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+            state_bounds_fd__ = getFDStateSize(settings)
             if ("perform_multiagent_training" in settings):
-                experience = []
+                ### Might be a bug because the fd sizes could be different for each agent
+                experiencefd = []
                 for i in range(settings["perform_multiagent_training"]):
                     settings__ = copy.deepcopy(settings)
                     settings__["agent_id"] = i
-                    settings__["action_bounds"] = settings["action_bounds"][i]
-                    settings__["state_bounds"] = settings["state_bounds"][i]
-                    if ("policy_connections" in settings
-                        and (any([i == m[1] for m in settings["policy_connections"]])) ):
-                        other_agent_id = 1
-                        # b_lo = list(model.getActionBounds()[i][0])
-                        # b_hi = list(model.getActionBounds()[i][1])
-                        b_lo = []
-                        b_hi = []
-                        for _ in range(settings__["hlc_timestep"]):
-                            b_lo.extend(model.getActionBounds()[other_agent_id][0])
-                            b_hi.extend(model.getActionBounds()[other_agent_id][1])
-                        settings__["action_bounds"] = [b_lo,
-                                                       b_hi]
-                        action_length = len(b_hi)
-                        print ("adjusted bounds: ", settings__["action_bounds"])
-                        # state_length = 51
-                        # settings__["state_bounds"] = [np.ones((state_length)) * -1.5,
-                        #                                np.ones((state_length)) * 1.5]
-                        # print ("adjusted state bounds: ", settings__["state_bounds"])
-                    else:
-                        action_length = len(model.getActionBounds()[i][0])
-                    exp_ = ExperienceMemory(len(model.getStateBounds()[i][0]), action_length, 
-                                           settings['experience_length'][i], continuous_actions=True, settings = settings__)
-                    experience.append(exp_)
+                    settings__['state_bounds'] = settings['state_bounds'][i]
+                    settings__['action_bounds'] = settings['action_bounds'][i]
+                    if ("fd_action_bounds" in settings):
+                        settings__['action_bounds'] = settings['fd_action_bounds'][i]
+                    settings__['reward_bounds'] = settings['reward_bounds'][i]
+                    state_bounds_fd__ = getFDStateSize(settings__)
+                    action_bounds_fd__ = settings__['action_bounds']
+                    experience__fd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds_fd__[0]), settings['experience_length'][i],
+                                        continuous_actions=True, settings = settings__ 
+                                        # result_state_length=settings["dense_state_size"]
+                                        ) 
+                    experience__fd.setStateBounds(settings__['state_bounds'])
+                    experience__fd.setActionBounds(settings__['action_bounds'])
+                    experience__fd.setRewardBounds(settings__['reward_bounds'])
+                    experiencefd.append(experience__fd)
             else:
-                experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['experience_length'], continuous_actions=True, settings = settings)
-            
-            if ( "keep_seperate_fd_exp_buffer" in settings 
-                and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                state_bounds_fd__ = getFDStateSize(settings)
-                if ("perform_multiagent_training" in settings):
-                    ### Might be a bug because the fd sizes could be different for each agent
-                    experiencefd = []
-                    for i in range(settings["perform_multiagent_training"]):
-                        settings__ = copy.deepcopy(settings)
-                        settings__["agent_id"] = i
-                        settings__['state_bounds'] = settings['state_bounds'][i]
-                        settings__['action_bounds'] = settings['action_bounds'][i]
-                        if ("fd_action_bounds" in settings):
-                            settings__['action_bounds'] = settings['fd_action_bounds'][i]
-                        settings__['reward_bounds'] = settings['reward_bounds'][i]
-                        state_bounds_fd__ = getFDStateSize(settings__)
-                        action_bounds_fd__ = settings__['action_bounds']
-                        experience__fd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds_fd__[0]), settings['experience_length'][i],
-                                          continuous_actions=True, settings = settings__ 
-                                          # result_state_length=settings["dense_state_size"]
-                                          ) 
-                        experience__fd.setStateBounds(settings__['state_bounds'])
-                        experience__fd.setActionBounds(settings__['action_bounds'])
-                        experience__fd.setRewardBounds(settings__['reward_bounds'])
-                        experiencefd.append(experience__fd)
-                else:
-                    experiencefd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds[0]), settings['experience_length'],
-                                      continuous_actions=True, settings = settings 
-                                      # result_state_length=settings["dense_state_size"]
-                                      )
-                    experiencefd.setRewardBounds(settings__['reward_bounds'])
-                model.setFDExperience(experiencefd)
-        else:
-            experience = ExperienceMemory(len(model.getStateBounds()[0]), 1, settings['experience_length'])
-            experience.setSettings(settings)
-            experience.setStateBounds(model.getStateBounds())
-            experience.setRewardBounds(model.getRewardBounds())
-            experience.setActionBounds(model.getActionBounds())
+                experiencefd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds[0]), settings['experience_length'],
+                                    continuous_actions=settings['action_space_continuous'], settings = settings 
+                                    # result_state_length=settings["dense_state_size"]
+                                    )
+                experiencefd.setRewardBounds(settings__['reward_bounds'])
+            model.setFDExperience(experiencefd)
             
         model.setExperience(experience)
         
@@ -351,7 +349,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         else:
             model.setStateBounds(state_bounds)
             model.setRewardBounds(reward_bounds)
-            model.setActionBounds(action_bounds)
+            if settings['action_space_continuous']:
+                model.setActionBounds(action_bounds)
         
         """
         (states, actions, resultStates, rewards_) = collectExperienceActionsContinuous(exp, settings['experience_length'], settings=settings, action_selection=action_selection)

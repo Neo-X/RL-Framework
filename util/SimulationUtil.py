@@ -468,7 +468,7 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
     if settings['action_space_continuous']:
         n_out_ = len(action_bounds[0])
     else:
-        n_out_ = len(action_bounds)
+        n_out_ = settings["discrete_actions"]
     if (settings['load_saved_model'] == True):
         return None
     

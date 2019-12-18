@@ -46,7 +46,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     if action_space_continuous:
         action_bounds = model.getActionBounds()
         omega = settings["omega"]
-    model.setNoise(action_bounds[0] * 0.0)
+    if (settings["action_space_continuous"]):
+        model.setNoise(action_bounds[0] * 0.0)
         
     if ( (bootstrapping == True) and 
          (settings["exploration_method"] == "sampling") ):

@@ -1369,6 +1369,8 @@ class LearningAgent(AgentInterface):
                     
     def setActionBounds(self, bounds):
         import numpy as np
+        if not self.getSettings()["action_space_continuous"]:
+            return
         bounds = np.array(bounds[:,:len(self.getPolicy().getActionBounds()[0])])
         self.getPolicy().setActionBounds(bounds)
         if (self.getExperience() is not None):

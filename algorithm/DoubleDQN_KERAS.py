@@ -20,41 +20,24 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Actor summary: ", self._model._actor.summary())
         
-        if ( "use_centralized_critic" in self.getSettings()
-             and (self.getSettings()["use_centralized_critic"] == True)
-             and False):
-            self._model._critic = Model(inputs=[self._model.getResultStateSymbolicVariable(),
-                                              self._model.getActionSymbolicVariable()], outputs=self._model._critic)
-        else:
-            self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable(),
-                                              self._model.getActionSymbolicVariable()], outputs=self._model._critic)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("Critic summary: ", self._model._critic.summary())
         
+        n_out = self.getSettings()["discrete_actions"]
+        print ("n_out:", n_out)
+        self._modelB = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
+        self._modelB._actor = Model(inputs=[self._modelB.getStateSymbolicVariable()], outputs=self._modelB._actor)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("ActorB summary: ", self._modelB._actor.summary())
+       
         self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
         self._modelTarget._actor = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=self._modelTarget._actor)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("Target Actor summary: ", self._modelTarget._actor.summary())
-        if ( "use_centralized_critic" in self.getSettings()
-             and (self.getSettings()["use_centralized_critic"] == True)
-             and False):
-            self._modelTarget._critic = Model(inputs=[self._modelTarget.getResultStateSymbolicVariable(),
-                                                  self._modelTarget.getActionSymbolicVariable()], outputs=self._modelTarget._critic)
-        else:
-            self._modelTarget._critic = Model(inputs=[self._modelTarget.getStateSymbolicVariable(),
-                                                  self._modelTarget.getActionSymbolicVariable()], outputs=self._modelTarget._critic)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("Target Critic summary: ", self._modelTarget._critic.summary())
-
-        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print ("Clipping: ", sgd.decay)
-        self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
+            print("Actor Target summary: ", self._modelTarget._actor.summary())
         
-        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
+        self._modelBTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
+        self._modelBTarget._actor = Model(inputs=[self._modelBTarget.getStateSymbolicVariable()], outputs=self._modelBTarget._actor)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print ("Clipping: ", sgd.decay)
-        self._modelTarget.getCriticNetwork().compile(loss='mse', optimizer=sgd)
+            print("Actor B Target summary: ", self._modelBTarget._actor.summary())
+       
 
         DoubleDQN_KERAS.compile(self)
 
@@ -89,8 +72,29 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Clipping: ", sgd.decay)
-        self._modelTarget.getActorNetwork().compile(loss='mse', optimizer=sgd)
+        self._modelB.getActorNetwork().compile(loss='mse', optimizer=sgd)
 
+    def reset(self):
+        """
+            Reset any state for the agent model
+        """
+        # self._model.reset()
+        # if not (self._modelTarget is None):
+        #     self._modelTarget.reset()
+
+    def getNetworkParameters(self):
+        params = []
+        params.append(copy.deepcopy(self._model.getActorNetwork().get_weights()))
+        params.append(copy.deepcopy(self._modelB.getActorNetwork().get_weights()))
+        params.append(copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
+        params.append(copy.deepcopy(self._modelBTarget.getActorNetwork().get_weights()))
+        return params
+    
+    def setNetworkParameters(self, params):
+        self._model.getActorNetwork().set_weights(params[0])
+        self._modelB.getActorNetwork().set_weights( params[1] )
+        self._modelTarget.getActorNetwork().set_weights( params[2])
+        self._modelBTarget.getActorNetwork().set_weights( params[3])
         
     def train(self, states, actions, rewards, result_states):
         self.setData(states, actions, rewards, result_states)
@@ -106,8 +110,8 @@ class DoubleDQN_KERAS(KERASAlgorithm):
                               batch_size=states.shape[0],
                               verbose=0)
         else:
-            target = rewards + self._discount_factor * np.max(self._model.getActorNetwork().predict(result_states), axis=-1)
-            score = self._modelTarget.getActorNetwork().fit([states], [target], epochs=1, 
+            target = rewards + self._discount_factor * np.max(self._modelbTarget.getActorNetwork().predict(result_states), axis=-1)
+            score = self._modelB.getActorNetwork().fit([states], [target], epochs=1, 
                               batch_size=states.shape[0],
                               verbose=0)
             
@@ -126,26 +130,29 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         if r == 0:
             action = np.argmax(self._model.getActorNetwork().predict(state))
         else:
-            action = np.argmax(self._modelTarget.getActorNetwork().predict(state))
+            action = np.argmax(self._modelB.getActorNetwork().predict(state))
 
+        print ("action: ", action)
+        action = np.array([action])
+        print ("action2: ", action)
         return action
 
     def compute_q(self, state):
         # state = [state]
-        print ("state: ", state)
+        # print ("state: ", state)
         state = np.array(state, dtype=self._settings['float_type'])
         # print ("Q value: ", state)
         values = self._model.getActorNetwork().predict(state)
-        valuesB = self._modelTarget.getActorNetwork().predict(state)
+        valuesB = self._modelB.getActorNetwork().predict(state)
         # values = np.concatenate((values, valuesB), axis=2)
         
-        print ("values: ", values)
-        print ("valuesB: ", valuesB)
+        # print ("values: ", values)
+        # print ("valuesB: ", valuesB)
         minQ = np.minimum(values, valuesB)
-        print ("minQ: ", minQ )
+        # print ("minQ: ", minQ )
         values = minQ
         values = np.max(minQ, axis=-1, keepdims=True)
-        print  ("values: ", values)
+        # print  ("values: ", values)
         return values
         
     def q_value(self, state):
@@ -170,6 +177,6 @@ class DoubleDQN_KERAS(KERASAlgorithm):
     
     def bellman_error(self, states, actions, rewards, result_states):
         # print ("Bellman error 2 actions: ", len(actions) , " rewards ", len(rewards), " states ", len(states), " result_states: ", len(result_states))
-        b = self._model.getActorNetwork().predict([states, actions, rewards, result_states])
-        return self._bellman_error2()
+        b = self._model.getActorNetwork().predict([states])
+        return np.mean(b)
         # return self._bellman_error(state, action, reward, result_state)
