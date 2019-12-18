@@ -1074,7 +1074,9 @@ class LearningAgent(AgentInterface):
                     # print ('Using Thompson sampling')
                     action = thompsonExploration(self, self.getSettings()["exploration_rate"], state_)
                 elif ((self.getSettings()['exploration_method'] == 'deterministic')):
-                    # print ('Using Thompson sampling')
+                    ### try random action
+                    pa_ = np.random.choice(range(2), 1)
+                    print ("pa_:", pa_)
                     action = pa_
                 elif ((self.getSettings()['exploration_method'] == 'sampling')):
                     ## Use a sampling method to find a good action

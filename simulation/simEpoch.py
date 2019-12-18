@@ -56,7 +56,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         
     if (movieWriter is not None):
         exp.setMovieWriter(movieWriter)
-    action_selection = range(len(settings["discrete_actions"]))   
+    if (isinstance(settings["discrete_actions"], list)):
+        action_selection = range(len(settings["discrete_actions"]))
+    else:
+        action_selection = range(settings["discrete_actions"])
+    print ("Action selection: " + str(action_selection))   
     reward_bounds = np.array(settings['reward_bounds'] )
     pa=None
     # Actor should be FIRST here
@@ -126,7 +130,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         
         # state_ = exp.getState()
         # print ("state_: ", repr(np.array(state_).shape))
-        # print ("state_: ", state_)
+        print ("state_: ", state_)
         action=None
             
         (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,

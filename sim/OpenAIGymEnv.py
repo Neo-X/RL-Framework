@@ -102,7 +102,7 @@ class OpenAIGymEnv(SimInterface):
         # observation, reward, done, info = env.step(action)
         # self._previous_observation = observation
         
-        state = np.array(self._previous_observation)
+        state = [np.array(self._previous_observation)]
         """
         ### Because some of the state parameters from the sim are always the same number.
         state_idx=0

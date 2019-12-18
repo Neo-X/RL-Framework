@@ -6,10 +6,11 @@ from model.ModelUtil import *
 import keras.backend as K
 import keras
 from keras.models import Sequential, Model
+from algorithm.KERASAlgorithm import *
 
 from algorithm.AlgorithmInterface import AlgorithmInterface
 
-class DoubleDQN_KERAS(AlgorithmInterface):
+class DoubleDQN_KERAS(KERASAlgorithm):
     
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
         
@@ -45,10 +46,6 @@ class DoubleDQN_KERAS(AlgorithmInterface):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Target Critic summary: ", self._modelTarget._critic.summary())
 
-        self._discount_factor= self.getSettings()['discount_factor']
-        self._rho = self.getSettings()['rho']
-        self._rms_epsilon = self.getSettings()['rms_epsilon']
-
         sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Clipping: ", sgd.decay)
@@ -73,17 +70,16 @@ class DoubleDQN_KERAS(AlgorithmInterface):
                   self._discount_factor * K.max(self._q_valsB_A, axis=1, keepdims=True))
         # diff = target - self._q_valsA[K.arange(keras.backend.int_shape(self._model.getStateSymbolicVariable())[-1]),
         #                       self._model.getActionSymbolicVariable().reshape((-1,))].reshape((-1, 1))# Does some fancy indexing to get the column of interest
-        diff = target - self._q_valsA[K.arange( self._model.getActionSymbolicVariable().reshape((-1,))]# Does some fancy indexing to get the column of interest
-                               
-        loss = diff
+        # diff = target - self._q_valsA[K.max(self._model.getActionSymbolicVariable())]# Does some fancy indexing to get the column of interest
+        # loss = diff
         
-        targetB = (self._model.getRewardSymbolicVariable() +
+        # targetB = (self._model.getRewardSymbolicVariable() +
                 #(T.ones_like(terminals) - terminals) *
-                  self._discount_factor * K.max(self._q_valsA_B, axis=1, keepdims=True))
-        diffB = targetB - self._q_valsB[K.arange(len(self._modelTarget.getStateValues())),
-                               self._model.getActionSymbolicVariable().reshape((-1,))].reshape((-1, 1))# Does some fancy indexing to get the column of interest
+        #          self._discount_factor * K.max(self._q_valsA_B, axis=1, keepdims=True))
+        # diffB = targetB - self._q_valsB[K.arange(len(self._modelTarget.getStateValues())),
+        #                        self._model.getActionSymbolicVariable().reshape((-1,))].reshape((-1, 1))# Does some fancy indexing to get the column of interest
                                
-        lossB = diffB 
+        # lossB = diffB 
 
         sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -105,39 +101,72 @@ class DoubleDQN_KERAS(AlgorithmInterface):
         import random
         r = random.choice([0,1])
         if r == 0:
-            loss, _ = self._model.getActorNetwork().fit([states, actions, rewards, result_states])
-            
-            # diff_ = self.bellman_error(states, actions, rewards, result_states)
+            target = rewards + self._discount_factor * np.max(self._modelTarget.getActorNetwork().predict(result_states), axis=-1)
+            score = self._model.getActorNetwork().fit([states], [target], epochs=1, 
+                              batch_size=states.shape[0],
+                              verbose=0)
         else:
-            loss, _ = self._modelTarget.getActorNetwork().fit([states, actions, rewards, result_states])
+            target = rewards + self._discount_factor * np.max(self._model.getActorNetwork().predict(result_states), axis=-1)
+            score = self._modelTarget.getActorNetwork().fit([states], [target], epochs=1, 
+                              batch_size=states.shape[0],
+                              verbose=0)
             
             # diff_ = self.bellman_errorB(states, actions, rewards, result_states)
+        loss = np.mean(score.history['loss'])
         return loss
     
-    def q_value(self, state):
-        """
-            Don't normalize here it is done in q_values
-        """
-        # state = [norm_state(state, self._state_bounds)]
-        q_values = self.q_values(state)
-        action_ = self.predict(state)
-        # print ("q_values: " + str(q_values) + " Action: " + str(action_))
-        original_val = q_values[action_]
-        return original_val
     
-    def predict(self, state):
+    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
         """
             Don't normalize here it is done in q_values
         """
-        # state = [norm_state(state, self._state_bounds)]
-        q_vals = self.q_values(state)
-        return np.argmax(q_vals)
+        state = norm_state(state, self._state_bounds)
+        # q_vals = self.q_values2(state)
+        r = random.choice([0,1])
+        if r == 0:
+            action = np.argmax(self._model.getActorNetwork().predict(state))
+        else:
+            action = np.argmax(self._modelTarget.getActorNetwork().predict(state))
+
+        return action
+
+    def compute_q(self, state):
+        # state = [state]
+        print ("state: ", state)
+        state = np.array(state, dtype=self._settings['float_type'])
+        # print ("Q value: ", state)
+        values = self._model.getActorNetwork().predict(state)
+        valuesB = self._modelTarget.getActorNetwork().predict(state)
+        # values = np.concatenate((values, valuesB), axis=2)
+        
+        print ("values: ", values)
+        print ("valuesB: ", valuesB)
+        minQ = np.minimum(values, valuesB)
+        print ("minQ: ", minQ )
+        values = minQ
+        values = np.max(minQ, axis=-1, keepdims=True)
+        print  ("values: ", values)
+        return values
+        
+    def q_value(self, state):
+        # state = [state]
+        state = norm_state(state, self._state_bounds)
+        q = self.compute_q(state)
+        values = (q * action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        return values
     
     def q_values(self, state):
-        state = [norm_state(state, self._state_bounds)]
-        # print ("Q value: ", state)
-        self._model.setStates(state)
-        return self._q_vals()[0]
+        # state = [state]
+        q = self.compute_q(state)
+        return q
+
+    def q_values2(self, states, wrap=True):
+        ### These versions of states are NOT normalized yet
+        # state = [state]
+        state = norm_state(states, self._state_bounds)
+        q = self.compute_q(state)
+        values = (q * action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        return values
     
     def bellman_error(self, states, actions, rewards, result_states):
         # print ("Bellman error 2 actions: ", len(actions) , " rewards ", len(rewards), " states ", len(states), " result_states: ", len(result_states))

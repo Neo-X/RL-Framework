@@ -35,7 +35,10 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     settings['use_model_based_action_optimization'] = False
     if (settings["exploration_method"] == "sampling"):
         settings['exploration_method'] = "gaussian_network"
-    action_selection = range(len(settings["discrete_actions"]))
+    if (isinstance(settings["discrete_actions"], list)):
+        action_selection = range(len(settings["discrete_actions"]))
+    else:
+        action_selection = range(settings["discrete_actions"])
     print ("Action selection: " + str(action_selection))
     # state_bounds = np.array(settings['state_bounds'])
     # state_bounds = np.array([[0],[0]])

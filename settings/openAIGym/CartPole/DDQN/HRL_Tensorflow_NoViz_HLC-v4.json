@@ -74,7 +74,7 @@
     "comment__": "Use the variance calculated from the policy network (calculated using dropout)",
 "use_actor_policy_action_variance_suggestion": false,
     "comment__": "Method used for action exploration [gaussian_random|OrnsteinUhlenbeck]",
-"exploration_method": "gaussian_random",
+"exploration_method": "deterministic",
     "comment__": "Amount of dropout to use in the networks (if using a dropout network)",
 "dropout_p": 0.0,
     "comment__": "Regularization weight for the policy network",
@@ -262,11 +262,8 @@
 "critic_network_layer_sizes": [
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "integrate_actor_part"},
-								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dropout", "rate": 0.2}
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [ 
