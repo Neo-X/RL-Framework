@@ -95,6 +95,17 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         self._modelB.getActorNetwork().set_weights( params[1] )
         self._modelTarget.getActorNetwork().set_weights( params[2])
         self._modelBTarget.getActorNetwork().set_weights( params[3])
+
+    def updateTargetModel(self):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Updating target Model")
+        """
+            Target model updates
+        """
+        ### Some models don't have target networks. Mostly FD models.
+        if (self._model is not None and (self._modelTarget is not None)):
+            self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
+            self._modelBTarget.getActorNetwork().set_weights( copy.deepcopy(self._modelB.getActorNetwork().get_weights()))
         
     def train(self, states, actions, rewards, result_states):
         self.setData(states, actions, rewards, result_states)
