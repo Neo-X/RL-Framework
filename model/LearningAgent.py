@@ -1076,7 +1076,7 @@ class LearningAgent(AgentInterface):
                 elif ((self.getSettings()['exploration_method'] == 'deterministic')):
                     ### try random action
                     pa_ = np.random.choice(range(2), 1)
-                    print ("pa_:", pa_)
+                    # print ("pa_:", pa_)
                     action = pa_
                 elif ((self.getSettings()['exploration_method'] == 'sampling')):
                     ## Use a sampling method to find a good action

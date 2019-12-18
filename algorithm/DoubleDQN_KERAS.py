@@ -107,30 +107,47 @@ class DoubleDQN_KERAS(KERASAlgorithm):
             self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
             self._modelBTarget.getActorNetwork().set_weights( copy.deepcopy(self._modelB.getActorNetwork().get_weights()))
         
-    def train(self, states, actions, rewards, result_states):
-        self.setData(states, actions, rewards, result_states)
+    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]], p=1.0,
+                    updates=1, batch_size=None):
 
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
         import random
         r = random.choice([0,1])
-        if r == 0:
-            target = rewards + self._discount_factor * np.max(self._modelTarget.getActorNetwork().predict(result_states), axis=-1)
-            score = self._model.getActorNetwork().fit([states], [target], epochs=1, 
-                              batch_size=states.shape[0],
-                              verbose=0)
+        # if r == 0:
+        targets = self._model.getActorNetwork().predict(states)
+        # print ("targets", targets)
+        maxQ = np.max(self._modelTarget.getActorNetwork().predict(result_states), axis=-1, keepdims=True)
+        # print ("maxQ", maxQ)
+        target = rewards + (self._discount_factor * maxQ)
+        # print ("target", target)
+        # print ("actions", actions)
+        # print ("targets[actions]: ", targets[actions])
+        # print ("targets[actions] 2: ", targets[actions.flatten()])
+        for i in range(len(states)):
+            targets[i][actions[i][0]] = target[i]
+        # print ("targets", targets)
+        score = self._model.getActorNetwork().fit([states], [targets], epochs=1, 
+                            batch_size=states.shape[0],
+                            verbose=0)
+        """
         else:
-            target = rewards + self._discount_factor * np.max(self._modelbTarget.getActorNetwork().predict(result_states), axis=-1)
+            targets = self._modelB.getActorNetwork().predict(state)
+            target = rewards + self._discount_factor * np.max(self._modelBTarget.getActorNetwork().predict(result_states), axis=-1)
+            targets[actions] = target
             score = self._modelB.getActorNetwork().fit([states], [target], epochs=1, 
                               batch_size=states.shape[0],
                               verbose=0)
-            
+        """ 
             # diff_ = self.bellman_errorB(states, actions, rewards, result_states)
         loss = np.mean(score.history['loss'])
         return loss
-    
-    
+
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, 
+                   G_t=[[0]], forwardDynamicsModel=None, p=1.0, updates=1, batch_size=None):
+        pass 
+
     def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
         """
             Don't normalize here it is done in q_values
@@ -143,9 +160,9 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         else:
             action = np.argmax(self._modelB.getActorNetwork().predict(state))
 
-        print ("action: ", action)
+        # print ("action: ", action)
         action = np.array([action])
-        print ("action2: ", action)
+        # print ("action2: ", action)
         return action
 
     def compute_q(self, state):
@@ -186,8 +203,8 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         values = (q * action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         return values
     
-    def bellman_error(self, states, actions, rewards, result_states):
+    def bellman_error(self, states, actions, rewards, result_states, falls):
         # print ("Bellman error 2 actions: ", len(actions) , " rewards ", len(rewards), " states ", len(states), " result_states: ", len(result_states))
         b = self._model.getActorNetwork().predict([states])
-        return np.mean(b)
+        return np.min(b, axis=-1, keepdims=True)
         # return self._bellman_error(state, action, reward, result_state)

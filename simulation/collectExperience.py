@@ -39,7 +39,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         action_selection = range(len(settings["discrete_actions"]))
     else:
         action_selection = range(settings["discrete_actions"])
-    print ("Action selection: " + str(action_selection))
+    # print ("Action selection: " + str(action_selection))
     # state_bounds = np.array(settings['state_bounds'])
     # state_bounds = np.array([[0],[0]])
     rlPrint(settings, text="state bounds: " + str(settings['state_bounds']))
