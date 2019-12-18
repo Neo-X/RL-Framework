@@ -115,31 +115,26 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         self._updates += 1
         import random
         r = random.choice([0,1])
-        # if r == 0:
-        targets = self._model.getActorNetwork().predict(states)
-        # print ("targets", targets)
-        maxQ = np.max(self._modelTarget.getActorNetwork().predict(result_states), axis=-1, keepdims=True)
-        # print ("maxQ", maxQ)
-        target = rewards + (self._discount_factor * maxQ)
-        # print ("target", target)
-        # print ("actions", actions)
-        # print ("targets[actions]: ", targets[actions])
-        # print ("targets[actions] 2: ", targets[actions.flatten()])
-        for i in range(len(states)):
-            targets[i][actions[i][0]] = target[i]
-        # print ("targets", targets)
-        score = self._model.getActorNetwork().fit([states], [targets], epochs=1, 
-                            batch_size=states.shape[0],
-                            verbose=0)
-        """
+        if r == 0:
+            targets = self._model.getActorNetwork().predict(states)
+            maxQ = np.max(self._modelBTarget.getActorNetwork().predict(result_states), axis=-1, keepdims=True)
+            target = rewards + (self._discount_factor * maxQ)
+            for i in range(len(states)):
+                targets[i][actions[i][0]] = target[i]
+            score = self._model.getActorNetwork().fit([states], [targets], epochs=1, 
+                                batch_size=states.shape[0],
+                                verbose=0)
+        
         else:
-            targets = self._modelB.getActorNetwork().predict(state)
-            target = rewards + self._discount_factor * np.max(self._modelBTarget.getActorNetwork().predict(result_states), axis=-1)
-            targets[actions] = target
-            score = self._modelB.getActorNetwork().fit([states], [target], epochs=1, 
-                              batch_size=states.shape[0],
-                              verbose=0)
-        """ 
+            targets = self._modelB.getActorNetwork().predict(states)
+            maxQ = np.max(self._modelTarget.getActorNetwork().predict(result_states), axis=-1, keepdims=True)
+            target = rewards + (self._discount_factor * maxQ)
+            for i in range(len(states)):
+                targets[i][actions[i][0]] = target[i]
+            score = self._modelB.getActorNetwork().fit([states], [targets], epochs=1, 
+                                batch_size=states.shape[0],
+                                verbose=0)
+         
             # diff_ = self.bellman_errorB(states, actions, rewards, result_states)
         loss = np.mean(score.history['loss'])
         return loss
@@ -205,6 +200,84 @@ class DoubleDQN_KERAS(KERASAlgorithm):
     
     def bellman_error(self, states, actions, rewards, result_states, falls):
         # print ("Bellman error 2 actions: ", len(actions) , " rewards ", len(rewards), " states ", len(states), " result_states: ", len(result_states))
-        b = self._model.getActorNetwork().predict([states])
-        return np.min(b, axis=-1, keepdims=True)
+        state = norm_state(states, self._state_bounds)
+        result_states = norm_state(result_states, self._state_bounds)
+        q = self.q_values(states)
+        
+        targets = self._model.getActorNetwork().predict(states)
+        maxQ = np.max(self._modelTarget.getActorNetwork().predict(result_states), axis=-1, keepdims=True)
+        target = rewards + (self._discount_factor * maxQ)
+        for i in range(len(states)):
+            targets[i][actions[i][0]] = target[i]
+        
+        score = self._model.getActorNetwork().fit([states], [targets], epochs=1, 
+                            batch_size=states.shape[0],
+                            verbose=0)
+        return q - np.max(targets, axis=-1, keepdims=True)
         # return self._bellman_error(state, action, reward, result_state)
+
+    def saveTo(self, fileName):
+        # print(self, "saving model")
+        import h5py
+        hf = h5py.File(fileName+"_bounds.h5", "w")
+        hf.create_dataset('_state_bounds', data=self.getStateBounds())
+        hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
+        # hf.create_dataset('_action_bounds', data=self.getActionBounds())
+        # hf.create_dataset('_result_state_bounds', data=self.getResultStateBounds())
+        hf.flush()
+        hf.close()
+        suffix = ".h5"
+        ### Save models
+        # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
+        self._model._actor.save(fileName+"_actor"+suffix, overwrite=True)
+        self._modelB._actor.save(fileName+"_actor"+suffix, overwrite=True)
+        if (self._modelTarget is not None):
+            self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True)
+            self._modelBTarget._actor.save(fileName+"_actorB_T"+suffix, overwrite=True)
+        # print ("self._model._actor_train: ", self._model._actor_train)
+        try:
+            from keras.utils import plot_model
+            ### Save model design as image
+            plot_model(self._model._actor, to_file=fileName+"_actor"+'.svg', show_shapes=True)
+            # plot_model(self._model._critic, to_file=fileName+"_critic"+'.svg', show_shapes=True)
+        except Exception as inst:
+            ### Maybe the needed libraries are not available
+            print ("Error saving diagrams for rl models.")
+            print (inst)
+        
+    def loadFrom(self, fileName):
+        from keras.models import load_model
+        import h5py
+        suffix = ".h5"
+        print ("Loading agent: ", fileName)
+        ### Because the simulation and learning use different model types (statefull vs stateless lstms...)
+        actor = load_model(fileName+"_actor"+suffix)
+        actorB = load_model(fileName+"_actorB"+suffix)
+        self._model._actor.set_weights(actor.get_weights())
+        self._model._actor.optimizer = actor.optimizer
+        self._modelB._actor.set_weights(actorB.get_weights())
+        self._modelB._actor.optimizer = actorB.optimizer
+        if (self._modelTarget is not None):
+            
+            actor = load_model(fileName+"_actor_T"+suffix)
+            actorB = load_model(fileName+"_actor_T"+suffix)
+            
+            self._modelTarget._actor.set_weights(actor.get_weights())
+            # self._modelTarget._actor.optimizer = actor.optimizer
+            self._modelBTarget._actor.set_weights(actor.get_weights())
+            # self._modelTarget._critic.optimizer = critic.optimizer
+            
+        self.compile()
+        # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
+        # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
+        hf = h5py.File(fileName+"_bounds.h5",'r')
+        self.setStateBounds(np.array(hf.get('_state_bounds')))
+        self.setRewardBounds(np.array(hf.get('_reward_bounds')))
+        # self.setActionBounds(np.array(hf.get('_action_bounds')))
+        print ("critic self.getStateBounds(): ", self.getStateBounds()) 
+        # self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
+        hf.close()
+        
+
+
