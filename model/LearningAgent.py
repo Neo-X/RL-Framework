@@ -319,14 +319,16 @@ class LearningAgent(AgentInterface):
             if ('state_normalization' in self._settings and (self._settings["state_normalization"] == "adaptive")):
                 self.getExperience()._updateScaling()
                 self.setStateBounds(self.getExperience().getStateBounds())
-                self.setActionBounds(self.getExperience().getActionBounds())
+                if (self._settings["action_space_continuous"]):
+                    self.setActionBounds(self.getExperience().getActionBounds())
                 self.setRewardBounds(self.getExperience().getRewardBounds())
                 if ( ('keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'] == True))
                      ):
                     self.getFDExperience()._updateScaling()
                     if ( ('train_forward_dynamics' in self._settings and (self._settings['train_forward_dynamics'] == True))):
                         self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
-                        self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
+                        if (self._settings["action_space_continuous"]):
+                            self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
                         self.getForwardDynamics().setRewardBounds(self.getFDExperience().getRewardBounds())
                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                     print("Learner, Scaling State params: ", self.getStateBounds())

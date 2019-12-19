@@ -24,7 +24,7 @@ import numpy as np
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 # env = gym.make('MembraneTarget-v0')
-env = gym.make('CartPole-v0')
+env = gym.make('MountainCar-v0')
 # MembraneHardware-v0
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
@@ -50,7 +50,7 @@ for i_episode in range(20):
         # action = action * 0.0
         print ("action: ", action)
         observation, reward, done, info = env.step(action)
-        # print("Reward: ", reward)
+        print("Reward: ", reward)
         rewards.append(reward)
         states.append(observation)
         if (t >= (time_limit-1)) or done:

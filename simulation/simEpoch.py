@@ -330,7 +330,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             else:
                 reward_ = [[reward_]]
         
-        
+        # print ("reward_: ", reward_)
         if ("replace_next_state_with_imitation_viz_state" in settings
             and (settings["replace_next_state_with_imitation_viz_state"] == True)):
             ### This only works properly in the dual state rep case.

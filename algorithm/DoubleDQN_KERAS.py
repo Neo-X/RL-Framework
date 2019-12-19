@@ -115,6 +115,7 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         self._updates += 1
         import random
         r = random.choice([0,1])
+        # print ("rewards: ", rewards)
         if r == 0:
             targets = self._model.getActorNetwork().predict(states)
             maxQ = np.max(self._modelBTarget.getActorNetwork().predict(result_states), axis=-1, keepdims=True)
@@ -136,6 +137,8 @@ class DoubleDQN_KERAS(KERASAlgorithm):
                                 verbose=0)
          
             # diff_ = self.bellman_errorB(states, actions, rewards, result_states)
+        # print ("targets: ", targets)
+
         loss = np.mean(score.history['loss'])
         return loss
 
