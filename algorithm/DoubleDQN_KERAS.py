@@ -126,7 +126,11 @@ class DoubleDQN_KERAS(KERASAlgorithm):
             # print ("self._modelTarget.getActorNetwork().predict(result_states): ", self._modelTarget.getActorNetwork().predict(result_states))
             # print ("actionsStar: ", actionsStar)
             for i in range(len(states)):
-                target_ = rewards[i] + (self._discount_factor * maxQ[i][actionsStar[i]])
+                if ("use_fall_reward_shaping" in self.getSettings()):
+                    target_ = rewards[i] + (self._discount_factor * maxQ[i][actionsStar[i]] * falls[i])
+                    # print ("falls: ", falls[i], rewards[i], target_, maxQ[i][actionsStar[i]])
+                else:
+                    target_ = rewards[i] + (self._discount_factor * maxQ[i][actionsStar[i]])
                 targets[i][actions[i][0]] = target_
             score = self._model.getActorNetwork().fit([states], [targets], epochs=1, 
                                 batch_size=states.shape[0],
@@ -141,7 +145,10 @@ class DoubleDQN_KERAS(KERASAlgorithm):
             # print ("self._modelTarget.getActorNetwork().predict(result_states): ", self._modelTarget.getActorNetwork().predict(result_states))
             # print ("actionsStar: ", actionsStar)
             for i in range(len(states)):
-                target_ = rewards[i] + (self._discount_factor * maxQ[i][actionsStar[i]])
+                if ("use_fall_reward_shaping" in self.getSettings()):
+                    target_ = rewards[i] + (self._discount_factor * maxQ[i][actionsStar[i]] * falls[i])
+                else:
+                    target_ = rewards[i] + (self._discount_factor * maxQ[i][actionsStar[i]])
                 targets[i][actions[i][0]] = target_
             score = self._modelB.getActorNetwork().fit([states], [targets], epochs=1, 
                                 batch_size=states.shape[0],
