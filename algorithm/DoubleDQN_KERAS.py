@@ -117,21 +117,32 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         r = random.choice([0,1])
         # print ("rewards: ", rewards)
         if r == 0:
+        # if r == 0 or r == 1:
             targets = self._model.getActorNetwork().predict(states)
-            maxQ = np.max(self._modelBTarget.getActorNetwork().predict(result_states), axis=-1, keepdims=True)
-            target = rewards + (self._discount_factor * maxQ)
+            actionsStar = np.argmax(self._modelTarget.getActorNetwork().predict(result_states), axis=-1)
+            maxQ = self._modelBTarget.getActorNetwork().predict(result_states)
+            # target = rewards + (self._discount_factor * maxQ)
+            # print ("maxQ: ", maxQ)
+            # print ("self._modelTarget.getActorNetwork().predict(result_states): ", self._modelTarget.getActorNetwork().predict(result_states))
+            # print ("actionsStar: ", actionsStar)
             for i in range(len(states)):
-                targets[i][actions[i][0]] = target[i]
+                target_ = rewards[i] + (self._discount_factor * maxQ[i][actionsStar[i]])
+                targets[i][actions[i][0]] = target_
             score = self._model.getActorNetwork().fit([states], [targets], epochs=1, 
                                 batch_size=states.shape[0],
                                 verbose=0)
         
         else:
             targets = self._modelB.getActorNetwork().predict(states)
-            maxQ = np.max(self._modelTarget.getActorNetwork().predict(result_states), axis=-1, keepdims=True)
-            target = rewards + (self._discount_factor * maxQ)
+            actionsStar = np.argmax(self._modelBTarget.getActorNetwork().predict(result_states), axis=-1)
+            maxQ = self._modelTarget.getActorNetwork().predict(result_states)
+            # target = rewards + (self._discount_factor * maxQ)
+            # print ("maxQ: ", maxQ)
+            # print ("self._modelTarget.getActorNetwork().predict(result_states): ", self._modelTarget.getActorNetwork().predict(result_states))
+            # print ("actionsStar: ", actionsStar)
             for i in range(len(states)):
-                targets[i][actions[i][0]] = target[i]
+                target_ = rewards[i] + (self._discount_factor * maxQ[i][actionsStar[i]])
+                targets[i][actions[i][0]] = target_
             score = self._modelB.getActorNetwork().fit([states], [targets], epochs=1, 
                                 batch_size=states.shape[0],
                                 verbose=0)
@@ -152,11 +163,17 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         """
         state = norm_state(state, self._state_bounds)
         # q_vals = self.q_values2(state)
-        r = random.choice([0,1])
-        if r == 0:
-            action = np.argmax(self._model.getActorNetwork().predict(state))
+
+        value = self._model.getActorNetwork().predict(state)
+        valueMax = np.max(value, axis=-1, keepdims=True)
+
+        valueB = self._modelB.getActorNetwork().predict(state)
+        valueBMax = np.max(valueB, axis=-1, keepdims=True)
+
+        if valueMax > valueBMax:
+            action = np.argmax(value, axis=-1)
         else:
-            action = np.argmax(self._modelB.getActorNetwork().predict(state))
+            action = np.argmax(valueB, axis=-1)
 
         # print ("action: ", action)
         action = np.array([action])
