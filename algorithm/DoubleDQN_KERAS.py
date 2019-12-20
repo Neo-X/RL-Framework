@@ -257,7 +257,7 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         ### Save models
         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
         self._model._actor.save(fileName+"_actor"+suffix, overwrite=True)
-        self._modelB._actor.save(fileName+"_actor"+suffix, overwrite=True)
+        self._modelB._actor.save(fileName+"_actorB"+suffix, overwrite=True)
         if (self._modelTarget is not None):
             self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True)
             self._modelBTarget._actor.save(fileName+"_actorB_T"+suffix, overwrite=True)
