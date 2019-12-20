@@ -176,7 +176,7 @@ class DoubleDQN_KERAS(KERASAlgorithm):
             action = np.argmax(valueB, axis=-1)
 
         # print ("action: ", action)
-        action = np.array([action])
+        # action = np.array([action])
         # print ("action2: ", action)
         return action
 
