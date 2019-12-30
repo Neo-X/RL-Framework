@@ -1,0 +1,21 @@
+
+numpy
+theano==1.0.1
+matplotlib
+dill
+pathos
+pyOpenGL
+### I have a custom version of keras now...
+git+https://github.com/Neo-X/keras.git
+tensorflow==1.14
+keras-layer-normalization
+## Does not work in Python3
+# pip3 install pyODE
+h5py
+imageio
+pytest
+dask
+toolz
+### For rendering network models to svg files from keras
+pydot
+pillow

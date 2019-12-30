@@ -1048,6 +1048,29 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         return exp
 
+    elif ((env_type == 'miniGrid')):
+        sys.path.append('/home/gberseth/playground/BayesianSurpriseCode/')
+        from surprise.envs.minigrid.envs.simple_room import SimpleEnemyEnv
+        from surprise.buffers.buffers import BernoulliBuffer
+        from surprise.wrappers.base_surprise import BaseSurpriseWrapper
+        from surprise.wrappers.visitation_count import VisitationCountWrapper
+        from sim.OpenAIGymEnv import OpenAIGymEnv
+        env_name = config_file
+        def env_factory():
+            #env = SimpleEnemyEnv(max_steps=500, agent_pos=(6,9))
+            env = SimpleEnemyEnv(max_steps=500)
+            env.see_through_walls = True
+            env = BaseSurpriseWrapper(
+                    env, 
+                    BernoulliBuffer(51), 
+                    env.max_steps
+                )
+            return env
+        env = env_factory()
+        
+        exp = OpenAIGymEnv(env, conf, multiAgent=False)
+        return exp
+    
     
     elif ((env_type == 'RLSimulations')):
         from rlsimenv.EnvWrapper import getEnv
@@ -1305,6 +1328,7 @@ def createActor(env_type, settings, experience):
           or (env_type == 'Metaworld')
           or (env_type == 'MetaworldHRL')
           or (env_type == 'MetaworldGoal')
+          or (env_type == 'miniGrid')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)

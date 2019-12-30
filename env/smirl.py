@@ -13,7 +13,7 @@ def env_factory():
     env.see_through_walls = True
     env = BaseSurpriseWrapper(
             env, 
-            BernoulliBuffer(49), 
+            BernoulliBuffer(51), 
             env.max_steps
         )
     return env
