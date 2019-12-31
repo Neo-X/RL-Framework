@@ -1067,7 +1067,8 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                 )
             return env
         env = env_factory()
-        
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
         exp = OpenAIGymEnv(env, conf, multiAgent=False)
         return exp
     

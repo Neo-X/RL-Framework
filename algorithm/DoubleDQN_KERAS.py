@@ -162,7 +162,7 @@ class DoubleDQN_KERAS(KERASAlgorithm):
 
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, 
                    G_t=[[0]], forwardDynamicsModel=None, p=1.0, updates=1, batch_size=None):
-        pass 
+        return 0
 
     def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
         """
