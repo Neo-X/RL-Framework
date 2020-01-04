@@ -231,17 +231,14 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         result_states = norm_state(result_states, self._state_bounds)
         q = self.q_values(states)
         
+        ### Just evaluates one network for now. It would be good to average both.
         targets = self._model.getActorNetwork().predict(states)
         maxQ = np.max(self._modelTarget.getActorNetwork().predict(result_states), axis=-1, keepdims=True)
         target = rewards + (self._discount_factor * maxQ)
         for i in range(len(states)):
             targets[i][actions[i][0]] = target[i]
         
-        # score = self._model.getActorNetwork().fit([states], [targets], epochs=1, 
-        #                    batch_size=states.shape[0],
-        #                    verbose=0)
         return q - np.max(targets, axis=-1, keepdims=True)
-        # return self._bellman_error(state, action, reward, result_state)
 
     def saveTo(self, fileName):
         # print(self, "saving model")
