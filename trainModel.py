@@ -860,15 +860,11 @@ def trainModelParallel(inputData):
             trainData["round"] = int(trainData["round"])
             settings["round"] = int(trainData["round"])
             masterAgent.setSettings(settings)
-            # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
-            # p = (settings['initial_temperature'] / (math.log(round_))) 
-            # p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds))
             if ( 'annealing_schedule' in settings and (settings['annealing_schedule'] != False)):
                 p = anneal_value(float(trainData["round"]/rounds), settings_=settings)
             else:
                 p = ((settings['initial_temperature']/math.log(trainData["round"]+2))) 
-            # p = ((rounds - trainData["round"])/rounds) ** 2
-            p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
+            p = max(settings['min_epsilon'], min(1.0, p))*settings['epsilon'] # Keeps it between 1.0 and 0.2
             if ( settings['load_saved_model'] == True):
                 p = settings['min_epsilon']
                 

@@ -517,6 +517,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     G_ts.extend(copy.deepcopy(discounted_rewards(np.array(rewards), discount_factor)))
     discounted_sum = G_ts
     
+    ## replace fall with termination flag.
+    falls[-1] = ([[False]] * len(state_))
     if print_data:
         print ("Evaluation: ", str(evalData))
         print ("Eval Datas: ", evalDatas, falls) 

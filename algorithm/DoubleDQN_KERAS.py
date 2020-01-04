@@ -237,9 +237,9 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         for i in range(len(states)):
             targets[i][actions[i][0]] = target[i]
         
-        score = self._model.getActorNetwork().fit([states], [targets], epochs=1, 
-                            batch_size=states.shape[0],
-                            verbose=0)
+        # score = self._model.getActorNetwork().fit([states], [targets], epochs=1, 
+        #                    batch_size=states.shape[0],
+        #                    verbose=0)
         return q - np.max(targets, axis=-1, keepdims=True)
         # return self._bellman_error(state, action, reward, result_state)
 
