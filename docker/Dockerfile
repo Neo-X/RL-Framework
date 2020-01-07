@@ -67,12 +67,13 @@ RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 RUN git clone git@github.com:FracturedPlane/RLSimulationEnvironments.git /root/playground/RLSimulationEnvironments
 ENV RLSIMENV_PATH /root/playground/RLSimulationEnvironments
 
-
-RUN git clone git@github.com:Neo-X/RL-Framework.git /root/playground/RL-Framework
 RUN ls
+RUN git clone git@github.com:Neo-X/RL-Framework.git /root/playground/RL-Framework
+
 RUN pip install -r /root/playground/RL-Framework/requirements.txt
 # RUN popd
 
+RUN ls
 RUN git clone git@github.com:Neo-X/BayesianSurprise.git /root/playground/BayesianSurpriseCode
 RUN pip install -r /root/playground/BayesianSurpriseCode/requirements.txt
 ENV PYTHONPATH /root/playground/BayesianSurpriseCode/:${PYTHONPATH}
