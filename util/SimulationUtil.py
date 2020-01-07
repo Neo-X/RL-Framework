@@ -1063,7 +1063,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                 env.see_through_walls = True
                 env = BaseSurpriseWrapper(
                         env, 
-                        BernoulliBuffer(28), 
+                        BernoulliBuffer(132), 
                         env.max_steps
                     )
                 return env
