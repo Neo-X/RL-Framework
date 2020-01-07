@@ -19,3 +19,4 @@ toolz==0.10.0
 ### For rendering network models to svg files from keras
 pydot==1.4.1
 Pillow==7.0.0
+comet-ml==3.0.2
