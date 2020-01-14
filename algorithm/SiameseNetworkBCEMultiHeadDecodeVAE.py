@@ -509,7 +509,8 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                     # sequences1.extend(sequences1_)
                     # targets_.extend(targets___)
             else:
-                sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, datas["task_id"], self._settings)
+                task_ids = [data__["task_id"] for data__ in datas]
+                sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, task_ids, self._settings)
             sequences0 = np.array(sequences0)
             # print ("sequences0 shape: ", sequences0.shape)
             sequences1 = np.array(sequences1)

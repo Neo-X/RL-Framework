@@ -512,7 +512,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
 	"comment__": "specify the learning algorithm to use for the fd model",
-"fd_algorithm" : "algorithm.SiameseNetworkMultiHeadDecodeVAE.SiameseNetworkMultiHeadDecodeVAE",
+"fd_algorithm" : "algorithm.SiameseNetworkBCEMultiHeadDecodeVAE.SiameseNetworkBCEMultiHeadDecodeVAE",
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice", "slice_index": 196, "slice_label": "grf" },
@@ -560,7 +560,7 @@
 	"comment__": "replace the viz state in the next state with the state from the imitation agent",
 "replace_next_state_with_imitation_viz_state": true,
 	"comment__": "Type of smoothing funtion to filter the learned distance metric by",
-"learned_reward_smoother": true,
+"learned_reward_smoother": "bce",
 	"comment__": "Just train the fd model in an LSTM fashion",
 "train_LSTM_FD": false,
 	"comment__": "Use a stateful LSTM",
