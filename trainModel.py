@@ -847,8 +847,6 @@ def trainModelParallel(inputData):
             
         if ("pretrain_fd" in settings and (settings["pretrain_fd"] > 0)
             and (trainData["round"] == 0)):
-            # masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
-            #        sim_work_queues, datas=None, eval_episode_data_queue=None
             pretrainFD(masterAgent=masterAgent, states=states, actions=actions, resultStates=resultStates, rewards_=rewards_, 
                            falls_=falls_, G_ts_=G_ts_, exp_actions=exp_actions, advantage_=advantage_, sim_work_queues=sim_work_queues,
                            datas=datas, eval_episode_data_queue=eval_episode_data_queue)
