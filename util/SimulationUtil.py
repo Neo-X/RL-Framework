@@ -415,15 +415,6 @@ def validateSettings(settings):
         print ("******")
         return False
     """    
-    if ("use_fall_reward_shaping" in settings and
-        (settings["use_fall_reward_shaping"] == True)
-        and
-        (type(settings["sim_config_file"]) is list)):
-        ### The use of the "fall" data is overloaded and conflicts here
-        print ("******")
-        print ("Basic fall reward shaping does not work with multi task simulation.")
-        print ("******")
-        return False
     
     if ("use_fall_reward_shaping" in settings and
         (settings["use_fall_reward_shaping"] == True)
@@ -445,7 +436,7 @@ def validateSettings(settings):
         print ("A single network model does not work well for TRPO.")
         print ("******")
         return False
-    
+    """    
     if ("pretrain_fd" in settings
         and (settings['pretrain_fd'] > 0)
         and ("perform_multiagent_training" in settings)):
@@ -453,7 +444,7 @@ def validateSettings(settings):
         print ("Multi agent training does not yet support pretraining the FD models.")
         print ("******")
         return False
-
+    """
     if ("max_ent_rl" in settings
         and settings['max_ent_rl']
         and ("use_stochastic_policy" not in settings or not settings["use_stochastic_policy"])):
