@@ -1,7 +1,7 @@
 import gym
 import sys
 sys.path.append('/home/gberseth/playground/BayesianSurpriseCode/')
-from surprise.envs.minigrid.envs.simple_room import SimpleEnemyEnv
+from surprise.envs.minigrid.envs.maxwells_demon_room import MaxwellsDemonEnv
 from surprise.buffers.buffers import BernoulliBuffer
 from surprise.wrappers.base_surprise import BaseSurpriseWrapper
 from surprise.wrappers.visitation_count import VisitationCountWrapper
@@ -9,11 +9,12 @@ from surprise.wrappers.visitation_count import VisitationCountWrapper
 # Surprise + visitation
 def env_factory():
     #env = SimpleEnemyEnv(max_steps=500, agent_pos=(6,9))
-    env = SimpleEnemyEnv(max_steps=500)
+    env = MaxwellsDemonEnv(max_steps=500)
+    print ("env.observation_space.low: ", env.observation_space.low)
     env.see_through_walls = True
     env = BaseSurpriseWrapper(
             env, 
-            BernoulliBuffer(51), 
+            BernoulliBuffer(len(env.observation_space.low)), 
             env.max_steps
         )
     return env
