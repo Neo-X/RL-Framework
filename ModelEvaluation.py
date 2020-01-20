@@ -61,8 +61,7 @@ def modelEvaluationParallel(settings_file_name):
     batch_size=settings["batch_size"]
     state_bounds = np.array(settings['state_bounds'])
     action_space_continuous=settings["action_space_continuous"]  
-    discrete_actions = np.array(settings['discrete_actions'])
-    num_actions= discrete_actions.shape[0]
+    discrete_actions = settings['discrete_actions']
     reward_bounds=np.array(settings["reward_bounds"])
     action_space_continuous=settings['action_space_continuous']
     if action_space_continuous:
@@ -289,12 +288,13 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     batch_size=settings["batch_size"]
     state_bounds = settings['state_bounds']
     action_space_continuous=settings["action_space_continuous"]  
-    discrete_actions = np.array(settings['discrete_actions'])
-    num_actions= discrete_actions.shape[0]
+    discrete_actions = settings['discrete_actions']
     reward_bounds=np.array(settings["reward_bounds"])
     action_space_continuous=settings['action_space_continuous']
     if ( not (settings["action_bounds"] == "ask_env")) and action_space_continuous:
         action_bounds = settings["action_bounds"]
+    else:
+        action_bounds = [None]
     
     print ("Sim config file name: " + str(settings["sim_config_file"]))
     sim_index=0

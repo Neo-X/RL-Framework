@@ -404,6 +404,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         for i in range(len(layer_info)):
             # layer_desc = dict(layer_info[i])
             self._second_last_layer = network
+            # print ("layer_info:", layer_info)
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                 print ("Layer info: ", type(layer_info[i]))
                 print ("input: ", repr(network))

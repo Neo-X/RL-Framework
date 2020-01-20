@@ -28,7 +28,10 @@ class ModelInterface(object):
         self._action_bounds = action_bounds
         self._batch_size=settings_['batch_size']
         self._state_length = n_in
-        self._action_length = len(action_bounds[0])
+        if settings_['action_space_continuous']:
+            self._action_length = len(action_bounds[0])
+        else:
+            self._action_length = settings_["discrete_actions"]
         if ('size_of_result_state' in settings_):
             self._result_state_length = settings_['size_of_result_state']
         else:

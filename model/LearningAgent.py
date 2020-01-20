@@ -319,14 +319,16 @@ class LearningAgent(AgentInterface):
             if ('state_normalization' in self._settings and (self._settings["state_normalization"] == "adaptive")):
                 self.getExperience()._updateScaling()
                 self.setStateBounds(self.getExperience().getStateBounds())
-                self.setActionBounds(self.getExperience().getActionBounds())
+                if (self._settings["action_space_continuous"]):
+                    self.setActionBounds(self.getExperience().getActionBounds())
                 self.setRewardBounds(self.getExperience().getRewardBounds())
                 if ( ('keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'] == True))
                      ):
                     self.getFDExperience()._updateScaling()
                     if ( ('train_forward_dynamics' in self._settings and (self._settings['train_forward_dynamics'] == True))):
                         self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
-                        self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
+                        if (self._settings["action_space_continuous"]):
+                            self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
                         self.getForwardDynamics().setRewardBounds(self.getFDExperience().getRewardBounds())
                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                     print("Learner, Scaling State params: ", self.getStateBounds())
@@ -1074,7 +1076,9 @@ class LearningAgent(AgentInterface):
                     # print ('Using Thompson sampling')
                     action = thompsonExploration(self, self.getSettings()["exploration_rate"], state_)
                 elif ((self.getSettings()['exploration_method'] == 'deterministic')):
-                    # print ('Using Thompson sampling')
+                    ### try random action
+                    pa_ = np.random.choice(range(2), 1)
+                    # print ("pa_:", pa_)
                     action = pa_
                 elif ((self.getSettings()['exploration_method'] == 'sampling')):
                     ## Use a sampling method to find a good action
@@ -1367,6 +1371,8 @@ class LearningAgent(AgentInterface):
                     
     def setActionBounds(self, bounds):
         import numpy as np
+        if not self.getSettings()["action_space_continuous"]:
+            return
         bounds = np.array(bounds[:,:len(self.getPolicy().getActionBounds()[0])])
         self.getPolicy().setActionBounds(bounds)
         if (self.getExperience() is not None):

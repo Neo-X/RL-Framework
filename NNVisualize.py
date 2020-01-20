@@ -161,7 +161,7 @@ class NNVisualize(object):
         """
             Closes the figure window
         """
-        if ("save_video_to_file" in self._settings):
+        if ((self._settings is not None) and "save_video_to_file" in self._settings):
             self._movie.close()
         plt.close(self._fig)
         plt.close()

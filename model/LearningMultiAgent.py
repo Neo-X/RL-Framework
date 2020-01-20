@@ -1049,6 +1049,8 @@ class LearningMultiAgent(LearningAgent):
     def setStateBounds(self, bounds):
         [p.setStateBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
     def setActionBounds(self, bounds):
+        if not self.getSettings()["action_space_continuous"]:
+            return
         [p.setActionBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
     def setRewardBounds(self, bounds):
         [p.setRewardBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]

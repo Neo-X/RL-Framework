@@ -8,7 +8,7 @@
 	"comment__": "Name of the parameters that we want to tune",
 "param_to_tune": ["experience_length"],
 	"comment__": "Parameter bounds, for which values will be sampled",
-"param_bounds": [[25000, 50000]],
+"param_bounds": [[25000, 100000]],
 	"comment__": "parameter value type [int|float|bool]",
 "param_data_type": ["int"],
 	"comment__": "Number of samples to evaluation between the given bounds",

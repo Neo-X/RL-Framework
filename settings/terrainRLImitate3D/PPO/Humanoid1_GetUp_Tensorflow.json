@@ -347,5 +347,5 @@
 	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (no TD loss)",
 "dont_use_td_learning": false,
 	"comment__": "Whether or not to use fall reward shaping on the value function",
-"use_fall_reward_shaping": true
+"use_fall_reward_shaping": false
 }

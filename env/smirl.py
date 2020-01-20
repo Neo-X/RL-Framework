@@ -1,21 +1,24 @@
 import gym
-from gym import wrappers
-from gym import envs
-try:
-    import roboschool
-except:
-    print ("roboschool not installed")
-    pass
-try:
-    import gymdrl
-except:
-    print ("Membrane/gymdrl not installed")
-    pass
-try:
-    import pybullet_envs
-except:
-    print ("pybullet not installed")
-    pass
+import sys
+sys.path.append('/home/gberseth/playground/BayesianSurpriseCode/')
+from surprise.envs.minigrid.envs.maxwells_demon_room import MaxwellsDemonEnv
+from surprise.buffers.buffers import BernoulliBuffer
+from surprise.wrappers.base_surprise import BaseSurpriseWrapper
+from surprise.wrappers.visitation_count import VisitationCountWrapper
+
+# Surprise + visitation
+def env_factory():
+    #env = SimpleEnemyEnv(max_steps=500, agent_pos=(6,9))
+    env = MaxwellsDemonEnv(max_steps=500)
+    print ("env.observation_space.low: ", env.observation_space.low)
+    env.see_through_walls = True
+    env = BaseSurpriseWrapper(
+            env, 
+            BernoulliBuffer(len(env.observation_space.low)), 
+            env.max_steps
+        )
+    return env
+
 # from OpenGL import GL
 import numpy as np
 # print(envs.registry.all())
@@ -24,7 +27,7 @@ import numpy as np
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 # env = gym.make('MembraneTarget-v0')
-env = gym.make('CartPole-v1')
+env = env_factory()
 # MembraneHardware-v0
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
@@ -44,7 +47,7 @@ time_limit=256
 for i_episode in range(20):
     observation = env.reset()
     for t in range(time_limit):
-        env.render()
+        env.render(mode="human")
         # print(observation)
         action = env.action_space.sample()
         # action = action * 0.0

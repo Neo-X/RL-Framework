@@ -342,7 +342,6 @@ def trainModelParallel(inputData):
         train_on_validation_set=settings["train_on_validation_set"]
         state_bounds = settings['state_bounds']
         discrete_actions = settings['discrete_actions']
-        num_actions= len(discrete_actions) # number of rows
         print ("Sim config file name: " + str(settings["sim_config_file"]))
         # c = characterSim.Configuration(str(settings["sim_config_file"]))
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
@@ -353,6 +352,10 @@ def trainModelParallel(inputData):
         action_space_continuous=settings['action_space_continuous']
         if action_space_continuous:
             action_bounds = settings["action_bounds"]
+        else:
+            action_bounds = [None]
+            # action_bounds = [[-1] * settings["discrete_actions"],
+            #                    [1] * settings["discrete_actions"]]
             
             
         if (settings['num_available_threads'] == -1):
@@ -514,9 +517,11 @@ def trainModelParallel(inputData):
         ### Using a wrapper for the type of actor now
         actor = createActor(settings['environment_type'], settings, None)
         exp_val = None
-        for i in range(len(action_bounds)):
+        for i in range(len(state_bounds)):
             # print ("state_bounds[i]: ", state_bounds[i])
-            if ((action_bounds[i] != "ask_env")
+            if (action_space_continuous 
+                and (action_bounds[i] != "ask_env")
+                and (isinstance(action_bounds[i], list))
                 and
                 not validBounds(action_bounds[i])):
                 # Check that the action bounds are specified correctly
@@ -567,6 +572,7 @@ def trainModelParallel(inputData):
                 eval_sim_workers[0].start()
         
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
+        # sys.exit()
         forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
             forwardDynamicsModel = createNewFDModel(settings, exp_val, model)
@@ -678,7 +684,8 @@ def trainModelParallel(inputData):
                 # print ("****** state bounds mean: ", np.mean(masterAgent.getFDExperience().getStateBounds()))
                 # print ("****** fd exp mem insters ***: ", masterAgent.getFDExperience().inserts())
             
-        if (not validBounds(action_bounds)):
+        if (action_space_continuous
+            and not validBounds(action_bounds)):
             # Check that the action bounds are spcified correctly
             print("Action bounds invalid: ", action_bounds)
             sys.exit()
@@ -840,9 +847,9 @@ def trainModelParallel(inputData):
             
         if ("pretrain_fd" in settings and (settings["pretrain_fd"] > 0)
             and (trainData["round"] == 0)):
-            pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
-                           falls_, G_ts_, exp_actions, advantage_, datas, sim_work_queues, 
-                           eval_episode_data_queue)
+            pretrainFD(masterAgent=masterAgent, states=states, actions=actions, resultStates=resultStates, rewards_=rewards_, 
+                           falls_=falls_, G_ts_=G_ts_, exp_actions=exp_actions, advantage_=advantage_, sim_work_queues=sim_work_queues,
+                           datas=datas, eval_episode_data_queue=eval_episode_data_queue)
         
         print ("Starting first round: ", trainData["round"])
         if (settings['on_policy']):
@@ -853,15 +860,11 @@ def trainModelParallel(inputData):
             trainData["round"] = int(trainData["round"])
             settings["round"] = int(trainData["round"])
             masterAgent.setSettings(settings)
-            # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
-            # p = (settings['initial_temperature'] / (math.log(round_))) 
-            # p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds))
             if ( 'annealing_schedule' in settings and (settings['annealing_schedule'] != False)):
                 p = anneal_value(float(trainData["round"]/rounds), settings_=settings)
             else:
                 p = ((settings['initial_temperature']/math.log(trainData["round"]+2))) 
-            # p = ((rounds - trainData["round"])/rounds) ** 2
-            p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
+            p = max(settings['min_epsilon'], min(1.0, p))*settings['epsilon'] # Keeps it between 1.0 and 0.2
             if ( settings['load_saved_model'] == True):
                 p = settings['min_epsilon']
                 

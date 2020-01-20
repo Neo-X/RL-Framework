@@ -532,7 +532,7 @@
 	"comment__": "Anneal the learning rate",
 "anneal_learning_rate": false,
 	"comment__": "Add a negative reward when the robot falls",
-"use_fall_reward_shaping": true,
+"use_fall_reward_shaping": false,
 	"comment__": "Actor to scale the variance use to init the last layer of the policy",
 "actor_out_init_layer_scale": 0.01,
 	"comment__": "Perform multi agent training using different policies, number of agents",

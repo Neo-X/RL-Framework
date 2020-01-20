@@ -46,7 +46,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     if action_space_continuous:
         action_bounds = model.getActionBounds()
         omega = settings["omega"]
-    model.setNoise(action_bounds[0] * 0.0)
+    if (settings["action_space_continuous"]):
+        model.setNoise(action_bounds[0] * 0.0)
         
     if ( (bootstrapping == True) and 
          (settings["exploration_method"] == "sampling") ):
@@ -56,7 +57,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         
     if (movieWriter is not None):
         exp.setMovieWriter(movieWriter)
-    action_selection = range(len(settings["discrete_actions"]))   
+    if (isinstance(settings["discrete_actions"], list)):
+        action_selection = range(len(settings["discrete_actions"]))
+    else:
+        action_selection = range(settings["discrete_actions"])
+    # print ("Action selection: " + str(action_selection))   
     reward_bounds = np.array(settings['reward_bounds'] )
     pa=None
     # Actor should be FIRST here
@@ -339,7 +344,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             else:
                 reward_ = [[reward_]]
         
-        
+        # print ("reward_: ", reward_)
         if ("replace_next_state_with_imitation_viz_state" in settings
             and (settings["replace_next_state_with_imitation_viz_state"] == True)):
             ### This only works properly in the dual state rep case.
@@ -527,6 +532,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     G_ts.extend(copy.deepcopy(discounted_rewards(np.array(rewards), discount_factor)))
     discounted_sum = G_ts
     
+    ## replace fall with termination flag.
+    falls[-1] = ([[False]] * len(state_))
     if print_data:
         print ("Evaluation: ", str(evalData))
         print ("Eval Datas: ", evalDatas, falls) 

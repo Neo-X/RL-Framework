@@ -82,7 +82,7 @@ class PolicyTrainVisualize(object):
                 x_range_ = range(int(new_shape[0]))
                 # self._length = self._length/self._bin_size
                 mean = np.reshape(self._trainingDatas[i]['data'][self._key_][:new_length], new_shape)
-                print ("mean: ", mean)
+                # print ("mean: ", mean)
                 mean = np.mean(np.reshape(self._trainingDatas[i]['data'][self._key_][:new_length], new_shape), axis=1)
                 std = np.mean(np.reshape(self._trainingDatas[i]['data'][self._key_std_][:new_length], new_shape), axis=1)
                 
@@ -93,7 +93,7 @@ class PolicyTrainVisualize(object):
                                                      linewidth=3.0, 
                                                      c=colour_,
                                                      label=(self._trainingDatas[i]['name'])[64:])
-                print("Line colour: ", self._reward.get_color())
+                # print("Line colour: ", self._reward.get_color())
                 self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
                                                                               np.array(mean) - std, 
                                                                               np.array(mean) + std,
@@ -166,8 +166,8 @@ class PolicyTrainVisualize(object):
                     new_length = new_shape[0]*new_shape[1]
                     x_range_ = list(range(int(new_shape[0])))
                     # self._length = self._length/self._bin_size
-                    print (self._otherDatas[j][i]['data'][self._key_][:new_length])
-                    print (np.mean(self._otherDatas[j][i]['data'][self._key_][:new_length], axis=-1))
+                    # print (self._otherDatas[j][i]['data'][self._key_][:new_length])
+                    # print (np.mean(self._otherDatas[j][i]['data'][self._key_][:new_length], axis=-1))
                     """
                     if (len(np.array(self._otherDatas[j][i]['data'][self._key_][:new_length]).shape) > 1 ):
                         ### the case for multi-agent learning
@@ -181,7 +181,7 @@ class PolicyTrainVisualize(object):
                         means_.append(mean)
                         # mean_values_.append(mean_value)
                 
-                print("means_: ", means_)
+                # print("means_: ", means_)
                 """          
                 if (j == 3):
                     for i in range(len(means_)):
@@ -204,11 +204,11 @@ class PolicyTrainVisualize(object):
                         mean_values_[i] = np.insert(mean_values_[i], 0,mean_value[39])
                     x_range_ = list(range(39,39+int(means_[i].shape[0])))
                 """
-                print ("means_: ", means_)
-                print ("x_range_:", x_range_)
+                # print ("means_: ", means_)
+                # print ("x_range_:", x_range_)
                 mean = np.mean(means_, axis=0)
                 std = np.std(means_, axis=0)
-                print ("mean: ", type(mean[0]), mean)
+                # print ("mean: ", type(mean[0]), mean)
                 # mean_value = np.mean(mean_values_, axis=0)
                 # std_value = np.std(mean_values_, axis=0)
                 colour_ = cmap(j)
@@ -230,7 +230,7 @@ class PolicyTrainVisualize(object):
                 if (type(mean[0]) in (list, np.ndarray)):
                     print ("Multi-agent learning, plotting agents individually.")
                     for k in range(len(mean[0])):
-                        print ("agent mean: ", np.transpose(mean)[k].shape)
+                        # print ("agent mean: ", np.transpose(mean)[k].shape)
                         ### average wrt bin size
                         # np.transpose(mean)[k]
                         split_indices = [i for i  in range(self._bin_size, np.transpose(mean)[k].shape[0], self._bin_size) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
@@ -243,7 +243,7 @@ class PolicyTrainVisualize(object):
                                                      c=colour_,
                                                      label=(self._otherDatas[j][i]['name'] + " agent: " + str(k) + " samples: " + str(len(means_))),
                                                      marker=markers[k])
-                        print("Line colour: ", self._reward.get_color())
+                        # print("Line colour: ", self._reward.get_color())
                         self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
                                                                               vals__mean - vals__std, 
                                                                               vals__mean + vals__std,
@@ -259,7 +259,7 @@ class PolicyTrainVisualize(object):
                                                      linewidth=3.0, 
                                                      c=colour_,
                                                      label=(self._otherDatas[j][i]['name'] + " samples: " + str(len(means_))))
-                    print("Line colour: ", self._reward.get_color())
+                    # print("Line colour: ", self._reward.get_color())
                     self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
                                                                                   vals__mean - vals__std, 
                                                                                   vals__mean + vals__std,

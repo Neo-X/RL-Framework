@@ -243,7 +243,7 @@ def getDataDirectory(settings):
     return getBaseDataDirectory(settings)+settings["model_type"]+"/"
 
 def processBounds(state_bounds, action_bounds, settings, sim):
-    
+    import gym
     if ((state_bounds == "ask_env")
         or (state_bounds == ["ask_env"])):
         print ("Getting state bounds from environment")
@@ -251,6 +251,7 @@ def processBounds(state_bounds, action_bounds, settings, sim):
         s_max = sim.getEnvironment().observation_space.high
         print (sim.getEnvironment().observation_space.low)
         settings['state_bounds'] = [s_min,s_max]
+        print ("settings['state_bounds']: ", settings['state_bounds'])
         if ("perform_multiagent_training" in settings):
             settings['state_bounds'] = [settings['state_bounds']]
         state_bounds = settings['state_bounds']
@@ -262,10 +263,13 @@ def processBounds(state_bounds, action_bounds, settings, sim):
     if ((action_bounds == "ask_env")
         or (action_bounds == ["ask_env"])):
         print ("Getting action bounds from environment")
-        a_min = sim.getEnvironment()._action_space.low
-        a_max = sim.getEnvironment()._action_space.high
-        print (sim.getEnvironment()._action_space.low)
-        settings['action_bounds'] = [a_min,a_max]
+        if (not isinstance(sim.getEnvironment().action_space, gym.spaces.Discrete)):
+            a_min = sim.getEnvironment()._action_space.low
+            a_max = sim.getEnvironment()._action_space.high
+            print (sim.getEnvironment()._action_space.low)
+            settings['action_bounds'] = [a_min,a_max]
+        else:
+            settings['action_bounds'] = [[-1] * sim.getEnvironment().action_space.n, [1] * sim.getEnvironment().action_space.n]
         if ("perform_multiagent_training" in settings):
             settings['action_bounds'] = [settings['action_bounds']]
         action_bounds = settings['state_bounds']
@@ -411,15 +415,6 @@ def validateSettings(settings):
         print ("******")
         return False
     """    
-    if ("use_fall_reward_shaping" in settings and
-        (settings["use_fall_reward_shaping"] == True)
-        and
-        (type(settings["sim_config_file"]) is list)):
-        ### The use of the "fall" data is overloaded and conflicts here
-        print ("******")
-        print ("Basic fall reward shaping does not work with multi task simulation.")
-        print ("******")
-        return False
     
     if ("use_fall_reward_shaping" in settings and
         (settings["use_fall_reward_shaping"] == True)
@@ -441,7 +436,7 @@ def validateSettings(settings):
         print ("A single network model does not work well for TRPO.")
         print ("******")
         return False
-    
+    """    
     if ("pretrain_fd" in settings
         and (settings['pretrain_fd'] > 0)
         and ("perform_multiagent_training" in settings)):
@@ -449,7 +444,7 @@ def validateSettings(settings):
         print ("Multi agent training does not yet support pretraining the FD models.")
         print ("******")
         return False
-
+    """
     if ("max_ent_rl" in settings
         and settings['max_ent_rl']
         and ("use_stochastic_policy" not in settings or not settings["use_stochastic_policy"])):
@@ -464,7 +459,7 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
     if settings['action_space_continuous']:
         n_out_ = len(action_bounds[0])
     else:
-        n_out_ = len(action_bounds)
+        n_out_ = settings["discrete_actions"]
     if (settings['load_saved_model'] == True):
         return None
     
@@ -525,8 +520,9 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                 for m in range(settings["perform_multiagent_training"]):
                     settings__ = copy.deepcopy(settings_)
                     if (type(algorihtm_type) is list):
-                        algorihtm_type_ = algorihtm_type[m]
-                    print ("algorihtm_type_: ", algorihtm_type_)
+                        algorihtm_type_ = algorihtm_type_[m]
+                    else:
+                        algorihtm_type_ = algorihtm_type
                     modelAlgorithm = locate(algorihtm_type_)
                     if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                         settings__["agent_id"] = m
@@ -605,6 +601,8 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                 settings__ = copy.deepcopy(settings)
                 if (type(algorihtm_type) is list):
                     algorihtm_type_ = algorihtm_type[m]
+                else:
+                    algorihtm_type_ = algorihtm_type 
                 modelAlgorithm = locate(algorihtm_type_)
                 if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                     settings__["agent_id"] = m
@@ -1041,6 +1039,49 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         return exp
 
+    elif ((env_type == 'miniGrid')):
+        sys.path.append('/home/gberseth/playground/BayesianSurpriseCode/')
+        if (settings["sim_config_file"] == "simpleRoomLatent-v0"):
+            from surprise.envs.minigrid.envs.simple_room_latent import SimpleEnemyEnv
+            from surprise.buffers.buffers import BernoulliBuffer
+            from surprise.wrappers.base_surprise import BaseSurpriseWrapper
+            from surprise.wrappers.visitation_count import VisitationCountWrapper
+            from sim.OpenAIGymEnv import OpenAIGymEnv
+            env_name = config_file
+            def env_factory():
+                #env = SimpleEnemyEnv(max_steps=500, agent_pos=(6,9))
+                env = SimpleEnemyEnv(max_steps=500)
+                env.see_through_walls = True
+                env = BaseSurpriseWrapper(
+                        env, 
+                        BernoulliBuffer(132), 
+                        env.max_steps
+                    )
+                return env
+            env = env_factory()
+        else:
+            from surprise.envs.minigrid.envs.simple_room import SimpleEnemyEnv
+            from surprise.buffers.buffers import BernoulliBuffer
+            from surprise.wrappers.base_surprise import BaseSurpriseWrapper
+            from surprise.wrappers.visitation_count import VisitationCountWrapper
+            from sim.OpenAIGymEnv import OpenAIGymEnv
+            env_name = config_file
+            def env_factory():
+                #env = SimpleEnemyEnv(max_steps=500, agent_pos=(6,9))
+                env = SimpleEnemyEnv(max_steps=500)
+                env.see_through_walls = True
+                env = BaseSurpriseWrapper(
+                        env, 
+                        BernoulliBuffer(49), 
+                        env.max_steps
+                    )
+                return env
+            env = env_factory()
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = OpenAIGymEnv(env, conf, multiAgent=False)
+        return exp
+    
     
     elif ((env_type == 'RLSimulations')):
         from rlsimenv.EnvWrapper import getEnv
@@ -1298,6 +1339,7 @@ def createActor(env_type, settings, experience):
           or (env_type == 'Metaworld')
           or (env_type == 'MetaworldHRL')
           or (env_type == 'MetaworldGoal')
+          or (env_type == 'miniGrid')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)

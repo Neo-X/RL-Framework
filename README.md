@@ -3,9 +3,27 @@
 This package contains all of the python code used for learning. The code is based
 on Lasagne which is based on Theano.
 
-## Dependancies
+##### Create either venv or conda environment and activate it
 
- 1. installDependanciesPython3.sh
+###### Virtualenv
+```
+pip install --upgrade virtualenv
+virtualenv <venv-name>
+source <venv-name>/bin/activate
+```
+
+###### Anaconda 
+If not done yet, install [anaconda](https://www.anaconda.com/) by following the instructions [here](https://www.anaconda.com/download/#linux).
+Then reate a anaconda environment, activate it and install the requirements in [`requirements.txt`](requirements.txt).
+```
+conda create -n <env-name> python=3.6
+source activate <env-name>
+```
+
+##### B.3. Install the required python dependencies
+```
+pip install -r requirements.txt
+```
 
 ## Install On Windows
 
