@@ -200,6 +200,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             observation, reward_, done, info = actor.step(exp,action)
         # print ("observation", observation)
         # print ("state_", state_)
+
+        collision_count=np.add(info["collision"], collision_count)
+        fall_count=np.add(info["falls_sim"], fall_count)
+
         infos.append(info)
         if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
         and (settings["use_hrl_logic"]) == "full" ):
