@@ -762,9 +762,11 @@ class LearningMultiAgent(LearningAgent):
         exp_action = []
         entropy = []
         m_ = len(state)
+        """
+        ### This breaks the single model multi agent leraning stuff
         if ("perform_multiagent_training" in self.getSettings()):
             m_ = self.getSettings()['perform_multiagent_training']
-            
+        """ 
         if ( "use_hrl_logic" in self.getSettings() ### Add LLP state
              and (self.getSettings()["use_hrl_logic"]) == "full" ):
             state = self.addHRLData(state)

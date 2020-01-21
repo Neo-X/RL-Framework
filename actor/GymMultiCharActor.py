@@ -76,6 +76,7 @@ class GymMultiCharActor(ActorInterface):
     
         
     def step(self, sim, action_):
+        # print ("action_: ", np.array(action_).shape)
         reward = self.actContinuous(sim, action_, bootstrapping=False)
         ob = sim.getState()
         done = sim.endOfEpoch()
