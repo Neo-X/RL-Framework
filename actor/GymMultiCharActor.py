@@ -84,7 +84,8 @@ class GymMultiCharActor(ActorInterface):
         falls = [[int(sim.getEnvironment().endOfEpochForAgent(i))] for i in range(sim.getEnvironment().getNumAgents())]
         info = {"count": [[self._count]] * sim.getEnvironment().getNumAgents(),
                 "falls_sim": falls,
-                "reach_goal": reward > 10}
+                "reach_goal": reward > 10 ### Kind of lazy hack at the moment....
+                }
         # print ("info: ", info)
         return ob, reward, done, info
     
