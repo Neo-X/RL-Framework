@@ -82,7 +82,7 @@ if __name__ == '__main__':
     #####################
     #*******************************************************************************
     
-    datadir = './safe.csv'
+    datadir = './safe2.csv'
     df = pd.read_csv(datadir)
     #ax3.set_title(' Mewan reward / Steps')
     
@@ -176,28 +176,6 @@ if __name__ == '__main__':
     ###### Vanilla ######
     #####################
     
-    biped_falls = []
-    res = 5
-    
-    bf = list(df.iloc[87][1:])
-    bf =   np.array([float(x) for x in bf])
-    bf = (np.cumsum(bf)[res:] - np.cumsum(bf)[:-res])/res
-    time = 16000
-    for val in bf:
-        biped_falls.append((time, float(val)))
-        time += 16000
-    
-    bf = pd.DataFrame(biped_falls)
-    bf = bf.rename(columns={1: 'Biped Falls', 0: 'Steps'})
-    
-    # Move colors (true reward should be 5)
-    # sns.lineplot(data=[], x=None, y=None, ax=ax3)
-    # sns.lineplot(data=[], x=None, y=None, ax=ax3)
-    # sns.lineplot(data=[], x=None, y=None, ax=ax3)
-    label='PPO'
-    sns.lineplot(data=bf, x='Steps', y='Biped Falls', ax=ax3, label='PPO(Hetero)',c=colors[label])
-    ax3.lines[-1].set_linestyle(linestyle[label])
-    
     ax3.ticklabel_format(axis= 'x', style='sci', scilimits=(0,3))
     
     
@@ -205,7 +183,7 @@ if __name__ == '__main__':
     ax3.set(xlabel=' Env Steps ' )
     
     h,l = ax3.get_legend_handles_labels()
-    ax3.legend(h[:4],l[:4], bbox_to_anchor=(0.65, 0.5), loc=2)
+    ax3.legend(h[:4],l[:4], bbox_to_anchor=(0.65, 0.85), loc=2)
     
     #ax3.legend()
     '''

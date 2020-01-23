@@ -20,6 +20,7 @@ colors = {'SMiRL (ours)': 'k',
           'MAHRL(Homo)' : 'b',
           'MADDPG': 'r',
           'PPO': 'purple',
+          'TD3': 'orange',	 
          }
 linestyle = {'SMiRL (ours)': '-',
           'ICM': '-',
@@ -30,6 +31,7 @@ linestyle = {'SMiRL (ours)': '-',
           'MAHRL(Homo)' : '--',
           'MADDPG': '-.',
           'PPO': ':',
+          'TD3': '-',
          }
 def plotsns_smoothed(ax, s, df, label, title=None, ylabel=None, res=1):
     data = list(df[s])
@@ -83,7 +85,7 @@ if __name__ == '__main__':
     #####################
     #*******************************************************************************
     
-    datadir = 'safe.csv'
+    datadir = 'safe2.csv'
     df = pd.read_csv(datadir)
     #ax3.set_title(' Mewan reward / Steps')
     
@@ -199,45 +201,30 @@ if __name__ == '__main__':
     ax3.lines[-1].set_linestyle(linestyle[label])
 
 
-    #####################
+
+   #####################
     ###### Vanilla ######
     #####################
     
     biped_falls = []
     res = 5
     
-    bf = list(df.iloc[60][1:])
-    bf =   np.array([float(x) for x in bf])
+    bf = list(df.iloc[114][1:])
+    bf = np.array([float(x) for x in bf])
     bf = (np.cumsum(bf)[res:] - np.cumsum(bf)[:-res])/res
     time = 16000
     for val in bf:
         biped_falls.append((time, float(val)))
         time += 16000
     
-    bf = list(df.iloc[61][1:])
-    bf =   np.array([float(x) for x in bf])
-    bf = (np.cumsum(bf)[res:] - np.cumsum(bf)[:-res])/res
-    time = 16000
-    for val in bf:
-        biped_falls.append((time, float(val)))
-        time += 16000
+    # bf = list(df.iloc[12][1:])
+    # bf = 1 - np.array([float(x) for x in bf])
+    # bf = (np.cumsum(bf)[res:] - np.cumsum(bf)[:-res])/res
+    # time = 20000
+    # for val in bf:
+    #     biped_falls.append((time, float(val)))
+    #     time += 20000
     
-    bf = list(df.iloc[62][1:])
-    bf =   np.array([float(x) for x in bf])
-    bf = (np.cumsum(bf)[res:] - np.cumsum(bf)[:-res])/res
-    time = 16000
-    for val in bf:
-        biped_falls.append((time, float(val)))
-        time += 16000
-
-    bf = list(df.iloc[63][1:])
-    bf =   np.array([float(x) for x in bf])
-    bf = (np.cumsum(bf)[res:] - np.cumsum(bf)[:-res])/res
-    time = 16000
-    for val in bf:
-        biped_falls.append((time, float(val)))
-        time += 16000    
-
     bf = pd.DataFrame(biped_falls)
     bf = bf.rename(columns={1: 'Biped Falls', 0: 'Steps'})
     
@@ -245,10 +232,12 @@ if __name__ == '__main__':
     # sns.lineplot(data=[], x=None, y=None, ax=ax3)
     # sns.lineplot(data=[], x=None, y=None, ax=ax3)
     # sns.lineplot(data=[], x=None, y=None, ax=ax3)
-    label='PPO'
-    sns.lineplot(data=bf, x='Steps', y='Biped Falls', ax=ax3, label='PPO(Homo)',c=colors[label])
+    label='TD3'
+    sns.lineplot(data=bf, x='Steps', y='Biped Falls', ax=ax3, label='MAHRL(TD3,Hetero)',c=colors[label]  )
     ax3.lines[-1].set_linestyle(linestyle[label])
-    
+
+
+
     ax3.ticklabel_format(axis= 'x', style='sci', scilimits=(0,3))
     
     

@@ -82,7 +82,7 @@ if __name__ == '__main__':
     #####################
     #*******************************************************************************
     
-    datadir = './safe.csv'
+    datadir = './safe2.csv'
     df = pd.read_csv(datadir)
     #ax3.set_title(' Mewan reward / Steps')
     
