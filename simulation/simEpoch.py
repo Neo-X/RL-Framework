@@ -4,7 +4,6 @@
 import dill
 import sys
 import gc
-from dill.settings import settings
 # from theano.compile.io import Out
 sys.setrecursionlimit(50000)
 # from sim.PendulumEnvState import PendulumEnvState
