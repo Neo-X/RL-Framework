@@ -91,9 +91,9 @@ class GymMultiCharActor(ActorInterface):
         info = {"count": [[self._count]] * sim.getEnvironment().getNumAgents(),
                 "falls_sim": falls_sim,
                 "collision": collisions_sim,
+                "reach_goal": reward > 10 ### Kind of lazy hack at the moment....
                 }
-
-
+        # print ("info: ", info)
         return ob, reward, done, info
     
     # @profile(precision=5)
