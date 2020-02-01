@@ -808,6 +808,11 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         except:
             print ("metaworld not installed")
             pass
+        try:
+            import rlsimenv
+        except:
+            print ("rlsimenv not installed")
+            pass
         # from OpenGL import GL
         # load_roboschool
         # print(envs.registry.all())
