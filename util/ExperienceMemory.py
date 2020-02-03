@@ -51,7 +51,6 @@ class ExperienceMemory(object):
         self._samples=0 ## How many samples are in the buffer
         
         if (self._settings['float_type'] == 'float32'):
-            print ("(self._history_size, self._state_length) ", (self._history_size, self._state_length))
             self._state_history = (np.zeros((self._history_size, self._state_length), dtype='float32'))
             if self._continuous_actions:
                 self._action_history = (np.zeros((self._history_size, self._action_length), dtype='float32'))

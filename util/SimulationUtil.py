@@ -244,13 +244,19 @@ def getDataDirectory(settings):
 
 def processBounds(state_bounds, action_bounds, settings, sim):
     import gym
+    import numpy as np
     if ((state_bounds == "ask_env")
         or (state_bounds == ["ask_env"])):
         print ("Getting state bounds from environment")
         s_min = sim.getEnvironment().observation_space.low
         s_max = sim.getEnvironment().observation_space.high
         print (sim.getEnvironment().observation_space.low)
-        settings['state_bounds'] = [s_min,s_max]
+        if ("include_suffstate_in_state" in settings
+            and (settings["include_suffstate_in_state"] == True)):
+            length = (len(s_min) * 3 ) + 1
+            settings['state_bounds'] = [-np.ones(length),np.ones(length)]
+        else:
+            settings['state_bounds'] = [s_min,s_max]
         print ("settings['state_bounds']: ", settings['state_bounds'])
         if ("perform_multiagent_training" in settings):
             settings['state_bounds'] = [settings['state_bounds']]
@@ -808,15 +814,15 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         except:
             print ("metaworld not installed")
             pass
-        # from OpenGL import GL
-        # load_roboschool
+        try:
+            import rlsimenv
+        except:
+            print ("rlsimenv not installed")
+            pass
         # print(envs.registry.all())
         
-        # env = gym.make('CartPole-v0')
         env_name = config_file
         env = gym.make(env_name)
-        # file = open(config_file)
-        # conf = json.load(file)
         
         conf = copy.deepcopy(settings)
         conf['render'] = render
