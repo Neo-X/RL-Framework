@@ -184,8 +184,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # observation, reward_, done, info = actor.step(exp,[action[settings["hlc_index"]]])
         else:
             observation, reward_, done, info = actor.step(exp,action)
-        # print ("observation", observation)
-        # print ("state_", state_)
+
         infos.append(info)
         if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
         and (settings["use_hrl_logic"]) == "full" ):
@@ -595,7 +594,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (worker_id is not None):
             otherData["task_id"].extend(task_ids[s])
         for key in info:
-            otherData[key].extend(infos[s][key])
+            if (type(infos[s][key]) is list):
+                otherData[key].extend(infos[s][key])
+            else:
+                otherData[key].extend([infos[s][key]])
         ### Advantage is in a different format (agent , state)
         adv__ = []
         base__ = []
