@@ -241,7 +241,7 @@
     "comment__": "load a pretrained model for the controller",
 "load_saved_model": false,
 	"comment__": "Number of updates the critic should perform per actor update",
-"critic_updates_per_actor_update": 4,
+"critic_updates_per_actor_update": 16,
     "comment__": "weather or not to clamp actions to stay inside the action boundaries",
 "clamp_actions_to_stay_inside_bounds": false,
     "comment__": "Number of initial actions to sample before calculating input/output scaling and starting to train.",
@@ -275,13 +275,13 @@
     "comment__": "draw/render the next state suggested by the forward dynamics model",
 "visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
-"fd_learning_rate": 0.0001,
+"fd_learning_rate": 0.0005,
     "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": true,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
 "debug_critic": false,
     "comment__": "critic regularization weight",
-"critic_regularization_weight": 0.00001,
+"critic_regularization_weight": 0.0001,
     "comment__": "Critic learning rate",
 "critic_learning_rate": 0.001,
     "comment__": "During evaluation plot of value function",
@@ -631,5 +631,5 @@
 	"comment__": "Seperate the positive and negative pairs and perform two batches over the data.",
 "seperate_posandneg_pairs": true,
 	"comment__": "Add noise to the target noise values",
-"target_noise_scale": 0.1 
+"target_noise_scale": 0.05 
 }
