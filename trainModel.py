@@ -1181,7 +1181,8 @@ def trainModelParallel(inputData):
                     for key in otherMetrics[0]:
                         ### Put all info data in the logs
                         # print ("attempting to log metrics: ", key)
-                        logExperimentData(trainData, key, np.mean([met[key] for met in otherMetrics]), settings)
+                        # logExperimentData(trainData, key, np.mean([met[key] for met in otherMetrics]), settings)
+                        pass
                     logExperimentData(trainData, "mem_usage_sim", np.mean([met["mem_usage_sim"] for met in otherMetrics]), settings)
                     logExperimentData(trainData, "mem_usage_train", np.mean(current_mem_usage()), settings)
                     logExperimentData(trainData, "mean_reward", mean_reward, settings)
