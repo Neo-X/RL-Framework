@@ -510,7 +510,7 @@
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.0, "recurrent_dropout": 0.0}
+							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": true, "use_bias": false, "dropout": 0.0, "recurrent_dropout": 0.0}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
