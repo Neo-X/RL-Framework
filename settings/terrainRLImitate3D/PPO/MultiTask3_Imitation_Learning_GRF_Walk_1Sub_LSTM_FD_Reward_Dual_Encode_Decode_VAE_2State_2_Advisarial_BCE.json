@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_GRF_3D_Mixed_Viz3D_1Sub_Imitate_30FPS_DenseState_v1/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_Advisarial_FallReward2_T128_BCE_25",
+"data_folder": "PD_Humanoid_GRF_3D_Mixed_Viz3D_1Sub_Imitate_30FPS_DenseState_v1/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_Advisarial_FallReward2_T128_BCE_27",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -517,7 +517,7 @@
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice", "slice_index": 196, "slice_label": "grf" },
 							{"layer_type": "GaussianNoise", "stddev": 0.03},
-							{"layer_type": "Dense", "units": 256, "use_bias": false},
+							{"layer_type": "Dense", "units": 128, "use_bias": false},
 							{"layer_type": "BatchNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Dense", "units": 32, "use_bias": false},
@@ -528,7 +528,7 @@
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.0, "recurrent_dropout": 0.0}
+							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.0, "recurrent_dropout": 0.0}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -603,7 +603,7 @@
 	"comment__": "Return sequences from lstm training",
 "return_rnn_sequence": false,
 	"comment__": "condition siamese network on RNN internal state as well.",
-"condition_on_rnn_internal_state": true,
+"condition_on_rnn_internal_state": false,
 	"comment__": "Train the fd network as well",
 "train_lstm_fd_and_reward_together": false,
 	"comment__": "Train the fd network as well",
@@ -620,7 +620,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
-							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.0, "recurrent_dropout": 0.0, "activation": null},
+							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.0, "recurrent_dropout": 0.0, "activation": null},
 							{"layer_type": "LayerNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "TimeDistributedConv", "net_info":
