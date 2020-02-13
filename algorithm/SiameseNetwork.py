@@ -570,6 +570,8 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
     Alternates between positive and negative pairs.
     produces N sequences from two
     
+    ### We want the average for targets_ to be near .5 so the loss is balanced
+    
     class ids are stored in task_ids
     '''
     noise_scale = 0.02
@@ -586,7 +588,8 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
     sequences0 = []
     sequences1 = []
     targets_ = []
-    # print ("Generating Multi-task target labels: ", len(traj0))
+    poss = 0 ### Keep track of the number of positive vs negative pairs
+    ### Generating Multi-task target labels
     for i in range(len(traj0)):
     # for tr0, task_tr0 in zip(traj0, task_ids): ### for each trajectory pair
         tar_shape = (len(traj0[i]), 1)
@@ -610,22 +613,36 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
                 if  (task_ids[i][0][0] == task_ids[j][0][0]):
                     if ( i == j ): ### same trajectory
                         targets = np.ones(tar_shape)
+                        poss = poss + 1
                     else:
                         targets = np.ones(tar_shape) - compare_adjustment
+                        poss = poss + 1
                 else:
-                    targets = np.zeros(tar_shape) 
+                    if (poss >= 0):
+                        targets = np.zeros(tar_shape)
+                        poss = poss + -1
+                    else:
+                        continue
             elif (settings["worker_to_task_mapping"][task_ids[i][0][0]] == settings["worker_to_task_mapping"][task_ids[j][0][0]]): ### same task
                 if ( i == j ): ### same trajectory
                     targets = np.ones(tar_shape)
+                    poss = poss + 1
                 else:
                     targets = np.ones(tar_shape) - compare_adjustment
+                    poss = poss + 1
             else:
-                targets = np.zeros(tar_shape)
+                if (poss >= 0):
+                    targets = np.zeros(tar_shape)
+                    poss = poss + -1
+                else:
+                    continue
             # print ("task_ids[i][0][0]: ", task_ids[i][0][0], " task_ids[j][0][0]: ", task_ids[j][0][0])
-            # print ("multitask targets", np.mean(targets))
             targets_.append(add_noise(target_noise_scale, targets))
             if (use_agent_multitask_data):
                 targets_.append(add_noise(target_noise_scale, targets))
+                
+    ### We want the average for targets_ to be near .5
+    # print ("multitask targets mean", np.mean(targets_), " count: ", np.array(targets_).shape, " traj0 shape: ", np.array(traj0).shape, " poss: ", poss)
         
     return sequences0, sequences1, targets_
 

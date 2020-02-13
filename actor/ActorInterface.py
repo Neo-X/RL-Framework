@@ -165,10 +165,10 @@ class ActorInterface(object):
         return reward
     
     def step(self, sim, action_):
-        reward = self.actContinuous(sim, action_, bootstrapping=False)
+        ob, reward, done, info = self.actContinuous(sim, action_, bootstrapping=False)
         ob = sim.getState()
         done = sim.endOfEpoch()
-        info = {"count": [[self._count]] * self.getNumAgents()}
+        info["count"] = [[self._count]] * self.getNumAgents()
         # print ("info: ", info)
         return ob, reward, done, info
     

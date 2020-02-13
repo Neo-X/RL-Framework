@@ -95,7 +95,7 @@ class OpenAIGymEnv(SimInterface):
             and (self._settings["include_suffstate_in_state"] == True)):
             self._previous_observation = self.addSufficientStats(self._previous_observation) 
             self.getActor().updateScalling(self._previous_observation)
-        return reward
+        return observation, reward, done, info
     
     def getState(self):
         # state = np.array(self._exp.getState())

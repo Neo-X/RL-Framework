@@ -102,18 +102,18 @@ def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
         testing_ = True
     else:
         testing_ = False 
-    try:
-        if (not (("experiment_logging" in settings)
-                and (settings["experiment_logging"]["use_comet"] == True))):
-            
-            sendEmail(subject="Simulation complete: " + str(sim_time_), 
-                  contents=contents_, hyperSettings=metaSettings, simSettings=options['configFile'], 
-                  dataFile=tarFileName, testing=testing_, 
-                  pictureFile=pictureFileName)
-    except Exception as e:
-        print("Error sending email this computer might not be authorized to use the email account.")
-        print("Error: ", e)
-        print (traceback.format_exc())
+#     try:
+#         if (not (("experiment_logging" in settings)
+#                 and (settings["experiment_logging"]["use_comet"] == True))):
+#             
+#             sendEmail(subject="Simulation complete: " + str(sim_time_), 
+#                   contents=contents_, hyperSettings=metaSettings, simSettings=options['configFile'], 
+#                   dataFile=tarFileName, testing=testing_, 
+#                   pictureFile=pictureFileName)
+#     except Exception as e:
+#         print("Error sending email this computer might not be authorized to use the email account.")
+#         print("Error: ", e)
+#         print (traceback.format_exc())
 
     ### Backup data
     if (("backup_exp_data" in settings)

@@ -1177,9 +1177,9 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         ### Check action space size
         actionSpace = env.getActionSpace()
         
-        assert (len(actionSpace.getMaximum()) == len(settings["action_bounds"][0]), 
+        assert (len(actionSpace.high) == len(settings["action_bounds"][0]), 
                 "Length of action vector is " + str (len(settings["action_bounds"][0])) + " is should be " + 
-                str(len(actionSpace.getMaximum())))
+                str(len(actionSpace.high)))
         # sim.setRender(render)
         # sim.init()
         conf = copy.deepcopy(settings)

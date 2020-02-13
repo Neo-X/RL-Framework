@@ -32,7 +32,7 @@ class OpenAIGymActor(ActorInterface):
             )):
             state = sim.getState()
             
-        reward = sim.step(action_)
+        ob, reward, done, info  = sim.step(action_)
         if (sim.getMovieWriter() is not None
             and (sim.movieWriterSupport())):
             ### If the sim does not have it's own writing support
@@ -97,7 +97,7 @@ class OpenAIGymActor(ActorInterface):
             reward = (r_icm * bs_w) + r_smirl
         else:
             self._reward_sum = self._reward_sum + np.mean(reward)        
-        return reward
+        return ob, reward, done, info
         
     def updateAction(self, sim, action_):
         import numpy as np
