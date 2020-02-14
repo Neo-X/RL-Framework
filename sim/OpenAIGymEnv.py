@@ -82,7 +82,7 @@ class OpenAIGymEnv(SimInterface):
     def step(self, action):
         action_ = np.array(action)
         if (self.getSettings()['render']):
-            self.getEnvironment().render(mode="rgb_array")
+            self.getEnvironment().render(mode="human")
         if (self._multiAgent):
             observation, reward, done, info = self.getEnvironment().step(action_)
         else:
