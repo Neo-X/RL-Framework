@@ -175,6 +175,9 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
         
         if ("condition_on_rnn_internal_state" in self.getSettings()
             and (self.getSettings()["condition_on_rnn_internal_state"] == True)):
+            
+            print ("condition_on_rnn_internal_state is not supported becuase the reward does not use the internal state:")
+            sys.exit()
             _, processed_a_r, processed_a_r_c  = self._model._reward_net(network_)
             _, processed_b_r, processed_b_r_c = self._model._reward_net(network_b)
             processed_a_r = keras.layers.concatenate(inputs=[processed_a_r, processed_a_r_c], axis=1)
