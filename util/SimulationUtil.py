@@ -1077,11 +1077,6 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                 #env = SimpleEnemyEnv(max_steps=500, agent_pos=(6,9))
                 env = SimpleEnemyEnvHMM(max_steps=500)
                 env.see_through_walls = True
-                env = BaseSurpriseWrapper(
-                        env, 
-                        BernoulliBuffer(np.prod(np.array(env.observation_space.high).shape)), 
-                        env.max_steps
-                    )
                 return env
             env = env_factory()
         else:
