@@ -1,11 +1,13 @@
 #!/bin/bash
-#SBATCH --account=fc_rail
+#SBATCH --account=co_rail
+#SBATCH --partition=savio3_2080ti
+#SBATCH --nodes=1
+#SBATCH --constraints=8rtx
 #SBATCH --mem=16384M
 #SBATCH --time=24:00:00
 #SBATCH --job-name=test
 #SBATCH --output=%x-%j.out
 #SBATCH --cpus-per-task=8
-#SBATCH --partition=savio2
 
 #SBATCH --mail-user=gberseth@gmail.com
 #SBATCH --mail-type=BEGIN,END,FAIL,REQUEUE,ALL
