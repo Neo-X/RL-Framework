@@ -166,7 +166,7 @@ class SimWorker(Process):
                 print ("First Message: ", message)
             data = episodeData['data']
             self.updateAgent(data)
-            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                 print ("Sim worker:", os.getpid(), " State Bounds: ", self._model.getStateBounds())
             print ("Initial policy ready:")
             # print ("sim worker p: " + str(self._p))

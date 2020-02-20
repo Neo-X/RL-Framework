@@ -42,7 +42,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     # print ("Action selection: " + str(action_selection))
     # state_bounds = np.array(settings['state_bounds'])
     # state_bounds = np.array([[0],[0]])
-    rlPrint(settings, text="state bounds: " + str(settings['state_bounds']))
+    rlPrint(settings, level="debug", text="state bounds: " + str(settings['state_bounds']))
     reward_bounds=settings["reward_bounds"]
     action_bounds = settings["action_bounds"]
     state_bounds = settings['state_bounds']
@@ -206,6 +206,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             resultStatefd = resultState
             data___ = {}
             for key in data_:
+                
                 data___[key] = data_[key][j]
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)):

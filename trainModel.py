@@ -612,8 +612,8 @@ def trainModelParallel(inputData):
                 masterAgent.getAgents()[settings["policy_connections"][c][1]].getPolicy().setFrontPolicy(
                     masterAgent.getAgents()[settings["policy_connections"][c][0]])
         
-        print ("masterAgent state bounds: ", masterAgent.getStateBounds())
-        print ("state bounds: ", state_bounds)
+        # print ("masterAgent state bounds: ", masterAgent.getStateBounds())
+        # print ("state bounds: ", state_bounds)
         ### If the policy loaded state bounds use those
         state_bounds = masterAgent.getStateBounds()
         action_bounds = masterAgent.getActionBounds()
@@ -728,7 +728,7 @@ def trainModelParallel(inputData):
         ## Now everything related to the exp memory needs to be updated
         bellman_errors=[]
         masterAgent.setPolicy(model)
-        print("Master agent state bounds: ",  repr(masterAgent.getStateBounds()))
+        # print("Master agent state bounds: ",  repr(masterAgent.getStateBounds()))
         for sw in sim_workers: # Need to update parameter bounds for models
             print ("exp: ", sw._exp)
             print ("sw modle: ", sw._model.getPolicy()) 
