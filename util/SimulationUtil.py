@@ -257,10 +257,19 @@ def processBounds(state_bounds, action_bounds, settings, sim):
             settings['state_bounds'] = [-np.ones(length),np.ones(length)]
         else:
             settings['state_bounds'] = [s_min,s_max]
-        print ("settings['state_bounds']: ", settings['state_bounds'])
         if ("perform_multiagent_training" in settings):
-            settings['state_bounds'] = [settings['state_bounds']]
+            if ("use_centralized_critic" in settings and 
+                (settings["use_centralized_critic"] == True)):
+                bounds = [[],[]]
+                for i in range(settings["perform_multiagent_training"]):
+                    bounds[0].extend(s_min)
+                    bounds[1].extend(s_max)
+                settings['state_bounds'] = bounds
+                settings['state_bounds'] = [settings['state_bounds']] * settings["perform_multiagent_training"]
+            else:
+                settings['state_bounds'] = [settings['state_bounds']] * settings["perform_multiagent_training"]
         state_bounds = settings['state_bounds']
+        print ("settings['state_bounds']: ", np.array(settings['state_bounds']).shape)
         """
         if (int(settings["num_available_threads"]) != -1):
             print ("Removing extra environment.")
