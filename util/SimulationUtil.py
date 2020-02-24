@@ -245,7 +245,45 @@ def getDataDirectory(settings):
 def processBounds(state_bounds, action_bounds, settings, sim):
     import gym
     import numpy as np
-    if ((state_bounds == "ask_env")
+    
+    if ((action_bounds == "ask_env")
+        or (action_bounds == ["ask_env"])):
+        print ("Getting action bounds from environment")
+        if (not isinstance(sim.getEnvironment().action_space, gym.spaces.Discrete)):
+            a_min = sim.getEnvironment()._action_space.low
+            a_max = sim.getEnvironment()._action_space.high
+            print (sim.getEnvironment()._action_space.low)
+            settings['action_bounds'] = [a_min,a_max]
+        else:
+            settings['action_bounds'] = [[-1] * sim.getEnvironment().action_space.n, [1] * sim.getEnvironment().action_space.n]
+        if ("perform_multiagent_training" in settings):
+            settings['action_bounds'] = [settings['action_bounds']]
+        action_bounds = settings['state_bounds']
+        
+    if ("perform_multiagent_training" in settings):
+        print ("Getting state bounds from environment")
+        state_bounds_ = []
+        for i in range (settings["perform_multiagent_training"]):
+            if (state_bounds[i] == "ask_env"):
+                s_min = sim.getEnvironment().observation_space.low
+                s_max = sim.getEnvironment().observation_space.high
+                if ("use_centralized_critic" in settings and 
+                    (settings["use_centralized_critic"] == True)):
+                    bounds = [[],[]]
+                    for i in range(settings["perform_multiagent_training"]):
+                        bounds[0].extend(s_min)
+                        bounds[1].extend(s_max)
+                    
+                    other_agents_action_len = len(action_bounds[0][0])* (settings["perform_multiagent_training"]-1)
+                    bounds[0].extend(-np.ones((other_agents_action_len )))
+                    bounds[1].extend(np.ones((other_agents_action_len)))
+                    state_bounds_.append(bounds)
+                else:
+                    state_bounds_.append([s_min, s_max])
+        settings['state_bounds'] = state_bounds_
+        state_bounds = settings['state_bounds']
+        print ("settings['state_bounds']: ", np.array(settings['state_bounds']).shape)
+    elif ((state_bounds == "ask_env")
         or (state_bounds == ["ask_env"])):
         print ("Getting state bounds from environment")
         s_min = sim.getEnvironment().observation_space.low
@@ -270,25 +308,6 @@ def processBounds(state_bounds, action_bounds, settings, sim):
                 settings['state_bounds'] = [settings['state_bounds']] * settings["perform_multiagent_training"]
         state_bounds = settings['state_bounds']
         print ("settings['state_bounds']: ", np.array(settings['state_bounds']).shape)
-        """
-        if (int(settings["num_available_threads"]) != -1):
-            print ("Removing extra environment.")
-            exp_val.finish()
-        """
-    if ((action_bounds == "ask_env")
-        or (action_bounds == ["ask_env"])):
-        print ("Getting action bounds from environment")
-        if (not isinstance(sim.getEnvironment().action_space, gym.spaces.Discrete)):
-            a_min = sim.getEnvironment()._action_space.low
-            a_max = sim.getEnvironment()._action_space.high
-            print (sim.getEnvironment()._action_space.low)
-            settings['action_bounds'] = [a_min,a_max]
-        else:
-            settings['action_bounds'] = [[-1] * sim.getEnvironment().action_space.n, [1] * sim.getEnvironment().action_space.n]
-        if ("perform_multiagent_training" in settings):
-            settings['action_bounds'] = [settings['action_bounds']]
-        action_bounds = settings['state_bounds']
-        
         
     return (state_bounds, action_bounds, settings)
 

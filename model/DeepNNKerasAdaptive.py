@@ -133,7 +133,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         if ("image_data_format" in self._networkSettings ):
             self._data_format_ = self._networkSettings["image_data_format"]
         
-        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
             print ("self._stateInput ",  self._stateInput)
         inputAct = self._State
         
@@ -157,7 +157,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         else:
             ### Number of layers and sizes of layers        
             layer_sizes = self._settings['policy_network_layer_sizes']
-            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                 print ("Actor Network layer sizes: ", layer_sizes)
             networkAct = inputAct
             
@@ -238,7 +238,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             isRNN = True
             
         layer_sizes = self._settings['critic_network_layer_sizes']
-        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
             print ("Critic Network layer sizes: ", layer_sizes)
 
         if ("using_encoder_decoder" in self._settings
@@ -264,7 +264,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             
         if ( "use_single_network" in self._settings and 
              (self._settings['use_single_network'] == True)):
-            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                 print ("Using a single network model")
             if ("split_single_net_earlier" in self._networkSettings and 
                     self._networkSettings["split_single_net_earlier"] == True):
@@ -345,7 +345,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                            kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                            bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(input_)
                 subnet = Model(inputs=input_, outputs=subnet)
-                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                     print("Critic Subnet summary")
                     subnet.summary()
                 # subnet = Dense(8)
@@ -405,7 +405,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             # layer_desc = dict(layer_info[i])
             self._second_last_layer = network
             # print ("layer_info:", layer_info)
-            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                 print ("Layer info: ", type(layer_info[i]))
                 print ("input: ", repr(network))
             layer_parms = copy.deepcopy(layer_info[i])
@@ -416,8 +416,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                  **layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Reshape"):
-                print(layer_parms)
-                print(network)
+                # print(layer_parms)
+                # print(network)
                 network = Reshape(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Padding"):
                 network = Reshape([-1, 1])(network)
@@ -470,7 +470,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                                 self._State = input_ 
                         network = input_
                         self._State_ = input_   
-                print ("self._State_: ", repr(network))
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                    print ("self._State_: ", repr(network))
             elif (layer_info[i]["layer_type"] == "BatchNormalization"):
                 network = keras.layers.BatchNormalization(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "LayerNormalization"):
@@ -485,12 +486,15 @@ class DeepNNKerasAdaptive(ModelInterface):
                     input_act = self._actionInput
                 network = Concatenate()([network, input_act])          
             elif (layer_info[i]["layer_type"] == "Concatenate"):
-                print ("concatenating: ", repr(network))
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                    print ("concatenating: ", repr(network))
                 if ("slice_label" in layer_info[i]):
-                    print ("concatenating slice: ", repr(self._slices[layer_info[i]["slice_label"]]))
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        print ("concatenating slice: ", repr(self._slices[layer_info[i]["slice_label"]]))
                     network = Concatenate(axis=-1)([network, self._slices[layer_info[i]["slice_label"]]])
                 else:
-                    print ("concatenating _characterFeatures: ", repr(_characterFeatures))
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        print ("concatenating _characterFeatures: ", repr(_characterFeatures))
                     network = Concatenate(axis=-1)([network, _characterFeatures])
             elif (layer_info[i]["layer_type"] == "GRU"):
                 network = GRU(
@@ -508,15 +512,17 @@ class DeepNNKerasAdaptive(ModelInterface):
                     ### https://machinelearningmastery.com/timedistributed-layer-for-long-short-term-memory-networks-in-python/
                     if ( layer_info[i]["net_info"] == "fd" ):
                         subnet = self._actor
-                        print ("self._State_backup: ", self._State_backup)
-                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(self._State_backup)))
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                            print ("self._State_backup: ", self._State_backup)
+                            print ("*** subnet input shape: ", repr(keras.backend.int_shape(self._State_backup)))
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
                         # print("Subnet summary")
                         # subnet.summary()
                     else:
-                        print ("*** net input shape: ", repr(keras.backend.int_shape(network)))
                         input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="State_Conv")
-                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                            print ("*** net input shape: ", repr(keras.backend.int_shape(network)))
+                            print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
                         #if (layer_sizes[i]["isRNN"] == True):
                         #    subnet = self.createSubNetwork(input_, layer_info[i]["net_info"], isRNN=True)
                         #else:
@@ -526,8 +532,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                         # subnet.summary()
                         
                     ### Create a model (set of layers to distribute) pass in the original input to that model
-                    print ("*** subnet input ", network, " shape: ", repr(keras.backend.int_shape(network)))
-                    print ("self._state_length: ", self._state_length)
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        print ("*** subnet input ", network, " shape: ", repr(keras.backend.int_shape(network)))
+                        print ("self._state_length: ", self._state_length)
                     network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
             elif (layer_info[i]["layer_type"] == "slice"):
                 ### Need to make sure to create end slice first to not overwrite network then try and slice from it again...
@@ -537,22 +544,26 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if ("slice_input" in layer_info[i]):
                         input__ = self._slices[layer_info[i]["slice_input"]]
                     state_length_ = keras.backend.int_shape(input__)[1]
-                    print ("slice, state_length_: ", state_length_)
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        print ("slice, state_length_: ", state_length_)
                     # sys.exit()
                     self._slices[layer_info[i]["slice_label"]] = Lambda(keras_slice, output_shape=(state_length_-layer_info[i]["slice_index"],),
                                        arguments={'begin': layer_info[i]["slice_index"], 
                                                   'end': state_length_},
                                        name=layer_info[i]["slice_label"])(input__)
-                    print ("new slice network shape: ", repr(self._slices[layer_info[i]["slice_label"]]))
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):            
+                        print ("new slice network shape: ", repr(self._slices[layer_info[i]["slice_label"]]))
                     input__ = Lambda(keras_slice, output_shape=(layer_info[i]["slice_index"],),
                                   arguments={'begin': 0, 'end': layer_info[i]["slice_index"]}
                                   )(input__)
                     if ("slice_input" in layer_info[i]):
                         self._slices[layer_info[i]["slice_input"]] = input__
-                        print ("new network shape: ", repr(input__))
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                            print ("new network shape: ", repr(input__))
                     else:
                         network = input__
-                        print ("new network shape: ", repr(network))
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                            print ("new network shape: ", repr(network))
                     # sys.exit()
                 else:
                     _characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
@@ -653,30 +664,26 @@ class DeepNNKerasAdaptive(ModelInterface):
         layer_sizes = layer_info
         for i in range(len(layer_sizes)):
             self._second_last_layer = network
-            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                 print ("layer_sizes[",i,"]: ", layer_sizes[i])
                 # print ("shape[", i, "]: ", repr(keras.backend.int_shape(network)))
                 print ("tensor ", network, "shape[", i, "]: ", repr(keras.backend.int_shape(network)))
             if type(layer_sizes[i]) is list:
                 if (layer_sizes[i][0] == "GRU" or
                       layer_sizes[i][0] == "LSTM"):
-                    # print ("layer.output_shape: ", keras.backend.shape(network))
                     # network = Reshape((1, layer_sizes[i][1]))(network)
                     rnn_dropout=0.0
                     if (len(layer_sizes[i]) >= 4):
                         rnn_dropout = float (layer_sizes[i][3])
-                        print("Recurrent Dropout: ", rnn_dropout)
                     ### the RNN can return a sequence of outputs that can be used with a sequence of target values
                     rnn_return_sequence = False
                     rnn_return_state = False
                     if ((len(layer_sizes[i]) >= 5)
                         and (layer_sizes[i][4] == True)):
                         rnn_return_sequence = True
-                        print("rnn_return_sequence: ", rnn_return_sequence)
                     if ((len(layer_sizes[i]) >= 6)
                         and (layer_sizes[i][5] == True)):
                         rnn_return_state = True
-                        print("rnn_return_state: ", rnn_return_state)
                     if (layer_sizes[i][0] == "LSTM"):
                         network = LSTM(layer_sizes[i][2], stateful=self._stateful_lstm, 
                                   recurrent_dropout=rnn_dropout,
@@ -715,12 +722,13 @@ class DeepNNKerasAdaptive(ModelInterface):
                     # input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name="State_Conv")
                     if ("fd" == layer_sizes[i][2]):
                         subnet = self._actor
-                        print ("self._State_backup: ", self._State_backup)
-                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(self._State_backup)))
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                            print ("self._State_backup: ", self._State_backup)
+                            print ("*** subnet input shape: ", repr(keras.backend.int_shape(self._State_backup)))
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
-                        #if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print("Subnet summary")
-                        subnet.summary()
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                            print("Subnet summary")
+                            subnet.summary()
                     else:
                         print ("*** net input shape: ", repr(keras.backend.int_shape(network)))
                         # input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(network)[-1]), name="State_Conv")
@@ -729,19 +737,21 @@ class DeepNNKerasAdaptive(ModelInterface):
                         #     input_ = keras.layers.Input(shape=(1, self._settings["num_terrain_features"]), name="State_Conv")
                         # else:
                         input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="State_Conv")
-                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                            print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
                         if (layer_sizes[i][1] == True):
                             subnet = self.createSubNetwork(input_, layer_sizes[i][2], isRNN=True)
                         else:
                             subnet = self.createSubNetwork(input_, layer_sizes[i][2], isRNN=False)
                         subnet = Model(inputs=input_, outputs=subnet)
-                        # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print("Subnet summary")
-                        subnet.summary()
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                            print("Subnet summary")
+                            subnet.summary()
                         
                     ### Create a model (set of layers to distribute) pass in the original input to that model
-                    print ("*** subnet input ", network, " shape: ", repr(keras.backend.int_shape(network)))
-                    print ("self._state_length: ", self._state_length)
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        print ("*** subnet input ", network, " shape: ", repr(keras.backend.int_shape(network)))
+                        print ("self._state_length: ", self._state_length)
                     network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
                     
                     # network = keras.layers.TimeDistributed(self.getActivationType(self._settings['activation_type'])(network))
@@ -752,10 +762,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
                     else:
                         input_ = keras.layers.Input(shape=(self._state_length,), name="State_subnet")
-                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                            print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
                         subnet = self.createSubNetwork(input_, layer_sizes[i][2], isRNN=False)
                         subnet = Model(inputs=input_, outputs=subnet)
-                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                             print("Subnet summary")
                             subnet.summary()
                     # subnet = Dense(8)
@@ -763,8 +774,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
                     
                 elif (layer_sizes[i][0] == "Residual"):
-                    
-                    print ("*** Residual subnet input shape: ", repr(keras.backend.int_shape(network)))
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        print ("*** Residual subnet input shape: ", repr(keras.backend.int_shape(network)))
                     subnet = self.createSubNetwork(network, layer_sizes[i][1], isRNN=True)
                     # subnet = Dense(256)(network)
                     # subnet = Model(inputs=network, outputs=subnet)
@@ -772,7 +783,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = keras.layers.Add()([network, subnet])
                     # network = network +
                     """ 
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Residual net summary")
                         network.summary()
                     """
@@ -807,7 +818,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                             input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name=stateName)
                     network = input_
                     self._State_ = input_   
-                    print ("self._State_: ", repr(self._State_)) 
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        print ("self._State_: ", repr(self._State_)) 
                 elif ( layer_sizes[i][0] == "deconv" ):
                     network = keras.layers.Conv2DTranspose(layer_sizes[i][1], kernel_size=layer_sizes[i][2], strides=layer_sizes[i][3],
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
@@ -827,13 +839,15 @@ class DeepNNKerasAdaptive(ModelInterface):
                     _characterFeatures = Lambda(keras_slice, output_shape=(int(keras.backend.int_shape(network)[-1]) - layer_sizes[i][1],),
                                    arguments={'begin': layer_sizes[i][1], 
                                               'end': int(keras.backend.int_shape(network)[-1])})(network)
-                    print ("slice feature extra: ", repr(_characterFeatures))
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        print ("slice feature extra: ", repr(_characterFeatures))
                     network = Lambda(keras_slice, output_shape=(layer_sizes[i][1],),
                                    arguments={'begin': 0, 
                                               'end': layer_sizes[i][1]})(network)
                 elif ( len(layer_sizes[i][1])> 1 ):
                     if (i == 0):
-                        print ("create self._taskFeatures shape: ", repr(keras.backend.int_shape(network)))
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                            print ("create self._taskFeatures shape: ", repr(keras.backend.int_shape(network)))
                         if ('split_terrain_input' in self._networkSettings 
                         and self._networkSettings['split_terrain_input']):
                             if ("image_data_format" in self._networkSettings 
@@ -962,7 +976,7 @@ class DeepNNKerasAdaptive(ModelInterface):
     def compile(self):
         self._actor = Model(inputs=[self.getStateSymbolicVariable()], 
                             outputs=self._actor)
-        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
             print("Net summary: ", self._actor.summary())
         sgd = keras.optimizers.Adam(lr=np.float32(0.0001), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(0.000001), decay=np.float32(0.0))
         self._actor.compile(loss='mse', optimizer=sgd)
