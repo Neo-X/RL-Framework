@@ -35,6 +35,30 @@ ENV LANG C.UTF-8
 # COPY ./files/Xdummy /usr/local/bin/Xdummy
 # RUN chmod +x /usr/local/bin/Xdummy
         
+##########################################################
+### MuJoCo
+##########################################################
+# Note: ~ is an alias for /root
+RUN mkdir -p /root/.mujoco \
+    && wget https://www.roboti.us/download/mjpro131_linux.zip -O mujoco.zip \
+    && unzip mujoco.zip -d /root/.mujoco \
+    && rm mujoco.zip
+RUN mkdir -p /root/.mujoco \
+    && wget https://www.roboti.us/download/mjpro150_linux.zip -O mujoco.zip \
+    && unzip mujoco.zip -d /root/.mujoco \
+    && rm mujoco.zip
+RUN mkdir -p /root/.mujoco \
+    && wget https://www.roboti.us/download/mujoco200_linux.zip -O mujoco.zip \
+    && unzip mujoco.zip -d /root/.mujoco \
+    && rm mujoco.zip
+### Lets not put the key in the image for now.
+# COPY ./files/mjkey.txt /root/.mujoco/mjkey.txt
+# COPY .mujoco /root/.mujoco
+COPY mjkey.txt /root/.mujoco/
+RUN ln -s /root/.mujoco/mujoco200_linux /root/.mujoco/mujoco200
+ENV LD_LIBRARY_PATH /root/.mujoco/mjpro150/bin:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH /root/.mujoco/mujoco130/bin:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH /root/.mujoco/mujoco200/bin:${LD_LIBRARY_PATH}
 
 
 ENV PATH /opt/conda/bin:$PATH
@@ -46,33 +70,83 @@ RUN wget --quiet https://repo.anaconda.com/archive/Anaconda2-2019.10-Linux-x86_6
 
 RUN conda update -y --name base conda && conda clean --all -y
 
-RUN conda create --name rlframe python=3.6.9 pip
-RUN echo "source activate rlframe" >> ~/.bashrc
-### alow conda to use env installed versio of pip
-ENV PATH /opt/conda/envs/rlframe/bin:$PATH
+RUN conda create --name gmps python=3.6.9 pip
+RUN echo "source activate gmps" >> ~/.bashrc
 
+# RUN pip3 install scikit-image
+
+ENV PATH /opt/conda/envs/gmps/bin:$PATH
+
+RUN pip install tensorflow==1.11.0
+RUN pip install joblib==0.10.3
+RUN pip install cached-property==1.5.1
+RUN pip install mako==1.0.7
+RUN pip install lasagne==0.1
+RUN pip install theano==0.7.0
+RUN pip install pydot-ng
+RUN pip install Cython
+RUN pip install lockfile
+RUN pip install glfw
+RUN pip install cffi
+RUN pip install python-dateutil==2.7.3
+RUN pip install pyprind==2.11.2
+RUN pip install opencv-python
+RUN pip install gym
+RUN pip install matplotlib
+RUN pip install Cython
+RUN pip install lockfile
+RUN pip install glfw
+RUN pip install cffi
+RUN pip install numpy-stl
+RUN pip install tensorboard_logger
+RUN pip install pyOpenGL
+RUN pip install pyquaternion
+RUN pip install comet-ml==3.0.2
+RUN pip install mujoco-py
+
+RUN python -c 'import mujoco_py'
 
 RUN mkdir /root/playground
-RUN mkdir /root/.ssh
-WORKDIR /root/playground
-RUN ls -l
+RUN cd /root/playground
 
-# COPY id_rsa_remote_client /root/.ssh/id_rsa
-# RUN chmod 600 ~/.ssh/id_rsa
+# RUN git clone https://github.com/rll/rllab.git /root/playground/rllab
+RUN git clone https://github.com/russellmendonca/R_multiworld /root/playground/R_multiworld
+# RUN pushd rllab
+# RUN ./scripts/setup_linux.sh
+# RUN popd
+# ENV PYTHONPATH /root/playground/rllab/:${PYTHONPATH}
+# export PYTHONPATH=/home/gberseth/playground/R_multiworld/:${PYTHONPATH}
+ENV PYTHONPATH /root/playground/R_multiworld/:${PYTHONPATH}
+ENV PYTHONPATH /root/playground/CoMPS/:${PYTHONPATH}
+
+COPY id_rsa_remote_client /root/.ssh/id_rsa
+RUN chmod 600 ~/.ssh/id_rsa
 # make sure your domain is accepted
 RUN touch /root/.ssh/known_hosts
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 
-# RUN git clone git@github.com:FracturedPlane/RLSimulationEnvironments.git
-RUN git clone https://github.com/FracturedPlane/RLSimulationEnvironments.git
-ENV RLSIMENV_PATH /root/playground/RLSimulationEnvironments
-WORKDIR /root/playground/RLSimulationEnvironments
-RUN pip install --user -v -e $RLSIMENV_PATH
-WORKDIR /root/playground
+RUN git clone git@github.com:Neo-X/CoMPS.git /root/playground/CoMPS
 
-# git@github.com:UBCMOCCA/TerrainRLSim.git
+COPY id_rsa_remote_client /root/.ssh/id_rsa
+RUN chmod 600 ~/.ssh/id_rsa
+# make sure your domain is accepted
+RUN touch /root/.ssh/known_hosts
+RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
+
+# RUN git clone https://github.com/rll/rllab.git /root/playground/rllab
+RUN git clone git@github.com:FracturedPlane/RLSimulationEnvironments.git /root/playground/RLSimulationEnvironments
+ENV RLSIMENV_PATH /root/playground/RLSimulationEnvironments
+
+RUN ls
+RUN git clone git@github.com:Neo-X/RL-Framework.git /root/playground/RL-Framework
+
+RUN pip install -r /root/playground/RL-Framework/requirements.txt
+# RUN popd
+
+
+WORKDIR /root/playground
 RUN ls -la
-RUN git clone https://github.com/UBCMOCCA/TerrainRLSim.git
+RUN git clone git@github.com:Neo-X/TerrainRLSim.git
 ENV TERRAINRL_PATH /root/playground/TerrainRLSim
 WORKDIR /root/playground/TerrainRLSim
 RUN wget https://github.com/UBCMOCCA/TerrainRLSim/releases/download/0.8/TerrainRLSim_external_June_21_2019.tar.xz
@@ -87,13 +161,5 @@ RUN cd gmake && make config=release64 -j 6
 RUN pip install -v -e $TERRAINRL_PATH
 RUN pip install -r requirements.txt
 WORKDIR /root/playground
-
-# RUN ls
-# RUN git clone git@github.com:Neo-X/RL-Framework.git /root/playground/RL-Framework
-
-# RUN pip install -r /root/playground/RL-Framework/requirements.txt
-# RUN popd
-
-
 
 RUN ls
