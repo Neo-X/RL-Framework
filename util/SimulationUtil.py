@@ -847,6 +847,12 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         except:
             print ("rlsimenv not installed")
             pass
+        try:
+            sys.path.append('/home/gberseth/playground/BayesianSurpriseCode/')
+            import surprise
+        except:
+            print ("surprise not installed")
+            pass
         # print(envs.registry.all())
         
         env_name = config_file
