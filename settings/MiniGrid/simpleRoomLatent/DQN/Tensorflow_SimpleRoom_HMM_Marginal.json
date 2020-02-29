@@ -22,7 +22,7 @@
     "comment__": "Number of epochs to perform per round",
 "epochs": 4,
     "comment__": "Number of epoch/episode to evaluate the policy over",
-"eval_epochs": 128,
+"eval_epochs": 4,
     "comment__": "Discount factor used during learning",
 "discount_factor": 0.95,
     "comment__": "Should the training be plotted during learning",

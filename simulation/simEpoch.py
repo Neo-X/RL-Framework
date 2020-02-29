@@ -228,7 +228,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (movieWriter is not None
             and (not exp.movieWriterSupport())):
             ### If the sim does not have it's own writing support
-            vizData = exp.getEnvironment().getFullViewData()
+            vizData = exp.getEnvironment().render()
             image_ = np.zeros((vizData.shape))
             for row in range(len(vizData)):
                 image_[row] = vizData[len(vizData)-row - 1]

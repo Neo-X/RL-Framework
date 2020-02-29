@@ -53,7 +53,7 @@ class LoggingWorker(Process):
             from util.SimulationUtil import createEnvironment
             ### need to create and keep around and reuse a pointer to a simulation because glut is a pain in the butt...
             exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, render=True, index=0)
-            vizData = exp.getEnvironment().getFullViewData()
+            vizData = exp.getEnvironment().render()
             # movie_writer.append_data(np.transpose(vizData))
             print ("**********************************************sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
             if ("test_movie_rendering" in self._settings

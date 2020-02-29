@@ -22,3 +22,5 @@ pydot==1.4.1
 Pillow==7.0.0
 comet-ml==3.0.2
 imageio-ffmpeg
+pandas==1.0.1
+seaborn==0.10.0
