@@ -119,7 +119,6 @@ class SimWorker(Process):
             self._exp.getActor().init()   
             self._exp.init()
             self._exp.setRandomSeed(self._process_random_seed)
-
             (_, _, self._settings) = processBounds(self._settings['state_bounds'], self._settings['action_bounds'], self._settings, self._exp)
             
             np.random.seed(self._process_random_seed)

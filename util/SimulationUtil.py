@@ -280,6 +280,9 @@ def processBounds(state_bounds, action_bounds, settings, sim):
                     state_bounds_.append(bounds)
                 else:
                     state_bounds_.append([s_min, s_max])
+            else:
+                ### else pull bounds from given values.
+                state_bounds_.append(state_bounds[i])
         settings['state_bounds'] = state_bounds_
         state_bounds = settings['state_bounds']
         print ("settings['state_bounds']: ", np.array(settings['state_bounds']).shape)
