@@ -55,7 +55,7 @@ class LoggingWorker(Process):
             exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, render=True, index=0)
             vizData = exp.getEnvironment().render()
             # movie_writer.append_data(np.transpose(vizData))
-            print ("**********************************************sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
+            #print ("**********************************************sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
             if ("test_movie_rendering" in self._settings
                 and (self._settings["test_movie_rendering"] == True)):
                 return
@@ -66,10 +66,27 @@ class LoggingWorker(Process):
             try:
                 ### Check if done first
                 data_ = self._loggingWorkerQueue.get(timeout=1) ### 1 second timeout
-                running = running and data_
-                if (not running):
-                    break
+                print('\n\n\n\n\n\n\nData to the Logging worker is:\n', data_, '\n\n\n\n\n\n\n\n\n\n\n')
+                if type(data_) is tuple:
+                    print('is tuple')
+                    # Data format: (STRING:type of information, <any type>: data)
+                    if data_[0] == "checkpointVidRounds":
+                        from ModelEvaluation import modelEvaluation
+                        print('is checkpointVidRounds')
+                        roundNum = data_[1]
+                        settings_copy = copy.deepcopy(self._settings)
+                        filename = settings_copy['save_video_to_file']
+                        settings_copy['save_video_to_file'] = filename[:filename.rindex('.')] + '_round' + str(roundNum) + filename[filename.rindex('.'):]
+                        settings_copy['shouldRender'] = 'yes'
+                        print('\n\n\nstarting modelEvaluation\n\n\n')
+                        modelEvaluation("", settings=settings_copy, exp=exp) # Save a video for this checkpoint
+                        print('\n\n\n modelEvaluation done \n\n\n')
+                else:
+                    running = running and data_
+                    if (not running):
+                        break
             except Exception as inst:
+                print('error in LoggingWorker:', inst)
                 pass
             time.sleep(1)
             # try:
