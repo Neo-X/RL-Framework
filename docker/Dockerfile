@@ -22,6 +22,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
         unzip \
         patchelf \
         ffmpeg \
+        graphviz \
         libxrandr2 \
         libxinerama1 \
         libxcursor1 \

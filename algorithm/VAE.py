@@ -78,7 +78,7 @@ class VAE(SiameseNetwork):
         self._train_combined_loss = False
         
         inputs_ = [self._model.getStateSymbolicVariable()] 
-        print ("farward dynamics shape: ", repr(self._model._forward_dynamics_net))
+        print ("forward dynamics shape: ", repr(self._model._forward_dynamics_net))
         self._model._forward_dynamics_z_mean = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(self._model._forward_dynamics_net)
         self._model._forward_dynamics_z_log_var = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid')(self._model._forward_dynamics_net)
         self._model._forward_dynamics_z = keras.layers.Lambda(sampling, output_shape=(self.getSettings()["encoding_vector_size"],), name='z')([self._model._forward_dynamics_z_mean, 
