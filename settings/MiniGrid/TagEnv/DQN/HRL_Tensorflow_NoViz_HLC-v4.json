@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.DoubleDQN_KERAS.DoubleDQN_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "simpleRoom-v0/_2",
+"data_folder": "simpleRoom-v0/_3",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 0.7, 
 	"comment": "initial probability of selecting a discrete random action",
