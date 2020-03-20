@@ -636,8 +636,8 @@ class SLAC(SiameseNetwork):
             te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
         
             # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
-            predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
-            te_acc = compute_accuracy(predicted_y, te_y)
+#             predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
+            te_acc = 0
             
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
         return te_acc
@@ -665,15 +665,8 @@ class SLAC(SiameseNetwork):
                     predicted_y = self._model._reward_net.predict([x0, x1], batch_size=x0.shape[0])
                     errors.append( compute_accuracy(predicted_y, y0) )
             else:
-                predicted_y = self._model._reward_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
-                if (("train_lstm_fd_and_reward_and_decoder_together" in self._settings)
-                    and (self._settings["train_lstm_fd_and_reward_and_decoder_together"] == True)):
-                    predicted_y = predicted_y[0]
-                # print ("fd error, predicted_y: ", predicted_y)
-                targets__ = np.mean(targets_, axis=1)
-                # print ("fd error, targets_ : ", targets_)
-                # print ("fd error, targets__: ", targets__)
-                errors.append( compute_accuracy(predicted_y, targets__) )
+                predicted_y = self._model._reward_net.predict([sequences0], batch_size=sequences0.shape[0])
+                errors.append( np.mean(predicted_y - sequences0 ))
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
