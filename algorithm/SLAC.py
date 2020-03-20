@@ -98,10 +98,6 @@ class SLAC(SiameseNetwork):
         else:  
             inputs_ = [self._model.getResultStateSymbolicVariable()]
         print ("******** self._model._State_: ", repr(self._model._State_)) 
-        self._model._reward_net_z_mean = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(self._model._reward_net)
-        self._model._reward_net_z_log_var = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid')(self._model._reward_net)
-        self._model._reward_net_z = keras.layers.Lambda(sampling, output_shape=(self.getSettings()["encoding_vector_size"],), name='z')([self._model._reward_net_z_mean, 
-                                                                   self._model._reward_net_z_log_var])
         self._model._reward_net = Model(inputs=self._model._State_, outputs=self._model._reward_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -128,10 +124,10 @@ class SLAC(SiameseNetwork):
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Decoder Net summary: ", self._modelTarget._forward_dynamics_net.summary())
-        self._modelTarget._reward_net = Model(inputs=self._modelTarget._State_, outputs=self._modelTarget._reward_net)
-        if (print_info):
-            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                print("Reward Decoder Net summary: ", self._modelTarget._reward_net.summary())
+#         self._modelTarget._reward_net = Model(inputs=self._modelTarget._State_, outputs=self._modelTarget._reward_net)
+#         if (print_info):
+#             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+#                 print("Reward Decoder Net summary: ", self._modelTarget._reward_net.summary())
         SLAC.compile(self)
     
     def compile(self):
@@ -150,119 +146,58 @@ class SLAC(SiameseNetwork):
         print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(self._model.getResultStateSymbolicVariable()))
         processed_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())[0]
         self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a)
-        processed_b = self._model._forward_dynamics_net(state_copy)[0]
-        self._model.processed_b = Model(inputs=[state_copy], outputs=processed_b)
         
         processed_a_log_var = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())[1]
         self._model.processed_a_log_var = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_log_var)
-        processed_b_log_var = self._model._forward_dynamics_net(state_copy)[1]
-        self._model.processed_b_log_var = Model(inputs=[state_copy], outputs=processed_b_log_var)
         processed_a_vae = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())[2]
         self._model.processed_a_vae = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_vae)
-        processed_b_vae = self._model._forward_dynamics_net(state_copy)[2]
-        self._model.processed_b_vae = Model(inputs=[state_copy], outputs=processed_b_vae)
         
         network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
         print ("network_: ", repr(network_))
-        network_b = keras.layers.TimeDistributed(self._model.processed_b, input_shape=(None, 1, self._state_length))(result_state_copy)
-        print ("network_b: ", repr(network_b))
         
         self._network_vae_log_var = keras.layers.TimeDistributed(self._model.processed_a_log_var, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
         print ("network_vae: ", repr(network_))
-        self._network_b_vae_log_var = keras.layers.TimeDistributed(self._model.processed_b_log_var, input_shape=(None, 1, self._state_length))(result_state_copy)
-        print ("network_vae: ", repr(network_b))
         self._network_vae = keras.layers.TimeDistributed(self._model.processed_a_vae, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
         print ("network_vae: ", repr(network_))
-        self._network_b_vae = keras.layers.TimeDistributed(self._model.processed_b_vae, input_shape=(None, 1, self._state_length))(result_state_copy)
-        print ("network_vae: ", repr(network_b))
         
         
-   
+        lstm_seq, state_h, state_c  = self._model._reward_net(network_)
         
-        processed_a_r_seq, processed_a_r = self._model._reward_net(network_)
-        processed_b_r_seq, processed_b_r = self._model._reward_net(network_b)
+        encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(state_h)[1:]
+                                                                          , name="encoding_2"
+                                                                          )
+        seq_mean = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(encode_input__)
+        self._seq_mean = Model(inputs=[encode_input__], outputs=seq_mean)
+        seq_log_var = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid')(encode_input__)
+        self._seq_log_var = Model(inputs=[encode_input__], outputs=seq_log_var)
         
-        encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(processed_a_r)[1:]
-                                                                      , name="encoding_2"
-                                                                      )
-        last_dense = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(encode_input__)
-        self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
-        processed_a_r = self._last_dense(processed_a_r)
-        processed_b_r = self._last_dense(processed_b_r)
-        
-        self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
-        self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
-        
-        distance_fd = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-        distance_fd2 = keras.layers.Lambda(l1_distance_fd2, output_shape=eucl_dist_output_shape_fd2)([network_, network_b])
-        print ("distance_fd2: ", repr(distance_fd2))
-        distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
-        
-        ### Decoding models
-        ### https://github.com/keras-team/keras/issues/7949
-        def repeat_vector(args):
-            # import keras
-            ### sequence_layer is used to determine how long the repitition should be
-            layer_to_repeat = args[0]
-            sequence_layer = args[1]
-            return RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
-        ### Get a sequence as long as the state input
-        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, self.getSettings()["encoding_vector_size"])) ([processed_a_r, self._model.getResultStateSymbolicVariable()])
-        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, self.getSettings()["encoding_vector_size"])) ([processed_b_r, result_state_copy])
-        print ("Encoder a output shape: ", encoder_a_outputs)
-        print ("Encoder b output shape: ", encoder_b_outputs)
-        
-        ### Decode the sequence into another sequence
-        decode_a_r = self._modelTarget._reward_net(encoder_a_outputs)
-        print ("decode_a_r: ", repr(decode_a_r))
-        # self._model.decode_a_r = Model(inputs=[encoder_a_outputs], outputs=decode_a_r)
-        decode_b_r = self._modelTarget._reward_net(encoder_b_outputs)
-        print ("decode_b_r: ", repr(decode_b_r))
-        # self._model.decode_b_r = Model(inputs=[encoder_b_outputs], outputs=decode_b_r)
+        self._seq_z_mean = self._seq_mean(encode_input__)
+        self._seq_z_log_var = self._seq_log_var(encode_input__)
+        self._seq_z = keras.layers.Lambda(sampling, output_shape=(self.getSettings()["encoding_vector_size"],), name='seq_z')([self._seq_z_mean, 
+                                                                   self._seq_z_log_var])
+        # self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=self._seq_mean)
+        # self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r[0])
         
         ### Decode sequences into images
         # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
-        decode_a = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_a_r)
-        print ("decode_a: ", repr(decode_a))
-        decode_b = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_b_r)
-        print ("decode_b: ", repr(decode_b))
-        decode_a_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_vae)
-        print ("decode_a: ", repr(decode_a))
-        decode_b_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_b_vae)
-        print ("decode_b: ", repr(decode_b))
+        decode_seq_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._seq_z)
+        print ("decode_seq_vae: ", repr(decode_a))
+        decode_marginal_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_vae)
+        print ("decode_marginal_vae: ", repr(decode_a))
 
-        self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
-                                                          ,state_copy 
-                                                          ]
-                                                  , outputs=distance_fd
-                                                  )
+#         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
+#                                                           ]
+#                                                   , outputs=distance_fd
+#                                                   )
         
-        if (("train_lstm_fd_and_reward_and_decoder_together" in self._settings)
-            and (self._settings["train_lstm_fd_and_reward_and_decoder_together"] == True)):
-            self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()
-                                                          ,result_state_copy
-                                                          ]
-                                                          , outputs=[distance_r, 
-                                                                     distance_fd2, 
-                                                                     decode_a, 
-                                                                     decode_b,
-                                                                     decode_a_vae,
-                                                                     decode_b_vae
-                                                                     ]
-                                                          )
-        else:
-            self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()
-                                                          ,result_state_copy
-                                                          ]
-                                                          , outputs=distance_r
-                                                          )
+        self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()
+                                                      ]
+                                                      , outputs=[
+                                                                 decode_seq_vae, 
+                                                                 decode_marginal_vae,
+                                                                 ]
+                                                      )
 
-        # print ("encode_input__: ", repr(encode_input__))
-        # distance_r_weighted = keras.layers.Dense(64, activation = 'sigmoid')(encode_input__)
-        # self._distance_weighting_ = Model(inputs=[encode_input__], outputs=distance_r_weighted)
-        # distance_r_weighted = self._distance_weighting_(distance_r)
-        # print ("distance_r_weighted: ", repr(distance_r_weighted))
-        
         # sgd = SGD(lr=0.0005, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
@@ -281,43 +216,16 @@ class SLAC(SiameseNetwork):
             print ("Clipping: ", sgd.decay)
             
             
-        # self._model._reward_net.add_loss(contrastive_loss([self._model.getResultStateSymbolicVariable(), result_state_copy],
-        #                                                   distance_r))
-        # self._model._reward_net.add_loss(contrastive_loss([self._model.getResultStateSymbolicVariable(), result_state_copy],
-        #                                                   distance_fd2))
-        #self._model._reward_net.add_loss(mse(self._model.getResultStateSymbolicVariable(), decode_a))
-        #self._model._reward_net.add_loss(mse(result_state_copy, decode_b))
-        # VAE loss = mse_loss or xent_loss + kl_loss
-        
         self._model._reward_net.compile(
-                                        loss=[contrastive_loss
-                                              ,contrastive_loss
-                                             ,"mse", "mse"
-                                             # ,vae_loss(network_vae=self._network_vae, 
-                                             #          network_vae_log_var=self._network_vae_log_var)
-                                             #,vae_loss(network_vae=self._network_vae_b, 
-                                             #          network_vae_log_var=self._network_vae_b_log_var) 
-                                             ,self.vae_loss_a
-                                             ,self.vae_loss_b
+                                        loss=[self.vae_seq_loss
+                                             ,self.vae_marginal_
                                               ], 
                                         optimizer=sgd
-                                        ,loss_weights=[0.7, 
-                                                       0.10, 
-                                                       0.05, 0.05, 
-                                                       0.05, 0.05]
+                                        ,loss_weights=[0.5,0.5]
                                         )
         
-        self._contrastive_loss = K.function([self._model.getStateSymbolicVariable(), 
-                                             state_copy,
-                                             K.learning_phase()], 
-                                            [distance_fd])
-        
-        self._contrastive_loss_r = K.function([self._model.getResultStateSymbolicVariable(), 
-                                             result_state_copy,
-                                             K.learning_phase()], 
-                                            [distance_r])
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
-    def vae_loss_a(self, action_true, action_pred):
+    def vae_marginal_(self, action_true, action_pred):
         
         reconstruction_loss = mse(action_true, action_pred)
         # reconstruction_loss *= 4096
@@ -328,11 +236,11 @@ class SLAC(SiameseNetwork):
         vae_loss_a = K.mean(reconstruction_loss + kl_loss)
         return vae_loss_a
 
-    def vae_loss_b(self, action_true, action_pred):
+    def vae_seq_loss(self, action_true, action_pred):
         
         reconstruction_loss = mse(action_true, action_pred)
         # reconstruction_loss *= 4096
-        kl_loss = 1 + self._network_b_vae_log_var - K.square(self._network_b_vae) - K.exp(self._network_b_vae_log_var)
+        kl_loss = 1 + self._seq_z_log_var - K.square(self._seq_z) - K.exp(self._seq_z_log_var)
         ### Using mean 
         kl_loss = K.mean(kl_loss, axis=-1)
         kl_loss *= -0.5
