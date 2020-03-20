@@ -166,24 +166,29 @@ class SLAC(SiameseNetwork):
         encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(state_h)[1:]
                                                                           , name="encoding_2"
                                                                           )
-        seq_mean = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(encode_input__)
-        self._seq_mean = Model(inputs=[encode_input__], outputs=seq_mean)
-        seq_log_var = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid')(encode_input__)
-        self._seq_log_var = Model(inputs=[encode_input__], outputs=seq_log_var)
+        self.seq_mean = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(encode_input__)
+        self._seq_mean = Model(inputs=[encode_input__], outputs=self.seq_mean)
+        self.seq_log_var = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid')(encode_input__)
+        self._seq_log_var = Model(inputs=[encode_input__], outputs=self.seq_log_var)
         
         self._seq_z_mean = self._seq_mean(encode_input__)
         self._seq_z_log_var = self._seq_log_var(encode_input__)
         self._seq_z = keras.layers.Lambda(sampling, output_shape=(self.getSettings()["encoding_vector_size"],), name='seq_z')([self._seq_z_mean, 
                                                                    self._seq_z_log_var])
+        self._seq_z = Model(inputs=[encode_input__], outputs=self._seq_z)
+        
+        self._seq_mean = keras.layers.TimeDistributed(self._seq_mean, input_shape=(None, 1, 67))(lstm_seq)
+        self._seq_log_var = keras.layers.TimeDistributed(self._seq_log_var, input_shape=(None, 1, 67))(lstm_seq)
+        self._seq_z_seq = keras.layers.TimeDistributed(self._seq_z, input_shape=(None, 1, 67))(lstm_seq)
         # self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=self._seq_mean)
         # self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r[0])
         
         ### Decode sequences into images
         # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
-        decode_seq_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._seq_z)
-        print ("decode_seq_vae: ", repr(decode_a))
+        decode_seq_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._seq_z_seq)
+        print ("decode_seq_vae: ", repr(decode_seq_vae))
         decode_marginal_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_vae)
-        print ("decode_marginal_vae: ", repr(decode_a))
+        print ("decode_marginal_vae: ", repr(decode_marginal_vae))
 
 #         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
 #                                                           ]
@@ -240,7 +245,7 @@ class SLAC(SiameseNetwork):
         
         reconstruction_loss = mse(action_true, action_pred)
         # reconstruction_loss *= 4096
-        kl_loss = 1 + self._seq_z_log_var - K.square(self._seq_z) - K.exp(self._seq_z_log_var)
+        kl_loss = 1 + self._seq_log_var - K.square(self._seq_z_seq) - K.exp(self._seq_log_var)
         ### Using mean 
         kl_loss = K.mean(kl_loss, axis=-1)
         kl_loss *= -0.5
@@ -254,13 +259,9 @@ class SLAC(SiameseNetwork):
         self._model.reset()
         self._model._reward_net.reset_states()
         self._model._forward_dynamics_net.reset_states()
-        self._model.processed_a.reset_states()
-        self._model.processed_b.reset_states()
-        self._model.processed_a_r.reset_states()
-        self._model.processed_b_r.reset_states()
         if not (self._modelTarget is None):
             self._modelTarget._forward_dynamics_net.reset_states()
-            self._modelTarget._reward_net.reset_states()
+            # self._modelTarget._reward_net.reset_states()
             # self._modelTarget.reset()
             
     def getNetworkParameters(self):
@@ -410,7 +411,7 @@ class SLAC(SiameseNetwork):
                 # print ("targets__: ", targets__)
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
-                    score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets__],
+                    score = self._model._forward_dynamics_net.fit([sequences0], [targets__],
                                   epochs=1, 
                                   batch_size=sequences0.shape[0],
                                   verbose=0
@@ -437,47 +438,14 @@ class SLAC(SiameseNetwork):
                         indecies_ = list(range(len(targets__)))
                         # print ("targets__: ", targets__)
                         # print("indecies_: ", indecies_)
-                        if ("seperate_posandneg_pairs" in self._settings
-                            and (self._settings["seperate_posandneg_pairs"] == True)):
-                            less_ = np.less(targets__, 0.5)
-                            negative_indecies = np.where(less_ == True)[0]
-                            positive_indecies = np.where(less_ == False)[0]
-                            # print ("negative_indecies: ", negative_indecies)
-                            indecies_ = negative_indecies
-                            # if (np.random.rand() > 0.5):
-                            #     indecies_ = positive_indecies 
-                                
                         
-                        score = self._model._reward_net.fit([sequences0[indecies_], sequences1[indecies_]], 
-                                      [targets__[indecies_], 
-                                       targets_[indecies_],
-                                       sequences0_[indecies_], sequences1_[indecies_],
-                                       sequences0_[indecies_], sequences1_[indecies_]],
+                        score = self._model._reward_net.fit([sequences0[indecies_]], 
+                                      [sequences0_[indecies_], 
+                                       sequences0_[indecies_]],
                                       epochs=1, 
                                       batch_size=sequences0.shape[0],
                                       verbose=0
                                       )
-                        # print("score: ", score.history)
-                        if ("seperate_posandneg_pairs" in self._settings
-                            and (self._settings["seperate_posandneg_pairs"] == True)):
-                            less_ = np.less(targets__, 0.5)
-                            positive_indecies = np.where(less_ == False)[0]
-                            # print ("negative_indecies: ", negative_indecies)
-                            indecies_ = positive_indecies
-                            score_ = self._model._reward_net.fit([sequences0[indecies_], sequences1[indecies_]], 
-                                      [targets__[indecies_], 
-                                       targets_[indecies_],
-                                       sequences0_[indecies_], sequences1_[indecies_],
-                                       sequences0_[indecies_], sequences1_[indecies_]],
-                                      epochs=1, 
-                                      batch_size=sequences0.shape[0],
-                                      verbose=0
-                                      )
-                            loss_ = score_.history['loss']
-                            if 'loss' in score.history:
-                                score.history['loss'].extend(loss_)
-                            else:
-                                score.history['loss']= loss_
                         
                     else:
                         score = self._model._reward_net.fit([sequences0, sequences1], [targets__],
@@ -741,7 +709,7 @@ class SLAC(SiameseNetwork):
         self._model._reward_net.save_weights(fileName+"_reward"+suffix, overwrite=True)
         self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
-        self._modelTarget._reward_net.save_weights(fileName+"_reward_T"+suffix, overwrite=True)
+        # self._modelTarget._reward_net.save_weights(fileName+"_reward_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
         try:
             from keras.utils import plot_model
@@ -785,7 +753,7 @@ class SLAC(SiameseNetwork):
         if (self._modelTarget is not None):
             self._modelTarget._forward_dynamics_net = load_keras_model(fileName+"_FD_T"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
             # self._modelTarget._reward_net = load_keras_model(fileName+"_reward_net_T"+suffix)
-            self._modelTarget._reward_net.load_weights(fileName+"_reward_T"+suffix)
+            # self._modelTarget._reward_net.load_weights(fileName+"_reward_T"+suffix)
         # self._model._actor_train = load_keras_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
         # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
