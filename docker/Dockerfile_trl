@@ -74,9 +74,9 @@ RUN conda update -y --name base conda && conda clean --all -y
 RUN conda create --name rlframe python=3.6.9 pip
 RUN echo "source activate rlframe" >> ~/.bashrc
 
-ENV PATH /opt/conda/envs/gmps/bin:$PATH
+ENV PATH /opt/conda/envs/rlframe/bin:$PATH
 
-RUN python -c 'import mujoco_py'
+# RUN python -c 'import mujoco_py'
 
 RUN mkdir /root/playground
 WORKDIR /root/playground
@@ -103,6 +103,9 @@ RUN git clone git@github.com:Neo-X/RL-Framework.git /root/playground/RL-Framewor
 RUN pip install -r /root/playground/RL-Framework/requirements.txt
 # RUN popd
 
+### Add OpenGL libraries to LD path.
+COPY libOpenGL.so /usr/lib/nvidia/libOpenGL.so
+ENV LD_LIBRARY_PATH /usr/lib/nvidia:${LD_LIBRARY_PATH}
 
 WORKDIR /root/playground
 RUN ls -la
@@ -121,5 +124,6 @@ RUN cd gmake && make config=release64 -j 6
 RUN pip install -v -e $TERRAINRL_PATH
 RUN pip install -r requirements.txt
 WORKDIR /root/playground
+RUN echo $LD_LIBRARY_PATH
 
 RUN ls
