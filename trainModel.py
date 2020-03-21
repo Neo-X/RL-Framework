@@ -875,7 +875,7 @@ def trainModelParallel(inputData):
                     # if ( settings['num_available_threads'] > 0 ):  
                     if ("skip_rollouts" in settings and 
                         (settings["skip_rollouts"] == True)):
-                        out = (([],[],[],[],[],[],[],[]), [], [], [])
+                        out = (([],[],[],[],[],[],[],[], []), [], [], [])
                     
                     else:
                         if (settings['on_policy'] == "fast"):

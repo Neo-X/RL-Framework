@@ -157,7 +157,7 @@ RUN cd external/caffe && make clean && make
 RUN cp -r external/caffe/build/lib . && cp external/caffe/build/lib/libcaffe.* lib/ && cp external/Bullet/bin/*.so lib/ && cp external/jsoncpp/build/debug/src/lib_json/*.so* lib/
 RUN cd simAdapter/ && apt-get install swig3.0 python3-dev python3-pip -y && chmod +x ./gen_swig.sh && ./gen_swig.sh
 RUN ls -la
-RUN chmod +x ./premake4_linux && ./premake4_linux gmake
+RUN chmod +x ./premake4_linux && ./premake4_linux --file=premake4_openglES.lua gmake
 RUN cd gmake && make config=release64 -j 6
 RUN pip install -v -e $TERRAINRL_PATH
 RUN pip install -r requirements.txt

@@ -666,9 +666,35 @@ class SLAC(SiameseNetwork):
                     errors.append( compute_accuracy(predicted_y, y0) )
             else:
                 predicted_y = self._model._reward_net.predict([sequences0], batch_size=sequences0.shape[0])
-                errors.append( np.mean(predicted_y - sequences0 ))
+                errors.append( np.mean(predicted_y[0] - sequences0 ))
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
+                if (True):
+                    ## Don't use Xwindows backend for this
+                    import matplotlib
+                    # matplotlib.use('Agg')
+                    import matplotlib.pyplot as plt
+                    # img_ = np.reshape(viewData, (150,158,3))
+                    ### get the sequence prediction
+                    img_ = predicted_y[0]
+                    ### Get first sequence in batch
+                    img_ = img_[0]
+                    img_x = sequences0[0]
+                    
+                    for i in range(len(img_)):
+                        img__ = np.reshape(img_[i][:-3], (64,64,3))
+                        print("img_ shape", img__.shape, " sum: ", np.sum(img__))
+                        fig1 = plt.figure(2)
+                        ### Save generated image
+                        plt.imshow(img__, origin='lower')
+                        plt.title("agent visual Data: ")
+                        fig1.savefig("viz_state_"+str(i)+".png")
+                        ### Save input image
+                        img__x = np.reshape(img_x[i][:-3], (64,64,3))
+                        plt.imshow(img__x, origin='lower')
+                        plt.title("agent visual Data: ")
+                        fig1.savefig("viz_state_input_"+str(i)+".png")
+                    
             te_acc = np.mean(errors)
         else:
             states = np.concatenate((states, result_states), axis=0)
