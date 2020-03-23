@@ -70,7 +70,7 @@ class LoggingWorker(Process):
                 if type(data_) is tuple:
                     print('is tuple')
                     # Data format: (STRING:type of information, <any type>: data)
-                    if data_[0] == "checkpointVidRounds":
+                    if data_[0] == "checkpoint_vid_rounds":
                         from ModelEvaluation import modelEvaluation
                         print('is checkpointVidRounds')
                         roundNum = data_[1]
