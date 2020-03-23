@@ -297,7 +297,7 @@ class LearningAgent(AgentInterface):
         if self._settings['on_policy']:
             if ( ('clear_exp_mem_on_poli' in self._settings) 
                  and (self._settings['clear_exp_mem_on_poli'] == True)):
-                self._expBuff.clear()
+                self.getExperience().clear()
             
             ### Update target networks
             self.updateTargetModel()
