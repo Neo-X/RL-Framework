@@ -324,9 +324,7 @@ class SLAC(SiameseNetwork):
         if ('anneal_learning_rate' in self.getSettings()
             and (self.getSettings()['anneal_learning_rate'] == True)):
             K.set_value(self._model._forward_dynamics_net.optimizer.lr, np.float32(self.getSettings()['fd_learning_rate']) * p)
-        if ("replace_next_state_with_imitation_viz_state" in self.getSettings()
-            and (self.getSettings()["replace_next_state_with_imitation_viz_state"] == True)):
-            states_ = np.concatenate((states_, result_states), axis=0)
+
         if (((("train_LSTM_FD" in self._settings)
                 and (self._settings["train_LSTM_FD"] == True))
             or
@@ -336,122 +334,33 @@ class SLAC(SiameseNetwork):
             and lstm):
             ### result states can be from the imitation agent.
             # print ("falls: ", falls)
-            if (falls is None):
-                sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
-                if ("include_agent_imitator_pairs" in self._settings
-                    and (self._settings["include_agent_imitator_pairs"] == True)):
-                    """
-                    sequences0_, sequences1_, targets___ = create_advisarial_sequences(states, result_states, self._settings)
-                    sequences0.extend(sequences0_)
-                    sequences1.extend(sequences1_)
-                    targets_.extend(targets___)
-                    sequences0_, sequences1_, targets___ = create_advisarial_sequences(states, result_states, self._settings)
-                    sequences0.extend(sequences0_)
-                    sequences1.extend(sequences1_)
-                    targets_.extend(targets___)
-                    """
-                    sequences0, sequences1, targets_ = create_advisarial_sequences(states, result_states, self._settings)
-                    # sequences0.extend(sequences0_)
-                    # sequences1.extend(sequences1_)
-                    # targets_.extend(targets___)
-            else:
-                task_ids = [data__["task_id"] for data__ in datas]
-                sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, task_ids, self._settings)
-            sequences0 = np.array(sequences0)
             # print ("sequences0 shape: ", sequences0.shape)
-            sequences1 = np.array(sequences1)
-            targets_ = np.array(targets_)
-            
-            if ( "add_label_noise" in self._settings):
-                if (np.random.rand() < self._settings["add_label_noise"]):
-                    # print ("targets_[0]: ", targets_[0])
-                    targets_ = 1.0 - targets_ ### Invert labels
-                    # print ("Inverting label values this time")
-                    # print ("targets_[0]: ", targets_[0])
-            # print ("targets_ shape: ", targets_.shape)
-            # te_pair1, te_pair2, te_y = seq
-            # score = self._model._forward_dynamics_net.train_on_batch([sequences0, sequences1], targets_)
             loss_ = []
-            if ("train_LSTM_FD_stateful" in self._settings
-                and (self._settings["train_LSTM_FD_stateful"] == True)
-                # and False
-                ):
-                for k in range(sequences0.shape[1]):
-                    ### shaping data
-                    x0 = np.array(sequences0[:,[k]])
-                    x1 = np.array(sequences1[:,[k]])
-                    y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
-                    # print ("data: ", np.mean(x0), np.mean(x1), np.mean(y0))
-                    # print (x0) 
-                    # print ("x0 shape: ", x0.shape)
-                    # print ("y0 shape: ", y0.shape)
-                    if (("train_LSTM_FD" in self._settings)
-                        and (self._settings["train_LSTM_FD"] == True)):
-                        score = self._model._forward_dynamics_net.fit([x0, x1], [y0],
-                                  epochs=1, 
-                                  batch_size=sequences0.shape[0],
-                                  verbose=0
-                                  )
-                        # print ("lstm train loss: ", score.history['loss'])
-                        loss_.append(np.mean(score.history['loss']))
-                    if (("train_LSTM_Reward" in self._settings)
-                        and (self._settings["train_LSTM_Reward"] == True)):  
-                        score = self._model._reward_net.fit([x0, x1], [y0],
-                                  epochs=1, 
-                                  batch_size=sequences0.shape[0],
-                                  verbose=0
-                                  )
-                        # print ("lstm train loss: ", score.history['loss'])
-                        loss_.append(np.mean(score.history['loss']))
-            else:
-                # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
-                targets__ = np.mean(targets_, axis=1)
-                # print ("targets__: ", targets__)
-                if (("train_LSTM_FD" in self._settings)
-                    and (self._settings["train_LSTM_FD"] == True)):
-                    score = self._model._forward_dynamics_net.fit([sequences0], [targets__],
-                                  epochs=1, 
-                                  batch_size=sequences0.shape[0],
-                                  verbose=0
-                                  )
-                    loss_.append(np.mean(score.history['loss']))
-                    
-                if (("train_LSTM_Reward" in self._settings)
-                    and (self._settings["train_LSTM_Reward"] == True)):
-                    
-                    if (("train_lstm_fd_and_reward_and_decoder_together" in self._settings)
-                        and (self._settings["train_lstm_fd_and_reward_and_decoder_together"] == True)):
-                        
-                        sequences0_ = sequences0
-                        sequences1_ = sequences1
-                        if ("remove_character_state_features" in self._settings):
-                            sequences0_ = sequences0_[:, :, :-self._settings["remove_character_state_features"]]
-                            sequences1_ = sequences1_[:, :, :-self._settings["remove_character_state_features"]]
-                        # print ("sequences0 shape: ", sequences0.shape)
-                        # print ("sequences1 shape: ", sequences1.shape)
-                        # print ("targets__ shape: ", targets__.shape)
-                        # print ("targets_ shape: ", targets_.shape)
-                        ### separate data into positive and negative batches
-                        # for k in range(len(sequences0)):
-                        indecies_ = list(range(len(targets__)))
-                        # print ("targets__: ", targets__)
-                        # print("indecies_: ", indecies_)
-                        
-                        score = self._model._reward_net.fit([sequences0[indecies_]], 
-                                      [sequences0_[indecies_], 
-                                       sequences0_[indecies_]],
-                                      epochs=1, 
-                                      batch_size=sequences0.shape[0],
-                                      verbose=0
-                                      )
-                        
-                    else:
-                        score = self._model._reward_net.fit([sequences0, sequences1], [targets__],
-                                      epochs=1, 
-                                      batch_size=sequences0.shape[0],
-                                      verbose=0
-                                      )
-                    loss_.append(np.mean(score.history['loss']))
+        
+            # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
+            # print ("targets__: ", targets__)
+            if (("train_LSTM_FD" in self._settings)
+                and (self._settings["train_LSTM_FD"] == True)):
+                score = self._model._forward_dynamics_net.fit([states], [states],
+                              epochs=1, 
+                              batch_size=sequences0.shape[0],
+                              verbose=0
+                              )
+                loss_.append(np.mean(score.history['loss']))
+                
+            if (("train_LSTM_Reward" in self._settings)
+                and (self._settings["train_LSTM_Reward"] == True)):
+                
+#                 print("states shape: ", states.shape)
+                score = self._model._reward_net.fit([states], 
+                              [states, 
+                               states],
+                              epochs=1, 
+                              batch_size=states.shape[0],
+                              verbose=0
+                              )
+                
+                loss_.append(np.mean(score.history['loss']))
             
             return np.mean(loss_)
         else:
@@ -602,30 +511,14 @@ class SLAC(SiameseNetwork):
         self.reset()
         if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
-            sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
-            sequences0 = np.array(sequences0)
-            sequences1 = np.array(sequences1)
-            targets_ = np.array(targets_)
             errors=[]
-            if ("train_LSTM_FD_stateful" in self._settings
-                and (self._settings["train_LSTM_FD_stateful"] == True)
-                # and False
-                ):
-                for k in range(sequences0.shape[1]):
-                    ### shaping data
-                    # print (k)
-                    x0 = np.array(sequences0[:,[k]])
-                    x1 = np.array(sequences1[:,[k]])
-                    y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
-                    predicted_y = self._model._forward_dynamics_net.predict([x0, x1], batch_size=x0.shape[0])
-                    errors.append( compute_accuracy(predicted_y, y0) )
-            else:
-                predicted_y = self._model._forward_dynamics_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
-                # print ("fd error, predicted_y: ", predicted_y)
-                targets__ = np.mean(targets_, axis=1)
-                # print ("fd error, targets_ : ", targets_)
-                # print ("fd error, targets__: ", targets__)
-                errors.append( compute_accuracy(predicted_y, targets__) )
+       
+            predicted_y = self._model._forward_dynamics_net.predict([states], batch_size=sequences0.shape[0])
+            # print ("fd error, predicted_y: ", predicted_y)
+            targets__ = np.mean(targets_, axis=1)
+            # print ("fd error, targets_ : ", targets_)
+            # print ("fd error, targets__: ", targets__)
+            errors.append( compute_accuracy(predicted_y, targets__) )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
@@ -645,54 +538,11 @@ class SLAC(SiameseNetwork):
         self.reset()
         if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
-            sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
-            sequences0 = np.array(sequences0)
-            sequences1 = np.array(sequences1)
-            targets_ = np.array(targets_)
             errors=[]
-            if ("train_LSTM_FD_stateful" in self._settings
-                and (self._settings["train_LSTM_FD_stateful"] == True)
-                # and False
-                ):
-                for k in range(sequences0.shape[1]):
-                    ### shaping data
-                    # print (k)
-                    x0 = np.array(sequences0[:,[k]])
-                    x1 = np.array(sequences1[:,[k]])
-                    y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
-                    predicted_y = self._model._reward_net.predict([x0, x1], batch_size=x0.shape[0])
-                    errors.append( compute_accuracy(predicted_y, y0) )
-            else:
-                predicted_y = self._model._reward_net.predict([sequences0], batch_size=sequences0.shape[0])
-                errors.append( np.mean(predicted_y[0] - sequences0 ))
+            predicted_y = self._model._reward_net.predict([states], batch_size=states.shape[0])
+            errors.append( np.mean(predicted_y[0] - states ))
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
-                if (True):
-                    ## Don't use Xwindows backend for this
-                    import matplotlib
-                    # matplotlib.use('Agg')
-                    import matplotlib.pyplot as plt
-                    # img_ = np.reshape(viewData, (150,158,3))
-                    ### get the sequence prediction
-                    img_ = predicted_y[0]
-                    ### Get first sequence in batch
-                    img_ = img_[0]
-                    img_x = sequences0[0]
-                    
-                    for i in range(len(img_)):
-                        img__ = np.reshape(img_[i], self._settings["fd_terrain_shape"])
-                        print("img_ shape", img__.shape, " sum: ", np.sum(img__))
-                        fig1 = plt.figure(2)
-                        ### Save generated image
-                        plt.imshow(img__, origin='lower')
-                        plt.title("agent visual Data: ")
-                        fig1.savefig("viz_state_"+str(i)+".png")
-                        ### Save input image
-                        img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
-                        plt.imshow(img__x, origin='lower')
-                        plt.title("agent visual Data: ")
-                        fig1.savefig("viz_state_input_"+str(i)+".png")
-                    
             te_acc = np.mean(errors)
         else:
             states = np.concatenate((states, result_states), axis=0)
@@ -705,9 +555,10 @@ class SLAC(SiameseNetwork):
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
         return te_acc
 
-    def saveTo(self, fileName):
+    def saveTo(self, fileName, states=None):
         # print(self, "saving model")
         import h5py
+        self.reset()
         hf = h5py.File(fileName+"_bounds.h5", "w")
         hf.create_dataset('_state_bounds', data=self.getStateBounds())
         hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
@@ -738,6 +589,34 @@ class SLAC(SiameseNetwork):
             ### Maybe the needed libraries are not available
             print ("Error saving diagrams for rl models.")
             print (inst)
+            
+        if (states is not None):
+            ## Don't use Xwindows backend for this
+            import matplotlib
+            # matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
+            # img_ = np.reshape(viewData, (150,158,3))
+            ### get the sequence prediction
+            predicted_y = self._model._reward_net.predict([states], batch_size=states.shape[0])
+            
+            img_ = predicted_y[0]
+            ### Get first sequence in batch
+            img_ = img_[0]
+            img_x = states[0]
+            
+            for i in range(len(img_)):
+                img__ = np.reshape(img_[i], self._settings["fd_terrain_shape"])
+                print("img_ shape", img__.shape, " sum: ", np.sum(img__))
+                fig1 = plt.figure(2)
+                ### Save generated image
+                plt.imshow(img__, origin='lower')
+                plt.title("agent visual Data: ")
+                fig1.savefig(fileName+"viz_state_"+str(i)+".png")
+                ### Save input image
+                img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
+                plt.imshow(img__x, origin='lower')
+                plt.title("agent visual Data: ")
+                fig1.savefig(fileName+"viz_state_input_"+str(i)+".png")
         
     def loadFrom(self, fileName):
         import h5py

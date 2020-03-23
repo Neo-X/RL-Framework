@@ -1472,7 +1472,18 @@ class LearningAgent(AgentInterface):
         if ( bestFD == True):
             suffix_ = "_Best"
         if (self.getSettings()['train_forward_dynamics']):
-            self.getForwardDynamics().saveTo(directory+"forward_dynamics"+suffix_)
+            ### Grab a batch of data and save video poc for now
+            if (("train_LSTM_Reward" in self.getSettings())
+                and (self.getSettings()["train_LSTM_Reward"] == True)
+                and (self.getSettings()["fd_algorithm"] == "algorithm.SLAC.SLAC") ):
+                batch_size_lstm_fd = 4
+                if ("lstm_batch_size" in self.getSettings()):
+                    batch_size_lstm_fd = self.getSettings()["lstm_batch_size"][0]
+                ### This can consume a lot of memory if trajectories are long...
+                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = self.getFDmultitask_trajectory_batch(batch_size=4)
+                self.getForwardDynamics().saveTo(directory+"forward_dynamics"+suffix_, states=state_)
+            else:
+                self.getForwardDynamics().saveTo(directory+"forward_dynamics"+suffix_)
         
     def loadFrom(self, directory, best=False, suffix_=".plk"):
         import dill
