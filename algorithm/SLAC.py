@@ -120,7 +120,7 @@ class SLAC(SiameseNetwork):
                                                          settings__["action_bounds"], settings__,
                                                          stateName="State_", resultStateName="ResultState_")
         # self._decode_state = keras.layers.Input(shape=(None,67), name="State_2")
-        self._modelTarget._forward_dynamics_net = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=self._modelTarget._forward_dynamics_net)
+        self._modelTarget._forward_dynamics_net = Model(inputs=[self._modelTarget._State_FD], outputs=self._modelTarget._forward_dynamics_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Decoder Net summary: ", self._modelTarget._forward_dynamics_net.summary())
@@ -682,7 +682,7 @@ class SLAC(SiameseNetwork):
                     img_x = sequences0[0]
                     
                     for i in range(len(img_)):
-                        img__ = np.reshape(img_[i][:-3], (64,64,3))
+                        img__ = np.reshape(img_[i], self._settings["fd_terrain_shape"])
                         print("img_ shape", img__.shape, " sum: ", np.sum(img__))
                         fig1 = plt.figure(2)
                         ### Save generated image
@@ -690,7 +690,7 @@ class SLAC(SiameseNetwork):
                         plt.title("agent visual Data: ")
                         fig1.savefig("viz_state_"+str(i)+".png")
                         ### Save input image
-                        img__x = np.reshape(img_x[i][:-3], (64,64,3))
+                        img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
                         plt.imshow(img__x, origin='lower')
                         plt.title("agent visual Data: ")
                         fig1.savefig("viz_state_input_"+str(i)+".png")
