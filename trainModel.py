@@ -1115,7 +1115,9 @@ def trainModelParallel(inputData):
                 # else:
                 if ("skip_rollouts" in settings and 
                         (settings["skip_rollouts"] == True)):
-                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = 0,0,0,0,0,0,0,0
+                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval, otherMetrics = 0,0,0,0,0,0,0,0, [{}]
+                    mean_reward = [0] * settings["perform_multiagent_training"]
+                    reward_over_epocs = [[0]] * settings["perform_multiagent_training"]
                 else:
                     rewards__=[]
                     reward_over_epocs = []
@@ -1177,14 +1179,14 @@ def trainModelParallel(inputData):
                             dynamicsRewardLosses = []
                         
                         
-                    logExperimentData(trainData, "falls", np.mean([met["falls"] for met in otherMetrics]), settings)
+#                     logExperimentData(trainData, "falls", np.mean([met["falls"] for met in otherMetrics]), settings)
                     for key in otherMetrics[0]:
                         ### Put all info data in the logs
                         # print ("attempting to log metrics: ", key, " values: ", [met[key] for met in otherMetrics])
                         
                         logExperimentData(trainData, key, np.mean([met[key] for met in otherMetrics]), settings)
                         # pass
-                    logExperimentData(trainData, "mem_usage_sim", np.mean([met["mem_usage_sim"] for met in otherMetrics]), settings)
+#                     logExperimentData(trainData, "mem_usage_sim", np.mean([met["mem_usage_sim"] for met in otherMetrics]), settings)
                     logExperimentData(trainData, "mem_usage_train", np.mean(current_mem_usage()), settings)
                     logExperimentData(trainData, "mean_reward", mean_reward, settings)
                     # print ("__rewards: " , reward_over_epocs)
@@ -1196,13 +1198,15 @@ def trainModelParallel(inputData):
                         logExperimentData(trainData, "mean_reward_train_"+str(ag), mean_train_reward, settings)
                     logExperimentData(trainData, "std_reward", std_reward, settings)
                     logExperimentData(trainData, "anneal_p", p, settings)
-                    logExperimentData(trainData, "mean_bellman_error", np.array([np.mean(er_) for er_ in np.fabs(bellman_errors[0])]), settings)
-                    logExperimentData(trainData, "std_bellman_error", np.array([np.std(er_) for er_ in bellman_errors[0]]), settings)
-                    bellman_errors=[]
-                    logExperimentData(trainData, "mean_discount_error", mean_discount_error, settings)
-                    logExperimentData(trainData, "std_discount_error", std_discount_error, settings)
-                    logExperimentData(trainData, "mean_eval", mean_eval, settings)
-                    logExperimentData(trainData, "std_eval", std_eval, settings)
+                    if (settings["train_actor"] == True):
+                            
+                        logExperimentData(trainData, "mean_bellman_error", np.array([np.mean(er_) for er_ in np.fabs(bellman_errors[0])]), settings)
+                        logExperimentData(trainData, "std_bellman_error", np.array([np.std(er_) for er_ in bellman_errors[0]]), settings)
+                        bellman_errors=[]
+                        logExperimentData(trainData, "mean_discount_error", mean_discount_error, settings)
+                        logExperimentData(trainData, "std_discount_error", std_discount_error, settings)
+                        logExperimentData(trainData, "mean_eval", mean_eval, settings)
+                        logExperimentData(trainData, "std_eval", std_eval, settings)
                     # error = np.mean(np.fabs(error), axis=1)
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     if (settings['train_forward_dynamics']):
@@ -1213,7 +1217,8 @@ def trainModelParallel(inputData):
                             logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_dynamicsRewardLosses, settings)
                             
                     ### Lets always save a figure for the learning...
-                    if ( settings['save_trainData'] and (not settings['visualize_learning'])):
+                    if ( settings['save_trainData'] and (not settings['visualize_learning'])
+                         and (settings["train_actor"] == True)):
                         rlv_ = RLVisualize(title=str(settings['sim_config_file']) + " agent on " + str(settings['environment_type']), settings=settings)
                         rlv_.init()
                         rlv_.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
@@ -1223,7 +1228,7 @@ def trainModelParallel(inputData):
                         rlv_.saveVisual(directory+getAgentName())
                         rlv_.finish()
                         del rlv_
-                    if settings['visualize_learning']:
+                    if settings['visualize_learning'] and (settings["train_actor"] == True):
                         rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
                         rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
                         rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))

@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_2D_GRF_Viz3D_16x16_1Sub_Imitate_30FPS_DualState_v1/SLAC_mini_12",
+"data_folder": "PD_Humanoid_2D_GRF_Viz3D_16x16_1Sub_Imitate_30FPS_DualState_v1/SLAC_mini_13",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -427,7 +427,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "fd_num_terrain_features": 256,
 	"comment__": "replace the viz state in the next state with the state from the imitation agent",
-"replace_next_state_with_imitation_viz_state": true,
+"replace_next_state_with_imitation_viz_state": false,
 	"comment__": "Type of smoothing funtion to filter the learned distance metric by",
 "learned_reward_smoother": false,
 	"comment__": "Just train the fd model in an LSTM fashion",
@@ -435,7 +435,7 @@
 	"comment__": "Use a stateful LSTM",
 "train_LSTM_FD_stateful": false,
 	"comment__": "batch size for lstm fd models",
-"lstm_batch_size": [4, 32],
+"lstm_batch_size": [32, 32],
 	"comment__": "experience size for fd network",
 "fd_experience_length": 2500,
 	"comment__": "A mapping from working_id to task id",
@@ -521,5 +521,6 @@
 	"comment__": "Seperate the positive and negative pairs and perform two batches over the data.",
 "seperate_posandneg_pairs": true,
 	"comment__": "Add noise to the target noise values",
-"target_noise_scale": 0.1
+"target_noise_scale": 0.1,
+"rnn_updates" : 32
 }
