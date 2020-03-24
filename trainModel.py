@@ -1389,7 +1389,6 @@ def trainModelParallel(inputData):
 
             if "checkpoint_vid_rounds" in settings and settings["checkpoint_vid_rounds"] is not None \
 			and trainData["round"] % settings["checkpoint_vid_rounds"] == 0:
-               print('\n\n\n\n\nlogging', ('checkpoint_vid_rounds', trainData["round"]), '\n\n\n\n\n')                
                loggingWorkerQueue.put(('checkpoint_vid_rounds', trainData["round"]))
 
             trainData["round"] = trainData["round"] + 1
