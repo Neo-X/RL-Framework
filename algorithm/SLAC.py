@@ -1,3 +1,6 @@
+###
+# python3 trainModel.py --config=settings/terrainRLImitate/PPO/SLAC_mini.json -p 4 --bootstrap_samples=1000 --max_epoch_length=16 --rollouts=4 --skip_rollouts=true --train_actor=false --train_critic=false --epochs=32 --fd_updates_per_actor_update=64 --on_policy=fast
+
 import numpy as np
 # import lasagne
 import sys
@@ -224,7 +227,7 @@ class SLAC(SiameseNetwork):
                                              ,self.vae_marginal_
                                               ], 
                                         optimizer=sgd
-                                        ,loss_weights=[0.6,0.4]
+                                        ,loss_weights=[0.9,0.1]
                                         )
         
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
@@ -600,23 +603,37 @@ class SLAC(SiameseNetwork):
             predicted_y = self._model._reward_net.predict([states], batch_size=states.shape[0])
             
             img_ = predicted_y[0]
+            img_z = predicted_y[1]
             ### Get first sequence in batch
             img_ = img_[0]
             img_x = states[0]
-            
+            import imageio
+            import PIL
+            from PIL import Image
+            images_x = []
+            images_y = []
+            images_z = []
             for i in range(len(img_)):
-                img__ = np.reshape(img_[i], self._settings["fd_terrain_shape"])
-                print("img_ shape", img__.shape, " sum: ", np.sum(img__))
-                fig1 = plt.figure(2)
+                img__y = np.reshape(img_[i], self._settings["fd_terrain_shape"])
+                images_y.append(Image.fromarray(img__y).resize((256,256)))
+                print("img_ shape", img__y.shape, " sum: ", np.sum(img__y))
+                # fig1 = plt.figure(2)
                 ### Save generated image
-                plt.imshow(img__, origin='lower')
-                plt.title("agent visual Data: ")
-                fig1.savefig(fileName+"viz_state_"+str(i)+".png")
+                # plt.imshow(img__y, origin='lower')
+                # plt.title("agent visual Data: ")
+                # fig1.savefig(fileName+"viz_state_"+str(i)+".png")
                 ### Save input image
                 img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
-                plt.imshow(img__x, origin='lower')
-                plt.title("agent visual Data: ")
-                fig1.savefig(fileName+"viz_state_input_"+str(i)+".png")
+                images_x.append(Image.fromarray(img__x).resize((256,256)))
+#                 plt.imshow(img__x, origin='lower')
+#                 plt.title("agent visual Data: ")
+#                 fig1.savefig(fileName+"viz_state_input_"+str(i)+".png")
+#                 img__z = np.reshape(img_z[i], self._settings["fd_terrain_shape"])
+#                 images_z.append(img__z)
+                
+            imageio.mimsave(fileName+"viz_state_input_"+'.gif', images_x, duration=0.5,)
+            imageio.mimsave(fileName+"viz_conditional_"+'.gif', images_y, duration=0.5,)
+#             imageio.mimsave(fileName+"viz_marginal_"+'.gif', images_z, duration=0.5,)
         
     def loadFrom(self, fileName):
         import h5py

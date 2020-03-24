@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_2D_GRF_Viz3D_16x16_1Sub_Imitate_30FPS_DualState_v1/SLAC_mini_12",
+"data_folder": "PD_Humanoid_2D_GRF_Viz3D_16x16_1Sub_Imitate_30FPS_DualState_v1/SLAC_mini_13",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -521,5 +521,6 @@
 	"comment__": "Seperate the positive and negative pairs and perform two batches over the data.",
 "seperate_posandneg_pairs": true,
 	"comment__": "Add noise to the target noise values",
-"target_noise_scale": 0.1
+"target_noise_scale": 0.1,
+"rnn_updates" : 32
 }
