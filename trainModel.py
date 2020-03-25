@@ -1386,7 +1386,11 @@ def trainModelParallel(inputData):
                 """
             # mean_reward = std_reward = mean_bellman_error = std_bellman_error = mean_discount_error = std_discount_error = None
             # if ( trainData["round"] % 10 ) == 0 :
-            
+
+            if "checkpoint_vid_rounds" in settings and settings["checkpoint_vid_rounds"] is not None \
+			and trainData["round"] % settings["checkpoint_vid_rounds"] == 0:
+               loggingWorkerQueue.put(('checkpoint_vid_rounds', trainData["round"]))
+
             trainData["round"] = trainData["round"] + 1
                 
             gc.collect()    
@@ -1659,7 +1663,14 @@ if (__name__ == "__main__"):
         metaSettings = json.load(file)
         file.close()
         
-        
+    if 'checkpoint_vid+rounds' in settings:
+        if 'save_video_to_file' in settings:
+            print('\nerror: checkpoint_vid_rounds set but save_video_to_file is unset. Exiting.')        
+            sys.exit()
+        elif 'saving_update_freq_num_rounds' not in settings or settings['saving_update_freq_num_rounds'] > settings['checkpoint_vid_rounds']:
+            print('saving_update_freq_num_rounds > checkpoint_vid_rounds. Updating saving_update_freq_num_rounds to checkpoing_vid_rounds')
+            settings['saving_update_freq_num_rounds'] = settings['checkpoint_vid_rounds']
+
     t0 = time.time()
     simData = []
     if ( (metaSettings is None)
