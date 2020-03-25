@@ -143,23 +143,31 @@ class SLAC(SiameseNetwork):
         state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
         print ("*** self._model.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getStateSymbolicVariable())))
         print ("*** self._model.getStateSymbolicVariable() shape: ", repr(self._model.getStateSymbolicVariable()))
+        ### Compressor
+        ### outputs a multi variate diagonal normal distribution
+        ### p(e|x)  
         processed_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())[0]
         self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a, name="forward_encoder_outputs_mean")
-        
         processed_a_log_var = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())[1]
         self._model.processed_a_log_var = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_log_var, name="forward_encoder_outputs_log_var")
+        ### Marginal encoder
+        ### p(z|x)
         processed_a_vae = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())[2]
         self._model.processed_a_vae = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_vae, name="forward_encoder_outputs_z")
-        
+        ### Distribute compressor over sequence
+        ### p(mu_0, ... , mu_t|x_0, ..., x_t)
         network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length), name='forward_mean_encoding')(self._model.getResultStateSymbolicVariable())
         print ("network_: ", repr(network_))
-        
+        ### p(sig_0, ... , sig_t|x_0, ..., x_t)
         self._network_vae_log_var = keras.layers.TimeDistributed(self._model.processed_a_log_var, input_shape=(None, 1, self._state_length), name='forward_log_var')(self._model.getResultStateSymbolicVariable())
         print ("network_vae: ", repr(network_))
+        ### This will be used later mostly as an auxilerary loss, maybe will be the marginal z model at some point.
+        ### p(z_0, ... , z_t|x_0, ..., x_t)
         self._network_vae = keras.layers.TimeDistributed(self._model.processed_a_vae, input_shape=(None, 1, self._state_length), name='forward_z_sample_seq')(self._model.getResultStateSymbolicVariable())
         print ("network_vae: ", repr(network_))
         
-        
+        ### Sequence model
+        ### 
         lstm_seq, state_h, state_c  = self._model._reward_net(network_)
         
         encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(state_h)[1:]
