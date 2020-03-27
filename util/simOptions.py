@@ -339,6 +339,10 @@ def getOptions(_args=None):
     parser.add_option("--randomSeed", 
            action="store", dest="randomSeed", metavar="INTEGER", default=None,
            help="""randomSeed that will be used for random scenario generation.""")
+
+    parser.add_option("--checkpoint_vid_rounds",
+           action="store", dest="checkpoint_vid_rounds", metavar="INTEGER", default=None,
+           help="""Controls the number of simulation rounds to perform before saving a video generated from the policy.""")
     
     if _args is None:
         (options, args) = parser.parse_args()
