@@ -102,7 +102,7 @@ class SLAC(SiameseNetwork):
         else:  
             inputs_ = [self._model.getResultStateSymbolicVariable()]
         print ("******** self._model._State_: ", repr(self._model._State_)) 
-        self._model._reward_net = Model(inputs=self._model._State_, outputs=self._model._reward_net, name="conditional_sequence_encoder")
+        self._model._reward_net = Model(inputs=[self._model._State_, self._model._Action], outputs=self._model._reward_net, name="conditional_sequence_encoder")
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Reward Net summary: ", self._model._reward_net.summary())
@@ -122,16 +122,16 @@ class SLAC(SiameseNetwork):
             settings__["state_bounds"][1] = settings__["state_bounds"][1][:settings__["encoding_vector_size"]]
         self._modelTarget = createForwardDynamicsNetwork(settings__["state_bounds"], 
                                                          settings__["action_bounds"], settings__,
-                                                         stateName="State_", resultStateName="ResultState_")
+                                                         stateName="State_", resultStateName="ResultState_", kwargs={"actionName": "Action_"})
         # self._decode_state = keras.layers.Input(shape=(None,67), name="State_2")
         self._modelTarget._forward_dynamics_net = Model(inputs=[self._modelTarget._State_FD], outputs=self._modelTarget._forward_dynamics_net, name="forward_decoder")
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Decoder Net summary: ", self._modelTarget._forward_dynamics_net.summary())
-#         self._modelTarget._reward_net = Model(inputs=self._modelTarget._State_, outputs=self._modelTarget._reward_net)
-#         if (print_info):
-#             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-#                 print("Reward Decoder Net summary: ", self._modelTarget._reward_net.summary())
+        self._modelTarget._reward_net = Model(inputs=[self._modelTarget._State_, self._modelTarget._Action], outputs=self._modelTarget._reward_net)
+        if (print_info):
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print("Reward Decoder Net summary: ", self._modelTarget._reward_net.summary())
         SLAC.compile(self)
     
     def compile(self):

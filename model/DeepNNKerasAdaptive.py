@@ -44,7 +44,7 @@ def keras_slice_3d(x, begin, end):
 
 class DeepNNKerasAdaptive(ModelInterface):
     
-    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False, stateName="State", resultStateName="ResultState"):
+    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False, stateName="State", resultStateName="ResultState", **kwargs):
 
         super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         self._networkSettings = {}
@@ -84,9 +84,11 @@ class DeepNNKerasAdaptive(ModelInterface):
 
         ### Apparently after the first layer the patch axis is left out for most of the Keras stuff...
         # input = Input(shape=(self._state_length,))
+        if "actionName" not in kwargs:
+            kwargs["ActionName"] = "Action"
         self._stateInput = self._State
         # input2 = Input(shape=(self._action_length,))
-        self._Action = keras.layers.Input(shape=(self._action_length,), name="Action") 
+        self._Action = keras.layers.Input(shape=(self._action_length,), name=kwargs["ActionName"]) 
         self._actionInput = self._Action
         # input.trainable = True        
         if (("train_LSTM_Critic" in self._settings)
@@ -172,7 +174,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 # networkAct = Dropout(rate=self._dropout_p)(networkAct)
                 self._State = networkAct 
             
-            networkAct = self.createSubNetwork(networkAct, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName)
+            networkAct = self.createSubNetwork(networkAct, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName, **kwargs)
             
             # inputAct.trainable = True
             
@@ -259,7 +261,7 @@ class DeepNNKerasAdaptive(ModelInterface):
              and False):
             network = keras.layers.Input(shape=(len(self._settings["state_bounds"][0]),), name="Centralized_Critic_State")
             self._ResultState = network
-        network = self.createSubNetwork(network, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName)
+        network = self.createSubNetwork(network, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName, **kwargs)
         
             
         if ( "use_single_network" in self._settings and 
@@ -387,18 +389,18 @@ class DeepNNKerasAdaptive(ModelInterface):
             print ("Activation type unknown: ", type_name)
             sys.exit()
                 
-    def createSubNetwork(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
+    def createSubNetwork(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState", **kwargs):
         if ( "network_description_type" in self._settings and
              (self._settings["network_description_type"] == "json")):
-            net = self._createSubNetworkFromJSON(input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState")
+            net = self._createSubNetworkFromJSON(input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState", **kwargs)
         else:  
             net = self._createSubNetwork(input=input, layer_info=layer_info, 
                                          isRNN=isRNN, stateName=stateName, 
-                                         resultStateName=resultStateName)
+                                         resultStateName=resultStateName, **kwargs)
         
         return net
     
-    def _createSubNetworkFromJSON(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
+    def _createSubNetworkFromJSON(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState", **kwargs):
         
         network = input
         for i in range(len(layer_info)):
@@ -444,7 +446,24 @@ class DeepNNKerasAdaptive(ModelInterface):
                         self._State_FD = input_
                     elif ("flag" in layer_info[i] and
                         layer_info[i]["flag"] == "action"):
-                        input_act = keras.layers.Input(shape=(layer_info[i]["shape"][-1],), name="Action_Stacked")
+                        if (("train_LSTM" in self._settings)
+                                and (self._settings["train_LSTM"] == True)):
+                            if ("simulation_model" in self._settings and
+                            (self._settings["simulation_model"] == True)):
+                                if (self._stateful_lstm):
+                                    input_act = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(1, 1, self._state_length), name=kwargs["ActionName"])
+                                else:
+                                    input_act = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=kwargs["ActionName"])
+                            else:
+                                if (self._stateful_lstm):
+                                    input_act = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=kwargs["ActionName"])
+                                else:
+                                    input_act = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=kwargs["ActionName"])
+                        else:
+                            if (len(layer_info[i]["shape"]) > 1): ### Hack so that RNN layers don't complain about none shapes
+                                input_act = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=kwargs["ActionName"])
+                            else:
+                                input_act = keras.layers.Input(shape=(layer_info[i]["shape"][0],), name=kwargs["ActionName"])
                         self._slices["action"] = input_act
                         self._actionInput = input_act
                         self._Action = input_act
@@ -618,7 +637,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                      
         return network
     
-    def _createSubNetwork(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
+    def _createSubNetwork(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState", **kwargs):
         
         network = input
         
