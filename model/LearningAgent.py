@@ -1481,7 +1481,7 @@ class LearningAgent(AgentInterface):
                     batch_size_lstm_fd = self.getSettings()["lstm_batch_size"][0]
                 ### This can consume a lot of memory if trajectories are long...
                 state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = self.getFDmultitask_trajectory_batch(batch_size=4)
-                self.getForwardDynamics().saveTo(directory+"forward_dynamics"+suffix_, states=state_)
+                self.getForwardDynamics().saveTo(directory+"forward_dynamics"+suffix_, states=state_, actions=action_)
             else:
                 self.getForwardDynamics().saveTo(directory+"forward_dynamics"+suffix_)
         

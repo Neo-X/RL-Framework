@@ -168,7 +168,7 @@ class SLAC(SiameseNetwork):
         
         ### Sequence model
         ### 
-        lstm_seq, state_h, state_c  = self._model._reward_net(network_)
+        lstm_seq, state_h, state_c  = self._model._reward_net([network_, self._model._Action])
         
         encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(state_h)[1:]
                                                                           , name="seq_encoding_input"
@@ -203,7 +203,8 @@ class SLAC(SiameseNetwork):
 #                                                   , outputs=distance_fd
 #                                                   )
         
-        self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()
+        self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable(),
+                                                self._model._Action
                                                       ]
                                                       , outputs=[
                                                                  decode_seq_vae, 
@@ -362,8 +363,9 @@ class SLAC(SiameseNetwork):
             if (("train_LSTM_Reward" in self._settings)
                 and (self._settings["train_LSTM_Reward"] == True)):
                 
-#                 print("states shape: ", states.shape)
-                score = self._model._reward_net.fit([states], 
+                print("states shape: ", states.shape)
+                print("actions shape: ", actions.shape)
+                score = self._model._reward_net.fit([states, actions], 
                               [states, 
                                states],
                               epochs=1, 
@@ -550,7 +552,7 @@ class SLAC(SiameseNetwork):
         if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
             errors=[]
-            predicted_y = self._model._reward_net.predict([states], batch_size=states.shape[0])
+            predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
             errors.append( np.mean(predicted_y[0] - states ))
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
@@ -566,7 +568,7 @@ class SLAC(SiameseNetwork):
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
         return te_acc
 
-    def saveTo(self, fileName, states=None):
+    def saveTo(self, fileName, states=None, actions=None):
         # print(self, "saving model")
         import h5py
         self.reset()
@@ -608,7 +610,7 @@ class SLAC(SiameseNetwork):
             import matplotlib.pyplot as plt
             # img_ = np.reshape(viewData, (150,158,3))
             ### get the sequence prediction
-            predicted_y = self._model._reward_net.predict([states], batch_size=states.shape[0])
+            predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
             
             img_ = predicted_y[0]
             img_z = predicted_y[1]
