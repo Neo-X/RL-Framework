@@ -7,8 +7,7 @@ import sys
 from dill.settings import settings
 sys.path.append('../')
 from model.ModelUtil import *
-from model.LearningUtil import loglikelihood, loglikelihoodMEAN, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat, likelihood, loglikelihoodMEAN
-from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, kl_D, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
+from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl_D_keras, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
 from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
@@ -128,7 +127,7 @@ class SLAC(SiameseNetwork):
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Decoder Net summary: ", self._modelTarget._forward_dynamics_net.summary())
-        self._modelTarget._reward_net = Model(inputs=[self._modelTarget._State_, self._modelTarget._Action], outputs=self._modelTarget._reward_net)
+        self._modelTarget._reward_net = Model(inputs=[self._modelTarget._Action], outputs=self._modelTarget._reward_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("Reward Decoder Net summary: ", self._modelTarget._reward_net.summary())
@@ -167,8 +166,11 @@ class SLAC(SiameseNetwork):
         print ("network_vae: ", repr(network_))
         
         ### Sequence model
-        ### 
+        ### # p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t)
         lstm_seq, state_h, state_c  = self._model._reward_net([network_, self._model._Action])
+        
+        # p(z_{t+1}^1 | z_t^2, a_t)
+        lstm_seq_2, state_h_2, state_c_ = self._modelTarget._reward_net(self._model._Action)
         
         encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(state_h)[1:]
                                                                           , name="seq_encoding_input"
@@ -187,6 +189,21 @@ class SLAC(SiameseNetwork):
         self._seq_mean = keras.layers.TimeDistributed(self._seq_mean, input_shape=(None, 1, 67), name="after_lsmt_seq_mean" )(lstm_seq)
         self._seq_log_var = keras.layers.TimeDistributed(self._seq_log_var, input_shape=(None, 1, 67), name="after_lsmt_seq_log_var")(lstm_seq)
         self._seq_z_seq = keras.layers.TimeDistributed(self._seq_z, input_shape=(None, 1, 67), name="after_lsmt_seq_z")(lstm_seq)
+        
+        self.seq_mean_2 = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear', name="seq_mean")(encode_input__)
+        self._seq_mean_2 = Model(inputs=[encode_input__], outputs=self.seq_mean_2, name="seq_mean")
+        self.seq_log_var_2 = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid',  name="seq_log_var")(encode_input__)
+        self._seq_log_var_2 = Model(inputs=[encode_input__], outputs=self.seq_log_var_2, name="seq_log_var")
+        
+        self._seq_z_mean_2 = self._seq_mean_2(encode_input__)
+        self._seq_z_log_var_2 = self._seq_log_var_2(encode_input__)
+        self._seq_z_2 = keras.layers.Lambda(sampling, output_shape=(self.getSettings()["encoding_vector_size"],), name='seq_z_2_sampling')([self._seq_z_mean_2, 
+                                                                   self._seq_z_log_var_2])
+        self._seq_z_2 = Model(inputs=[encode_input__], outputs=self._seq_z_2, name='seq_z_2_sampling')
+        
+        self._seq_mean_2 = keras.layers.TimeDistributed(self._seq_mean_2, input_shape=(None, 1, 67), name="after_lsmt_seq_mean_2" )(lstm_seq_2)
+        self._seq_log_var_2 = keras.layers.TimeDistributed(self._seq_log_var_2, input_shape=(None, 1, 67), name="after_lsmt_seq_log_var_2")(lstm_seq_2)
+        self._seq_z_seq_2 = keras.layers.TimeDistributed(self._seq_z_2, input_shape=(None, 1, 67), name="after_lsmt_seq_z_2")(lstm_seq_2)
         # self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=self._seq_mean)
         # self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r[0])
         
@@ -255,12 +272,15 @@ class SLAC(SiameseNetwork):
         
         reconstruction_loss = mse(action_true, action_pred)
         # reconstruction_loss *= 4096
+        ### log p(x_t|z_t) loss
         kl_loss = 1 + self._seq_log_var - K.square(self._seq_z_seq) - K.exp(self._seq_log_var)
         ### Using mean 
         kl_loss = K.mean(kl_loss, axis=-1)
         kl_loss *= -0.5
         vae_loss_a = K.mean(reconstruction_loss + kl_loss)
-        return vae_loss_a
+        kl_ = kl_D_keras(self._seq_mean, self._seq_log_var, 
+                         self._seq_log_var_2, self._seq_log_var_2, self.getSettings()["encoding_vector_size"])
+        return vae_loss_a - kl_
 
     def reset(self):
         """
@@ -589,6 +609,7 @@ class SLAC(SiameseNetwork):
         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
         self._model._reward_net.save_weights(fileName+"_reward"+suffix, overwrite=True)
         self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
+        # self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
         # self._modelTarget._reward_net.save_weights(fileName+"_reward_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
@@ -625,7 +646,7 @@ class SLAC(SiameseNetwork):
             images_z = []
             for i in range(len(img_)):
                 img__y = np.reshape(img_[i], self._settings["fd_terrain_shape"])
-                images_y.append(Image.fromarray(img__y).resize((256,256)))
+                images_y.append(Image.fromarray(img__y).resize((256,256))) ### upsampling
                 print("img_ shape", img__y.shape, " sum: ", np.sum(img__y))
                 # fig1 = plt.figure(2)
                 ### Save generated image
@@ -634,7 +655,7 @@ class SLAC(SiameseNetwork):
                 # fig1.savefig(fileName+"viz_state_"+str(i)+".png")
                 ### Save input image
                 img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
-                images_x.append(Image.fromarray(img__x).resize((256,256)))
+                images_x.append(Image.fromarray(img__x).resize((256,256))) ### upsampling
 #                 plt.imshow(img__x, origin='lower')
 #                 plt.title("agent visual Data: ")
 #                 fig1.savefig(fileName+"viz_state_input_"+str(i)+".png")

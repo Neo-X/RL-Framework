@@ -39,7 +39,7 @@ def kl_keras(mean0, std0, mean1, std1, d):
     
 def kl_D(mean0, std0, mean1, std1, d):
     """
-        The first districbution should be from a fixed distribution. 
+        The first distribution should be from a fixed distribution. 
         The second should be from the distribution that will change from the parameter update.
         Parameters
         ----------
