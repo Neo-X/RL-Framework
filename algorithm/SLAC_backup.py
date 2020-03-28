@@ -139,12 +139,9 @@ class SLAC(SiameseNetwork):
         # because we re-use the same instance `base_network`,
         # the weights of the network
         # will be shared across the two branches
-        
-        
         state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
         print ("*** self._model.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getStateSymbolicVariable())))
         print ("*** self._model.getStateSymbolicVariable() shape: ", repr(self._model.getStateSymbolicVariable()))
-
         ### Compressor
         ### outputs a multi variate diagonal normal distribution
         ### p(e|x)  
@@ -168,30 +165,12 @@ class SLAC(SiameseNetwork):
         self._network_vae = keras.layers.TimeDistributed(self._model.processed_a_vae, input_shape=(None, 1, self._state_length), name='forward_z_sample_seq')(self._model.getResultStateSymbolicVariable())
         print ("network_vae: ", repr(network_))
         
-        ### p(z_1^1)
-        batch = K.shape(self._model.getStateSymbolicVariable())[0]
-        dim = self.getSettings()["encoding_vector_size"]
-        self.latent1_first_prior = K.random_normal(shape=(batch, dim))
-        # p(z_1^2 | z_1^1)
-        self.latent2_first_prior = self._model._reward_net([0, self.latent1_first_prior, 0])
+        ### Sequence model
+        ### # p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t)
+        lstm_seq, state_h, state_c  = self._model._reward_net([network_, self._model._Action])
         
         # p(z_{t+1}^1 | z_t^2, a_t)
-        self.latent1_prior = self._modelTarget._reward_net(self.latent2_first_prior, self._model._Action)
-
-        ### # p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t)
-        self.latent2_prior  = self._model._reward_net([self.latent1_prior, self.latent1_first_prior, self._model._Action])
-        
-        # q(z_1^1 | x_1)
-        # self.latent1_first_posterior = latent1_distribution_ctor(8 * base_depth, latent1_size)
-        self.latent1_first_posterior = self._modelTarget._reward_net(self.latent2_first_prior, 0)
-        # q(z_1^2 | z_1^1) = p(z_1^2 | z_1^1)
-        self.latent2_first_posterior = self.latent2_first_prior
-        # q(z_{t+1}^1 | x_{t+1}, z_t^2, a_t)
-        self.latent1_posterior = self.latent1_first_posterior
-        # self.latent1_posterior = latent1_distribution_ctor(8 * base_depth, latent1_size)
-        # q(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t) = p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t)
-        # self.latent2_posterior = self.latent2_prior
-        self.latent2_posterior = self.latent2_first_posterior
+        lstm_seq_2, state_h_2, state_c_ = self._modelTarget._reward_net(self._model._Action)
         
         encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(state_h)[1:]
                                                                           , name="seq_encoding_input"

@@ -400,7 +400,7 @@
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "integrate_actor_part"},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "Dense", "units": 32, "use_bias": true}
+							{"layer_type": "LSTM", "units": 32, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -504,7 +504,7 @@
 							{"layer_type": "Input", "shape": ["none", "none", 11], "flag": "action"},
 							{"layer_type": "Input", "slice_label": "action"},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "Dense", "units": 256, "use_bias": true}
+							{"layer_type": "LSTM", "units": 32, "return_sequences": true, "return_state": true, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null}
 							],
 	"comment__": "The encoding vector size used for the fd models",
 "encoding_vector_size": 32,
