@@ -71,6 +71,37 @@ def sampling(args):
     epsilon = K.random_normal(shape=(batch, dim))
     return z_mean + K.exp(0.5 * z_log_var) * epsilon
 
+def display_gif(images, logdir, fps=10, max_outputs=8):
+  images = images[:max_outputs]
+  images = np.clip(images, 0.0, 1.0)
+  images = (images * 255.0).astype(np.uint8)
+  images = np.concatenate(images, axis=-2)
+  clip = mpy.ImageSequenceClip(list(images), fps=fps)
+  # clip.write_videofile(logdir+str(global_counter)+".mp4", fps=fps)
+
+  # import moviepy.editor as mpy
+  # clip = mpy.ImageSequenceClip(images, fps=20)
+  
+  # video_dir = video_dir_prefix + 'BCpolicy-gripper_state2'+str(reset_arg)+'/'
+
+  # if os.path.isdir(video_dir)!=True:
+  #     os.makedirs(video_dir, exist_ok = True)
+  clip.write_gif(logdir+str(global_counter)+".gif", fps=20)
+
+def save_weights(sess, logdir):
+  vars_dict = {}
+  graph_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+  for var in graph_vars:
+    vars_dict[var.name]= sess.run(var)
+  fobj = open(logdir+str(global_counter)+'-weights.pkl', 'wb')
+  pickle.dump(vars_dict , fobj)
+
+def load_trainable_weights(sess, pathname):
+  load_data = pickle.load(open(pathname, 'rb')) #sorry
+  assign_ops = [tf.assign(var, load_data[var.name]) for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)]
+  for op in assign_ops:
+    sess.run(op)
+
 def map_distribution_structure(func, *dist_structure):
   def _get_params(dist):
     return {k: v for k, v in dist.parameters.items() if isinstance(v, tf.Tensor)}
@@ -679,9 +710,53 @@ class SLACModel(SiameseNetwork):
         latent2_samples = tf.stack(latent2_samples, axis=1)
         return (latent1_samples, latent2_samples), (latent1_dists, latent2_dists)
     
+    def _parser(self, images, actions):
+        num_shifts = self._all_sequence_length - self._sequence_length
+        t_start = tf.random_uniform([], 0, num_shifts + 1, dtype=tf.int32)
+        images = images[t_start:t_start+self._sequence_length]
+        images.set_shape([self._sequence_length] + images.shape.as_list()[1:])
+        actions = actions[t_start:t_start+self._sequence_length-1]
+        actions.set_shape([self._sequence_length-1] + actions.shape.as_list()[1:])
+        seqs = {
+            'images': images,
+            'actions': actions,
+        }
+        return seqs  
+        
+
     def compile(self):
+        img_size = (64,64,3)
+        action_size = 2
+        reward_size = 1
+        data_array = np.zeros((64,16,np.prod(img_size) + action_size + reward_size))
+        # data_array = np.concatenate([data1, data2, data4, data5,data6,data7])
+        
+        data_array = data_array.astype(np.float32)
+        self._all_batch_size, self._all_sequence_length = data_array.shape[:2]
+        self._batch_size = 32
+        self._sequence_length = 10
+        shuffle = True
+        num_epochs = None
+        dataset = tf.data.Dataset.from_tensor_slices((data_array[..., :64*64*3].reshape(data_array.shape[:2] + (64, 64, 3)), data_array[..., 64*64*3:64*64*3+2]))
+        
+        if shuffle:
+            dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=1024, count=num_epochs))
+        else:
+            dataset = dataset.repeat(num_epochs)
+        
+        dataset = dataset.apply(tf.data.experimental.map_and_batch(self._parser, self._batch_size, drop_remainder=True))
+        dataset = dataset.prefetch(self._batch_size)
+        
+        iterator = dataset.make_one_shot_iterator()
+        data = iterator.get_next()
+# #         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
+#         data = {}
+#         ### 100 trajectories of length 100 for 64x64x3 images
+#         data["images"] = np.zeros((10,8,64,64,3))
+#         ### 100 trajectories of length 100 for 3 actions
+#         data["actions"] = np.zeros((10,8,3))
         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
-        loss, outputs = model.compute_loss(data['images'], data['actions'], step_types)
+        loss, outputs = self.compute_loss(data['images'], data['actions'], step_types)
         
         global_step = tf.train.create_global_step()
         adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
@@ -692,18 +767,6 @@ class SLACModel(SiameseNetwork):
         if not args.init_params is None:
           load_trainable_weights(sess, args.init_params)
         
-        for i in range(args.train_iter):
-          _, loss_val, global_step_val = sess.run([train_op, loss, global_step])
-          if i % 100 == 0:
-            print('step = %d, loss = %f' % (global_step_val, loss_val))
-          if i % 10000 == 0:
-            global_counter=i
-            images, posterior_images, conditional_prior_images, prior_images = sess.run(
-                [outputs['images'], outputs['posterior_images'], outputs['conditional_prior_images'], outputs['prior_images']])
-            all_images = np.concatenate([images, posterior_images, conditional_prior_images, prior_images], axis=2)
-            save_weights(sess, logdir)
-            #import ipdb;ipdb.set_trace()
-            display_gif(all_images, logdir)
         
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
     def vae_marginal_(self, action_true, action_pred):
