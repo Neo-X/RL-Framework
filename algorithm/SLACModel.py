@@ -1,5 +1,5 @@
 ###
-# python3 trainModel.py --config=settings/terrainRLImitate/PPO/SLAC_mini.json -p 4 --bootstrap_samples=1000 --max_epoch_length=16 --rollouts=4 --skip_rollouts=true --train_actor=false --train_critic=false --epochs=32 --fd_updates_per_actor_update=64 --on_policy=fast
+# python3 trainModel.py --config=settings/terrainRLImitate/PPO/SLACModel_mini.json -p 4 --bootstrap_samples=1000 --max_epoch_length=16 --rollouts=4 --skip_rollouts=true --train_actor=false --train_critic=false --epochs=32 --fd_updates_per_actor_update=64 --on_policy=fast
 
 import numpy as np
 # import lasagne
@@ -314,7 +314,21 @@ class SLACModel(SiameseNetwork):
     
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
 
-        super(SLACModel,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
+        super(SiameseNetwork,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
+        observation_spec = None
+        action_spec = None
+        base_depth=32
+        latent1_size=32
+        latent2_size=256
+        kl_analytic=True
+        latent1_deterministic=False
+        latent2_deterministic=False
+        model_reward=False
+        model_discount=False
+        fps=None
+        decoder_stddev=np.sqrt(0.1, dtype=np.float32)
+        reward_stddev=None
+        name='SlacModelDistributionNetwork'
         self.observation_spec = observation_spec
         self.action_spec = action_spec
         self.base_depth = base_depth
@@ -666,148 +680,30 @@ class SLACModel(SiameseNetwork):
         return (latent1_samples, latent2_samples), (latent1_dists, latent2_dists)
     
     def compile(self):
-        # sgd = SGD(lr=0.001, momentum=0.9)
+        step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
+        loss, outputs = model.compute_loss(data['images'], data['actions'], step_types)
         
-        # because we re-use the same instance `base_network`,
-        # the weights of the network
-        # will be shared across the two branches
+        global_step = tf.train.create_global_step()
+        adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
+        train_op = adam_optimizer.minimize(loss, global_step=global_step)
         
+        # train
+        sess.run(tf.global_variables_initializer()) 
+        if not args.init_params is None:
+          load_trainable_weights(sess, args.init_params)
         
-        state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
-        print ("*** self._model.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getStateSymbolicVariable())))
-        print ("*** self._model.getStateSymbolicVariable() shape: ", repr(self._model.getStateSymbolicVariable()))
-
-        ### Compressor
-        ### outputs a multi variate diagonal normal distribution
-        ### p(e|x)  
-        processed_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())[0]
-        self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a, name="forward_encoder_outputs_mean")
-        processed_a_log_var = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())[1]
-        self._model.processed_a_log_var = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_log_var, name="forward_encoder_outputs_log_var")
-        ### Marginal encoder
-        ### p(z|x)
-        processed_a_vae = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())[2]
-        self._model.processed_a_vae = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_vae, name="forward_encoder_outputs_z")
-        ### Distribute compressor over sequence
-        ### p(mu_0, ... , mu_t|x_0, ..., x_t)
-        network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length), name='forward_mean_encoding')(self._model.getResultStateSymbolicVariable())
-        print ("network_: ", repr(network_))
-        ### p(sig_0, ... , sig_t|x_0, ..., x_t)
-        self._network_vae_log_var = keras.layers.TimeDistributed(self._model.processed_a_log_var, input_shape=(None, 1, self._state_length), name='forward_log_var')(self._model.getResultStateSymbolicVariable())
-        print ("network_vae: ", repr(network_))
-        ### This will be used later mostly as an auxilerary loss, maybe will be the marginal z model at some point.
-        ### p(z_0, ... , z_t|x_0, ..., x_t)
-        self._network_vae = keras.layers.TimeDistributed(self._model.processed_a_vae, input_shape=(None, 1, self._state_length), name='forward_z_sample_seq')(self._model.getResultStateSymbolicVariable())
-        print ("network_vae: ", repr(network_))
-        
-        ### p(z_1^1)
-        batch = K.shape(self._model.getStateSymbolicVariable())[0]
-        dim = self.getSettings()["encoding_vector_size"]
-        self.latent1_first_prior = K.random_normal(shape=(batch, dim))
-        # p(z_1^2 | z_1^1)
-        self.latent2_first_prior = self._model._reward_net([0, self.latent1_first_prior, 0])
-        
-        # p(z_{t+1}^1 | z_t^2, a_t)
-        self.latent1_prior = self._modelTarget._reward_net(self.latent2_first_prior, self._model._Action)
-
-        ### # p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t)
-        self.latent2_prior  = self._model._reward_net([self.latent1_prior, self.latent1_first_prior, self._model._Action])
-        
-        # q(z_1^1 | x_1)
-        # self.latent1_first_posterior = latent1_distribution_ctor(8 * base_depth, latent1_size)
-        self.latent1_first_posterior = self._modelTarget._reward_net(self.latent2_first_prior, 0)
-        # q(z_1^2 | z_1^1) = p(z_1^2 | z_1^1)
-        self.latent2_first_posterior = self.latent2_first_prior
-        # q(z_{t+1}^1 | x_{t+1}, z_t^2, a_t)
-        self.latent1_posterior = self.latent1_first_posterior
-        # self.latent1_posterior = latent1_distribution_ctor(8 * base_depth, latent1_size)
-        # q(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t) = p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t)
-        # self.latent2_posterior = self.latent2_prior
-        self.latent2_posterior = self.latent2_first_posterior
-        
-        encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(state_h)[1:]
-                                                                          , name="seq_encoding_input"
-                                                                          )
-        self.seq_mean = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear', name="seq_mean")(encode_input__)
-        self._seq_mean = Model(inputs=[encode_input__], outputs=self.seq_mean, name="seq_mean")
-        self.seq_log_var = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid',  name="seq_log_var")(encode_input__)
-        self._seq_log_var = Model(inputs=[encode_input__], outputs=self.seq_log_var, name="seq_log_var")
-        
-        self._seq_z_mean = self._seq_mean(encode_input__)
-        self._seq_z_log_var = self._seq_log_var(encode_input__)
-        self._seq_z = keras.layers.Lambda(sampling, output_shape=(self.getSettings()["encoding_vector_size"],), name='seq_z_sampling')([self._seq_z_mean, 
-                                                                   self._seq_z_log_var])
-        self._seq_z = Model(inputs=[encode_input__], outputs=self._seq_z, name='seq_z_sampling')
-        
-        self._seq_mean = keras.layers.TimeDistributed(self._seq_mean, input_shape=(None, 1, 67), name="after_lsmt_seq_mean" )(lstm_seq)
-        self._seq_log_var = keras.layers.TimeDistributed(self._seq_log_var, input_shape=(None, 1, 67), name="after_lsmt_seq_log_var")(lstm_seq)
-        self._seq_z_seq = keras.layers.TimeDistributed(self._seq_z, input_shape=(None, 1, 67), name="after_lsmt_seq_z")(lstm_seq)
-        
-        self.seq_mean_2 = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear', name="seq_mean")(encode_input__)
-        self._seq_mean_2 = Model(inputs=[encode_input__], outputs=self.seq_mean_2, name="seq_mean")
-        self.seq_log_var_2 = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid',  name="seq_log_var")(encode_input__)
-        self._seq_log_var_2 = Model(inputs=[encode_input__], outputs=self.seq_log_var_2, name="seq_log_var")
-        
-        self._seq_z_mean_2 = self._seq_mean_2(encode_input__)
-        self._seq_z_log_var_2 = self._seq_log_var_2(encode_input__)
-        self._seq_z_2 = keras.layers.Lambda(sampling, output_shape=(self.getSettings()["encoding_vector_size"],), name='seq_z_2_sampling')([self._seq_z_mean_2, 
-                                                                   self._seq_z_log_var_2])
-        self._seq_z_2 = Model(inputs=[encode_input__], outputs=self._seq_z_2, name='seq_z_2_sampling')
-        
-        self._seq_mean_2 = keras.layers.TimeDistributed(self._seq_mean_2, input_shape=(None, 1, 67), name="after_lsmt_seq_mean_2" )(lstm_seq_2)
-        self._seq_log_var_2 = keras.layers.TimeDistributed(self._seq_log_var_2, input_shape=(None, 1, 67), name="after_lsmt_seq_log_var_2")(lstm_seq_2)
-        self._seq_z_seq_2 = keras.layers.TimeDistributed(self._seq_z_2, input_shape=(None, 1, 67), name="after_lsmt_seq_z_2")(lstm_seq_2)
-        # self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=self._seq_mean)
-        # self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r[0])
-        
-        ### Decode sequences into images
-        # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
-        decode_seq_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67), name="decode_conditional_seq_z")(self._seq_z_seq)
-        print ("decode_seq_vae: ", repr(decode_seq_vae))
-        ### This is not really the same as the marginal over the conditional z's...
-        decode_marginal_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67), name="decode_marginal_seq_z")(self._network_vae)
-        print ("decode_marginal_vae: ", repr(decode_marginal_vae))
-
-#         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
-#                                                           ]
-#                                                   , outputs=distance_fd
-#                                                   )
-        
-        self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable(),
-                                                self._model._Action
-                                                      ]
-                                                      , outputs=[
-                                                                 decode_seq_vae, 
-                                                                 decode_marginal_vae,
-                                                                 ],
-                                                      name='seq_vae_model'
-                                                      )
-
-        # sgd = SGD(lr=0.0005, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
-                                    beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
-                                    clipnorm=2.5)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("sgd, actor: ", sgd)
-            print ("Clipping: ", sgd.decay)
-        self._model._forward_dynamics_net.compile(loss=contrastive_loss, optimizer=sgd)
-        self._modelTarget._forward_dynamics_net.compile(loss=contrastive_loss, optimizer=sgd)
-
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
-                                    beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
-                                    clipnorm=2.5)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("sgd, actor: ", sgd)
-            print ("Clipping: ", sgd.decay)
-            
-            
-        self._model._reward_net.compile(
-                                        loss=[self.vae_seq_loss
-                                             ,self.vae_marginal_
-                                              ], 
-                                        optimizer=sgd
-                                        ,loss_weights=[0.9,0.1]
-                                        )
+        for i in range(args.train_iter):
+          _, loss_val, global_step_val = sess.run([train_op, loss, global_step])
+          if i % 100 == 0:
+            print('step = %d, loss = %f' % (global_step_val, loss_val))
+          if i % 10000 == 0:
+            global_counter=i
+            images, posterior_images, conditional_prior_images, prior_images = sess.run(
+                [outputs['images'], outputs['posterior_images'], outputs['conditional_prior_images'], outputs['prior_images']])
+            all_images = np.concatenate([images, posterior_images, conditional_prior_images, prior_images], axis=2)
+            save_weights(sess, logdir)
+            #import ipdb;ipdb.set_trace()
+            display_gif(all_images, logdir)
         
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
     def vae_marginal_(self, action_true, action_pred):
@@ -910,69 +806,18 @@ class SLACModel(SiameseNetwork):
             and (self.getSettings()['anneal_learning_rate'] == True)):
             K.set_value(self._model._forward_dynamics_net.optimizer.lr, np.float32(self.getSettings()['fd_learning_rate']) * p)
 
-        if (((("train_LSTM_FD" in self._settings)
-                and (self._settings["train_LSTM_FD"] == True))
-            or
-            (("train_LSTM_Reward" in self._settings)
-                and (self._settings["train_LSTM_Reward"] == True))
-            ) 
-            and lstm):
-            ### result states can be from the imitation agent.
-            # print ("falls: ", falls)
-            # print ("sequences0 shape: ", sequences0.shape)
-            loss_ = []
-        
-            # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
-            # print ("targets__: ", targets__)
-            if (("train_LSTM_FD" in self._settings)
-                and (self._settings["train_LSTM_FD"] == True)):
-                score = self._model._forward_dynamics_net.fit([states], [states],
-                              epochs=1, 
-                              batch_size=sequences0.shape[0],
-                              verbose=0
-                              )
-                loss_.append(np.mean(score.history['loss']))
-                
-            if (("train_LSTM_Reward" in self._settings)
-                and (self._settings["train_LSTM_Reward"] == True)):
-                
-                print("states shape: ", states.shape)
-                print("actions shape: ", actions.shape)
-                score = self._model._reward_net.fit([states, actions], 
-                              [states, 
-                               states],
-                              epochs=1, 
-                              batch_size=states.shape[0],
-                              verbose=0
-                              )
-                
-                loss_.append(np.mean(score.history['loss']))
-            
-            return np.mean(loss_)
-        else:
-            te_pair1, te_pair2, te_y = create_pairs2(states_, self._settings)
-        self._updates += 1
-        if (batch_size is None):
-            batch_size_=states.shape[0]
-        else:
-            batch_size_=batch_size
-        loss = 0
-        # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
-        # dist = np.mean(dist_)
-        te_y = np.array(te_y)
-        # print("Distance: ", dist)
-        # print("targets: ", te_y)
-        # print("pairs: ", te_pair1)
-        # print("Distance.shape, targets.shape: ", dist_.shape, te_y.shape)
-        # print("Distance, targets: ", np.concatenate((dist_, te_y), axis=1))
-        # if ( dist > 0):
-        score = self._model._forward_dynamics_net.fit([te_pair1, te_pair2], te_y,
-          epochs=updates, batch_size=batch_size_,
-          verbose=0,
-          shuffle=True
-          )
-        loss = np.mean(score.history['loss'])
-            # print ("loss: ", loss)
+        for i in range(args.train_iter):
+          _, loss_val, global_step_val = sess.run([train_op, loss, global_step])
+          if i % 100 == 0:
+            print('step = %d, loss = %f' % (global_step_val, loss_val))
+          if i % 10000 == 0:
+            global_counter=i
+            images, posterior_images, conditional_prior_images, prior_images = sess.run(
+                [outputs['images'], outputs['posterior_images'], outputs['conditional_prior_images'], outputs['prior_images']])
+            all_images = np.concatenate([images, posterior_images, conditional_prior_images, prior_images], axis=2)
+            save_weights(sess, logdir)
+            #import ipdb;ipdb.set_trace()
+            display_gif(all_images, logdir)
         return loss
     
     def predict_encoding(self, state):
