@@ -883,7 +883,7 @@ class SLACModel(SiameseNetwork):
         
         data_array = data_array.astype(np.float32)
         self._all_batch_size, self._all_sequence_length = data_array.shape[:2]
-        self._batch_size = 1
+        self._batch_size = 32
         self._sequence_length = 8
         shuffle = True
         num_epochs = None
@@ -909,8 +909,8 @@ class SLACModel(SiameseNetwork):
         self._loss, outputs = self.compute_loss(data['images'], data['actions'], step_types)
         
         self._global_step = tf.train.create_global_step()
-        adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
-        self._train_op = adam_optimizer.minimize(self._loss, global_step=self._global_step)
+        self._adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
+        self._train_op = self._adam_optimizer.minimize(self._loss, global_step=self._global_step)
         
         # train
         self._sess.run(tf.global_variables_initializer()) 
@@ -1015,7 +1015,38 @@ class SLACModel(SiameseNetwork):
         """
         # print ("fd: ", self)
         # print ("state length: ", len(self.getStateBounds()[0]))
+        data_array = states
         self.reset()
+                self._batch_size = 32
+        self._sequence_length = 8
+        shuffle = True
+        num_epochs = None
+        dataset = tf.data.Dataset.from_tensor_slices((states[..., :64*64*3].reshape(data_array.shape[:2] + (64, 64, 3)), actions[..., 0:0+2]))
+        
+        if shuffle:
+            dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=1024, count=num_epochs))
+        else:
+            dataset = dataset.repeat(num_epochs)
+        
+        dataset = dataset.apply(tf.data.experimental.map_and_batch(self._parser, self._batch_size, drop_remainder=True))
+        dataset = dataset.prefetch(self._batch_size)
+        
+        iterator = dataset.make_one_shot_iterator()
+        data = iterator.get_next()
+# #         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
+#         data = {}
+#         ### 100 trajectories of length 100 for 64x64x3 images
+#         data["images"] = np.zeros((10,8,64,64,3))
+#         ### 100 trajectories of length 100 for 3 actions
+#         data["actions"] = np.zeros((10,8,3))
+
+        step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
+        loss, outputs = model.compute_loss(data['images'], data['actions'], step_types)
+        
+#         self._global_step = tf.train.create_global_step()
+#         adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
+        self._train_op = self._adam_optimizer.minimize(self._loss, global_step=self._global_step)
+        
         states_ = states
         if ('anneal_learning_rate' in self.getSettings()
             and (self.getSettings()['anneal_learning_rate'] == True)):
@@ -1023,17 +1054,17 @@ class SLACModel(SiameseNetwork):
 
         for i in range(1):
           _, loss_val, global_step_val = self._sess.run([self._train_op,self._loss, self._global_step])
-          if i % 100 == 0:
-            print('step = %d, loss = %f' % (global_step_val, loss_val))
-          if i % 10000 == 0:
-            global_counter=i
-            images, posterior_images, conditional_prior_images, prior_images = sess.run(
-                [outputs['images'], outputs['posterior_images'], outputs['conditional_prior_images'], outputs['prior_images']])
-            all_images = np.concatenate([images, posterior_images, conditional_prior_images, prior_images], axis=2)
-            save_weights(sess, logdir)
-            #import ipdb;ipdb.set_trace()
-            display_gif(all_images, logdir)
-        return loss
+#           if i % 100 == 0:
+#             print('step = %d, loss = %f' % (global_step_val, loss_val))
+#           if i % 10000 == 0:
+#             global_counter=i
+#             images, posterior_images, conditional_prior_images, prior_images = self._sess.run(
+#                 [outputs['images'], outputs['posterior_images'], outputs['conditional_prior_images'], outputs['prior_images']])
+#             all_images = np.concatenate([images, posterior_images, conditional_prior_images, prior_images], axis=2)
+#             save_weights(sess, logdir)
+#             #import ipdb;ipdb.set_trace()
+#             display_gif(all_images, logdir)
+        return loss_val
     
     def predict_encoding(self, state):
         """
@@ -1042,7 +1073,80 @@ class SLACModel(SiameseNetwork):
         # state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
-            h_a = self._model.processed_a.predict([np.array([state])])
+            h_a = self._model.processed_a.predict([np.array([state])])#         self.reset()
+#         hf = h5py.File(fileName+"_bounds.h5", "w")
+#         hf.create_dataset('_state_bounds', data=self.getStateBounds())
+#         hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
+#         hf.create_dataset('_action_bounds', data=self.getActionBounds())
+#         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+#             print("fd save self.getStateBounds(): ", len(self.getStateBounds()[0]))
+#         # hf.create_dataset('_resultgetStateBounds()', data=self.getResultStateBounds())
+#         # print ("fd: ", self)
+#         hf.flush()
+#         hf.close()
+#         suffix = ".h5"
+#         ### Save models
+#         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
+#         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
+#         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+#         self._model._reward_net.save_weights(fileName+"_reward"+suffix, overwrite=True)
+#         self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
+#         # self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
+#         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+#         # self._modelTarget._reward_net.save_weights(fileName+"_reward_T"+suffix, overwrite=True)
+#         # print ("self._model._actor_train: ", self._model._actor_train)
+#         try:
+#             from keras.utils import plot_model
+#             ### Save model design as image
+#             plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
+#             plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
+#             plot_model(self._modelTarget._forward_dynamics_net, to_file=fileName+"_FD_decode"+'.svg', show_shapes=True)
+#         except Exception as inst:
+#             ### Maybe the needed libraries are not available
+#             print ("Error saving diagrams for rl models.")
+#             print (inst)
+#             
+#         if (states is not None):
+#             ## Don't use Xwindows backend for this
+#             import matplotlib
+#             # matplotlib.use('Agg')
+#             import matplotlib.pyplot as plt
+#             # img_ = np.reshape(viewData, (150,158,3))
+#             ### get the sequence prediction
+#             predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
+#             
+#             img_ = predicted_y[0]
+#             img_z = predicted_y[1]
+#             ### Get first sequence in batch
+#             img_ = img_[0]
+#             img_x = states[0]
+#             import imageio
+#             import PIL
+#             from PIL import Image
+#             images_x = []
+#             images_y = []
+#             images_z = []
+#             for i in range(len(img_)):
+#                 img__y = np.reshape(img_[i], self._settings["fd_terrain_shape"])
+#                 images_y.append(Image.fromarray(img__y).resize((256,256))) ### upsampling
+#                 print("img_ shape", img__y.shape, " sum: ", np.sum(img__y))
+#                 # fig1 = plt.figure(2)
+#                 ### Save generated image
+#                 # plt.imshow(img__y, origin='lower')
+#                 # plt.title("agent visual Data: ")
+#                 # fig1.savefig(fileName+"viz_state_"+str(i)+".png")
+#                 ### Save input image
+#                 img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
+#                 images_x.append(Image.fromarray(img__x).resize((256,256))) ### upsampling
+# #                 plt.imshow(img__x, origin='lower')
+# #                 plt.title("agent visual Data: ")
+# #                 fig1.savefig(fileName+"viz_state_input_"+str(i)+".png")
+# #                 img__z = np.reshape(img_z[i], self._settings["fd_terrain_shape"])
+# #                 images_z.append(img__z)
+#                 
+#             imageio.mimsave(fileName+"viz_state_input_"+'.gif', images_x, duration=0.5,)
+#             imageio.mimsave(fileName+"viz_conditional_"+'.gif', images_y, duration=0.5,)
+# #             imageio.mimsave(fileName+"viz_marginal_"+'.gif', images_z, duration=0.5,)
         else:
             h_a = self._model._forward_dynamics_net.predict([state])[0]
         return h_a
@@ -1184,9 +1288,9 @@ class SLACModel(SiameseNetwork):
         self.reset()
         if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
-            errors=[]
-            predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
-            errors.append( np.mean(predicted_y[0] - states ))
+            errors=[0]
+#             predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
+#             errors.append( np.mean(predicted_y[0] - states ))
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
@@ -1204,80 +1308,80 @@ class SLACModel(SiameseNetwork):
     def saveTo(self, fileName, states=None, actions=None):
         # print(self, "saving model")
         import h5py
-        self.reset()
-        hf = h5py.File(fileName+"_bounds.h5", "w")
-        hf.create_dataset('_state_bounds', data=self.getStateBounds())
-        hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
-        hf.create_dataset('_action_bounds', data=self.getActionBounds())
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("fd save self.getStateBounds(): ", len(self.getStateBounds()[0]))
-        # hf.create_dataset('_resultgetStateBounds()', data=self.getResultStateBounds())
-        # print ("fd: ", self)
-        hf.flush()
-        hf.close()
-        suffix = ".h5"
-        ### Save models
-        # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
-        self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
-        # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
-        self._model._reward_net.save_weights(fileName+"_reward"+suffix, overwrite=True)
-        self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
-        # self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
-        # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
-        # self._modelTarget._reward_net.save_weights(fileName+"_reward_T"+suffix, overwrite=True)
-        # print ("self._model._actor_train: ", self._model._actor_train)
-        try:
-            from keras.utils import plot_model
-            ### Save model design as image
-            plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
-            plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
-            plot_model(self._modelTarget._forward_dynamics_net, to_file=fileName+"_FD_decode"+'.svg', show_shapes=True)
-        except Exception as inst:
-            ### Maybe the needed libraries are not available
-            print ("Error saving diagrams for rl models.")
-            print (inst)
-            
-        if (states is not None):
-            ## Don't use Xwindows backend for this
-            import matplotlib
-            # matplotlib.use('Agg')
-            import matplotlib.pyplot as plt
-            # img_ = np.reshape(viewData, (150,158,3))
-            ### get the sequence prediction
-            predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
-            
-            img_ = predicted_y[0]
-            img_z = predicted_y[1]
-            ### Get first sequence in batch
-            img_ = img_[0]
-            img_x = states[0]
-            import imageio
-            import PIL
-            from PIL import Image
-            images_x = []
-            images_y = []
-            images_z = []
-            for i in range(len(img_)):
-                img__y = np.reshape(img_[i], self._settings["fd_terrain_shape"])
-                images_y.append(Image.fromarray(img__y).resize((256,256))) ### upsampling
-                print("img_ shape", img__y.shape, " sum: ", np.sum(img__y))
-                # fig1 = plt.figure(2)
-                ### Save generated image
-                # plt.imshow(img__y, origin='lower')
-                # plt.title("agent visual Data: ")
-                # fig1.savefig(fileName+"viz_state_"+str(i)+".png")
-                ### Save input image
-                img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
-                images_x.append(Image.fromarray(img__x).resize((256,256))) ### upsampling
-#                 plt.imshow(img__x, origin='lower')
-#                 plt.title("agent visual Data: ")
-#                 fig1.savefig(fileName+"viz_state_input_"+str(i)+".png")
-#                 img__z = np.reshape(img_z[i], self._settings["fd_terrain_shape"])
-#                 images_z.append(img__z)
-                
-            imageio.mimsave(fileName+"viz_state_input_"+'.gif', images_x, duration=0.5,)
-            imageio.mimsave(fileName+"viz_conditional_"+'.gif', images_y, duration=0.5,)
-#             imageio.mimsave(fileName+"viz_marginal_"+'.gif', images_z, duration=0.5,)
+#         self.reset()
+#         hf = h5py.File(fileName+"_bounds.h5", "w")
+#         hf.create_dataset('_state_bounds', data=self.getStateBounds())
+#         hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
+#         hf.create_dataset('_action_bounds', data=self.getActionBounds())
+#         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+#             print("fd save self.getStateBounds(): ", len(self.getStateBounds()[0]))
+#         # hf.create_dataset('_resultgetStateBounds()', data=self.getResultStateBounds())
+#         # print ("fd: ", self)
+#         hf.flush()
+#         hf.close()
+#         suffix = ".h5"
+#         ### Save models
+#         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
+#         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
+#         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+#         self._model._reward_net.save_weights(fileName+"_reward"+suffix, overwrite=True)
+#         self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
+#         # self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
+#         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+#         # self._modelTarget._reward_net.save_weights(fileName+"_reward_T"+suffix, overwrite=True)
+#         # print ("self._model._actor_train: ", self._model._actor_train)
+#         try:
+#             from keras.utils import plot_model
+#             ### Save model design as image
+#             plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
+#             plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
+#             plot_model(self._modelTarget._forward_dynamics_net, to_file=fileName+"_FD_decode"+'.svg', show_shapes=True)
+#         except Exception as inst:
+#             ### Maybe the needed libraries are not available
+#             print ("Error saving diagrams for rl models.")
+#             print (inst)
+#             
+#         if (states is not None):
+#             ## Don't use Xwindows backend for this
+#             import matplotlib
+#             # matplotlib.use('Agg')
+#             import matplotlib.pyplot as plt
+#             # img_ = np.reshape(viewData, (150,158,3))
+#             ### get the sequence prediction
+#             predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
+#             
+#             img_ = predicted_y[0]
+#             img_z = predicted_y[1]
+#             ### Get first sequence in batch
+#             img_ = img_[0]
+#             img_x = states[0]
+#             import imageio
+#             import PIL
+#             from PIL import Image
+#             images_x = []
+#             images_y = []
+#             images_z = []
+#             for i in range(len(img_)):
+#                 img__y = np.reshape(img_[i], self._settings["fd_terrain_shape"])
+#                 images_y.append(Image.fromarray(img__y).resize((256,256))) ### upsampling
+#                 print("img_ shape", img__y.shape, " sum: ", np.sum(img__y))
+#                 # fig1 = plt.figure(2)
+#                 ### Save generated image
+#                 # plt.imshow(img__y, origin='lower')
+#                 # plt.title("agent visual Data: ")
+#                 # fig1.savefig(fileName+"viz_state_"+str(i)+".png")
+#                 ### Save input image
+#                 img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
+#                 images_x.append(Image.fromarray(img__x).resize((256,256))) ### upsampling
+# #                 plt.imshow(img__x, origin='lower')
+# #                 plt.title("agent visual Data: ")
+# #                 fig1.savefig(fileName+"viz_state_input_"+str(i)+".png")
+# #                 img__z = np.reshape(img_z[i], self._settings["fd_terrain_shape"])
+# #                 images_z.append(img__z)
+#                 
+#             imageio.mimsave(fileName+"viz_state_input_"+'.gif', images_x, duration=0.5,)
+#             imageio.mimsave(fileName+"viz_conditional_"+'.gif', images_y, duration=0.5,)
+# #             imageio.mimsave(fileName+"viz_marginal_"+'.gif', images_z, duration=0.5,)
         
     def loadFrom(self, fileName):
         import h5py
