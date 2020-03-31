@@ -1015,37 +1015,39 @@ class SLACModel(SiameseNetwork):
         """
         # print ("fd: ", self)
         # print ("state length: ", len(self.getStateBounds()[0]))
-        data_array = states
-        self.reset()
-                self._batch_size = 32
-        self._sequence_length = 8
-        shuffle = True
-        num_epochs = None
-        dataset = tf.data.Dataset.from_tensor_slices((states[..., :64*64*3].reshape(data_array.shape[:2] + (64, 64, 3)), actions[..., 0:0+2]))
-        
-        if shuffle:
-            dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=1024, count=num_epochs))
-        else:
-            dataset = dataset.repeat(num_epochs)
-        
-        dataset = dataset.apply(tf.data.experimental.map_and_batch(self._parser, self._batch_size, drop_remainder=True))
-        dataset = dataset.prefetch(self._batch_size)
-        
-        iterator = dataset.make_one_shot_iterator()
-        data = iterator.get_next()
-# #         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
-#         data = {}
-#         ### 100 trajectories of length 100 for 64x64x3 images
-#         data["images"] = np.zeros((10,8,64,64,3))
-#         ### 100 trajectories of length 100 for 3 actions
-#         data["actions"] = np.zeros((10,8,3))
-
-        step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
-        loss, outputs = model.compute_loss(data['images'], data['actions'], step_types)
-        
-#         self._global_step = tf.train.create_global_step()
-#         adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
-        self._train_op = self._adam_optimizer.minimize(self._loss, global_step=self._global_step)
+        update_data = False
+        if (update_data):
+            data_array = states
+            self.reset()
+                    self._batch_size = 32
+            self._sequence_length = 8
+            shuffle = True
+            num_epochs = None
+            dataset = tf.data.Dataset.from_tensor_slices((states[..., :64*64*3].reshape(data_array.shape[:2] + (64, 64, 3)), actions[..., 0:0+2]))
+            
+            if shuffle:
+                dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=1024, count=num_epochs))
+            else:
+                dataset = dataset.repeat(num_epochs)
+            
+            dataset = dataset.apply(tf.data.experimental.map_and_batch(self._parser, self._batch_size, drop_remainder=True))
+            dataset = dataset.prefetch(self._batch_size)
+            
+            iterator = dataset.make_one_shot_iterator()
+            data = iterator.get_next()
+    # #         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
+    #         data = {}
+    #         ### 100 trajectories of length 100 for 64x64x3 images
+    #         data["images"] = np.zeros((10,8,64,64,3))
+    #         ### 100 trajectories of length 100 for 3 actions
+    #         data["actions"] = np.zeros((10,8,3))
+    
+            step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
+            loss, outputs = model.compute_loss(data['images'], data['actions'], step_types)
+            
+    #         self._global_step = tf.train.create_global_step()
+    #         adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
+            self._train_op = self._adam_optimizer.minimize(self._loss, global_step=self._global_step)
         
         states_ = states
         if ('anneal_learning_rate' in self.getSettings()
