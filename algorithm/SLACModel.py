@@ -420,6 +420,8 @@ class SLACModel(SiameseNetwork):
             self.discount_predictor = Bernoulli(8 * base_depth)
         else:
             self.discount_predictor = None
+            
+        SLACModel.compile(self)
 
     @property
     def state_size(self):
@@ -466,7 +468,7 @@ class SLACModel(SiameseNetwork):
             return prior_tensors
 
         reset_masks = tf.concat([tf.ones_like(step_types[:, 0:1], dtype=tf.bool),
-                                 tf.equal(step_types[:, 1:], ts.StepType.FIRST), ], axis=1)
+                                 tf.equal(step_types[:, 1:], StepType.FIRST), ], axis=1)
 
         latent1_reset_masks = tf.tile(reset_masks[:, :, None], [1, 1, self.latent1_size])
         
@@ -475,7 +477,7 @@ class SLACModel(SiameseNetwork):
         # these distributions start at t=1 and the inputs are from t-1
         latent1_after_first_prior_dists = self.latent1_prior(latent2_posterior_samples[:, :sequence_length],
                                                              actions[:, :sequence_length])
-        latent1_prior_dists = nest_utils.map_distribution_structure(
+        latent1_prior_dists = map_distribution_structure(
             functools.partial(where_and_concat, latent1_reset_masks),
             latent1_first_prior_dists,
             latent1_after_first_prior_dists,
@@ -490,7 +492,7 @@ class SLACModel(SiameseNetwork):
             latent2_posterior_samples[:, :sequence_length],
             actions[:, :sequence_length],
         )
-        latent2_prior_dists = nest_utils.map_distribution_structure(
+        latent2_prior_dists = map_distribution_structure(
             functools.partial(where_and_concat, latent2_reset_masks),
             latent2_first_prior_dists,
             latent2_after_first_prior_dists,
@@ -545,7 +547,7 @@ class SLACModel(SiameseNetwork):
                 latent2_posterior_samples[:, 1:sequence_length + 1],
             )
             reward_valid_mask = tf.cast(
-                tf.not_equal(step_types[:, :sequence_length], ts.StepType.LAST),
+                tf.not_equal(step_types[:, :sequence_length], StepType.LAST),
                 tf.float32,
             )
             reward_log_probs = reward_dists.log_prob(rewards[:, :sequence_length])
@@ -639,7 +641,7 @@ class SLACModel(SiameseNetwork):
             # Create step types if they're not provided, assume they're all MID-type. [TODO seems risky assumption]
             batch_size = tf.shape(actions)[0]
             sequence_length = actions.shape[1].value  # should be statically defined
-            step_types = tf.fill([batch_size, sequence_length + 1], ts.StepType.MID)
+            step_types = tf.fill([batch_size, sequence_length + 1], StepType.MID)
         else:
             # Clip the actions to the correct length (if necessary).
             # sequence_length = T-1
@@ -686,7 +688,7 @@ class SLACModel(SiameseNetwork):
                 # Sample from the second-level distribution.
                 latent2_sample = latent2_dist.sample()
             else:
-                reset_mask = tf.equal(step_types[t], ts.StepType.FIRST)
+                reset_mask = tf.equal(step_types[t], StepType.FIRST)
                 if is_conditional:
                     # q(z_1^1 | x_1). Receives the image! Althought t > 0, we may need this depending on the reset mask.
                     latent1_first_dist = self.latent1_first_posterior(features[t])
@@ -696,7 +698,7 @@ class SLACModel(SiameseNetwork):
                     # p(z_1^1). Althought t > 0, we may need this depending on the reset mask.
                     latent1_first_dist = self.latent1_first_prior(step_types[t])
                     latent1_dist = self.latent1_prior(latent2_samples[t - 1], actions[t - 1])
-                latent1_dist = nest_utils.map_distribution_structure(
+                latent1_dist = map_distribution_structure(
                     functools.partial(tf.where, reset_mask),
                     latent1_first_dist,
                     latent1_dist,
@@ -713,7 +715,7 @@ class SLACModel(SiameseNetwork):
                     latent2_dist = self.latent2_prior(
                         latent1_sample, latent2_samples[t - 1], actions[t - 1]
                     )
-                latent2_dist = nest_utils.map_distribution_structure(
+                latent2_dist = map_distribution_structure(
                     functools.partial(tf.where, reset_mask),
                     latent2_first_dist,
                     latent2_dist,
@@ -725,12 +727,12 @@ class SLACModel(SiameseNetwork):
             latent2_dists.append(latent2_dist)
             latent2_samples.append(latent2_sample)
 
-        latent1_dists = nest_utils.map_distribution_structure(
+        latent1_dists = map_distribution_structure(
             lambda *x: tf.stack(x, axis=1), *latent1_dists
         )
         # (B T, latent1_dim)
         latent1_samples = tf.stack(latent1_samples, axis=1)
-        latent2_dists = nest_utils.map_distribution_structure(
+        latent2_dists = map_distribution_structure(
             lambda *x: tf.stack(x, axis=1), *latent2_dists
         )
         # (B, T, latent2_dim)
@@ -775,14 +777,14 @@ class SLACModel(SiameseNetwork):
                 latent2_sample = latent2_dist.sample()
             else:
                 # This handles the case of the stype types changing from MID/END to FIRST
-                reset_mask = tf.equal(step_types[t], ts.StepType.FIRST)
+                reset_mask = tf.equal(step_types[t], StepType.FIRST)
                 latent1_first_dist = self.latent1_first_posterior(features[t])
 
                 # Create the latent1-posterior based on the features (images), the most-recently sampled z from layer 2, and the most recent action
                 latent1_dist = self.latent1_posterior(
                     features[t], latent2_samples[t - 1], actions[t - 1]
                 )
-                latent1_dist = nest_utils.map_distribution_structure(
+                latent1_dist = map_distribution_structure(
                     functools.partial(tf.where, reset_mask),
                     latent1_first_dist,
                     latent1_dist,
@@ -797,7 +799,7 @@ class SLACModel(SiameseNetwork):
                     latent1_sample, latent2_samples[t - 1], actions[t - 1]
                 )
                 # TODO fix so it doesn't destroy our names.
-                latent2_dist = nest_utils.map_distribution_structure(
+                latent2_dist = map_distribution_structure(
                     functools.partial(tf.where, reset_mask),
                     latent2_first_dist,
                     latent2_dist,
@@ -809,11 +811,11 @@ class SLACModel(SiameseNetwork):
             latent2_dists.append(latent2_dist)
             latent2_samples.append(latent2_sample)
 
-        latent1_dists = nest_utils.map_distribution_structure(
+        latent1_dists = map_distribution_structure(
             lambda *x: tf.stack(x, axis=1), *latent1_dists
         )
         latent1_samples = tf.stack(latent1_samples, axis=1)
-        latent2_dists = nest_utils.map_distribution_structure(
+        latent2_dists = map_distribution_structure(
             lambda *x: tf.stack(x, axis=1), *latent2_dists
         )
         latent2_samples = tf.stack(latent2_samples, axis=1)
@@ -869,6 +871,10 @@ class SLACModel(SiameseNetwork):
         
 
     def compile(self):
+        
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth=True
+        self._sess = tf.Session(config=config)
         img_size = (64,64,3)
         action_size = 2
         reward_size = 1
@@ -900,16 +906,16 @@ class SLACModel(SiameseNetwork):
 #         ### 100 trajectories of length 100 for 3 actions
 #         data["actions"] = np.zeros((10,8,3))
         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
-        loss, outputs = self.compute_loss(data['images'], data['actions'], step_types)
+        self._loss, outputs = self.compute_loss(data['images'], data['actions'], step_types)
         
-        global_step = tf.train.create_global_step()
+        self._global_step = tf.train.create_global_step()
         adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
-        train_op = adam_optimizer.minimize(loss, global_step=global_step)
+        self._train_op = adam_optimizer.minimize(self._loss, global_step=self._global_step)
         
         # train
-        sess.run(tf.global_variables_initializer()) 
-        if not args.init_params is None:
-          load_trainable_weights(sess, args.init_params)
+        self._sess.run(tf.global_variables_initializer()) 
+#         if not args.init_params is None:
+#           load_trainable_weights(sess, args.init_params)
         
         
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
@@ -1015,8 +1021,8 @@ class SLACModel(SiameseNetwork):
             and (self.getSettings()['anneal_learning_rate'] == True)):
             K.set_value(self._model._forward_dynamics_net.optimizer.lr, np.float32(self.getSettings()['fd_learning_rate']) * p)
 
-        for i in range(args.train_iter):
-          _, loss_val, global_step_val = sess.run([train_op, loss, global_step])
+        for i in range(1):
+          _, loss_val, global_step_val = self._sess.run([self._train_op,self._loss, self._global_step])
           if i % 100 == 0:
             print('step = %d, loss = %f' % (global_step_val, loss_val))
           if i % 10000 == 0:
