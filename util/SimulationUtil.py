@@ -250,9 +250,9 @@ def processBounds(state_bounds, action_bounds, settings, sim):
         or (action_bounds == ["ask_env"])):
         print ("Getting action bounds from environment")
         if (not isinstance(sim.getEnvironment().action_space, gym.spaces.Discrete)):
-            a_min = sim.getEnvironment()._action_space.low
-            a_max = sim.getEnvironment()._action_space.high
-            print (sim.getEnvironment()._action_space.low)
+            a_min = sim.getEnvironment().action_space.low
+            a_max = sim.getEnvironment().action_space.high
+            print (sim.getEnvironment().action_space.low)
             settings['action_bounds'] = [a_min,a_max]
         else:
             settings['action_bounds'] = [[-1] * sim.getEnvironment().action_space.n, [1] * sim.getEnvironment().action_space.n]
@@ -265,8 +265,8 @@ def processBounds(state_bounds, action_bounds, settings, sim):
         state_bounds_ = []
         for i in range (settings["perform_multiagent_training"]):
             if (state_bounds[i] == "ask_env"):
-                s_min = sim.getEnvironment().observation_space.low
-                s_max = sim.getEnvironment().observation_space.high
+                s_min = sim.getEnvironment().observation_space.low.flatten()
+                s_max = sim.getEnvironment().observation_space.high.flatten()
                 if ("use_centralized_critic" in settings and 
                     (settings["use_centralized_critic"] == True)):
                     bounds = [[],[]]
@@ -289,8 +289,8 @@ def processBounds(state_bounds, action_bounds, settings, sim):
     elif ((state_bounds == "ask_env")
         or (state_bounds == ["ask_env"])):
         print ("Getting state bounds from environment")
-        s_min = sim.getEnvironment().observation_space.low
-        s_max = sim.getEnvironment().observation_space.high
+        s_min = sim.getEnvironment().observation_space.low.flatten()
+        s_max = sim.getEnvironment().observation_space.high.flatten()
         print (sim.getEnvironment().observation_space.low)
         if ("include_suffstate_in_state" in settings
             and (settings["include_suffstate_in_state"] == True)):

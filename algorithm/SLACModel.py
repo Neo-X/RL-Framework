@@ -1,5 +1,7 @@
 ###
 # python3 trainModel.py --config=settings/terrainRLImitate/PPO/SLACModel_mini.json -p 4 --bootstrap_samples=1000 --max_epoch_length=16 --rollouts=4 --skip_rollouts=true --train_actor=false --train_critic=false --epochs=32 --fd_updates_per_actor_update=64 --on_policy=fast
+### Easy example to use with less requirements:
+# python3 -m pdb -c c trainModel.py --config=settings/MiniGrid/TagEnv/PPO/Tag_SLAC_mini.json -p 2 --bootstrap_samples=1000 --max_epoch_length=16 --rollouts=4 --skip_rollouts=true --train_actor=false --train_critic=false --epochs=32 --fd_updates_per_actor_update=64 --on_policy=fast --print_level=debug
 
 import numpy as np
 # import lasagne
@@ -1019,8 +1021,6 @@ class SLACModel(SiameseNetwork):
         if (update_data):
             data_array = states
             self.reset()
-                    self._batch_size = 32
-            self._sequence_length = 8
             shuffle = True
             num_epochs = None
             dataset = tf.data.Dataset.from_tensor_slices((states[..., :64*64*3].reshape(data_array.shape[:2] + (64, 64, 3)), actions[..., 0:0+2]))
