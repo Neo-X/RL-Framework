@@ -163,183 +163,176 @@ class StepType(object):
 
     raise ValueError('No known conversion for `%r` into a StepType' % value)
 
+class Bernoulli(tf.Module):
+    def __init__(self, base_depth, name=None):
+        super(Bernoulli, self).__init__(name=name)
+        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.output_layer = tf.keras.layers.Dense(1)
 
-class Bernoulli(tf.keras.Model):
-  def __init__(self, base_depth):
-    super(Bernoulli, self).__init__()
-    self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-    self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-    self.output_layer = tf.keras.layers.Dense(1)
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            inputs = tf.concat(inputs, axis=-1)
+        else:
+            (inputs,) = inputs
+        out = self.dense1(inputs)
+        out = self.dense2(out)
+        out = self.output_layer(out)
+        logits = tf.squeeze(out, axis=-1)
+        return tfd.Bernoulli(logits=logits)
 
-  def call(self, *inputs):
-    if len(inputs) > 1:
-      inputs = tf.concat(inputs, axis=-1)
-    else:
-      inputs, = inputs
-    out = self.dense1(inputs)
-    out = self.dense2(out)
-    out = self.output_layer(out)
-    logits = tf.squeeze(out, axis=-1)
-    return tfd.Bernoulli(logits=logits)
+class Normal(tf.Module):
+    def __init__(self, base_depth, scale=None, name=None):
+        super(Normal, self).__init__(name=name)
+        self.scale = scale
+        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.output_layer = tf.keras.layers.Dense(2 if self.scale is None else 1)
 
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            inputs = tf.concat(inputs, axis=-1)
+        else:
+            (inputs,) = inputs
+        out = self.dense1(inputs)
+        out = self.dense2(out)
+        out = self.output_layer(out)
+        loc = out[..., 0]
+        if self.scale is None:
+            assert out.shape[-1].value == 2
+            scale = tf.nn.softplus(out[..., 1]) + 1e-5
+        else:
+            assert out.shape[-1].value == 1
+            scale = self.scale
+        return tfd.Normal(loc=loc, scale=scale)
 
-class Normal(tf.keras.Model):
-  def __init__(self, base_depth, scale):
-    super(Normal, self).__init__()
-    self.scale = scale
-    self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-    self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-    self.output_layer = tf.keras.layers.Dense(2 if self.scale is None else 1)
+class MultivariateNormalDiag(tf.Module):
+    def __init__(self, base_depth, latent_size, scale=None, name=None):
+        super(MultivariateNormalDiag, self).__init__(name=name)
+        self.latent_size = latent_size
+        self.scale = scale
+        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.output_layer = tf.keras.layers.Dense(
+            2 * latent_size if self.scale is None else latent_size
+        )
 
-  def call(self, *inputs):
-    if len(inputs) > 1:
-      inputs = tf.concat(inputs, axis=-1)
-    else:
-      inputs, = inputs
-    out = self.dense1(inputs)
-    out = self.dense2(out)
-    out = self.output_layer(out)
-    loc = out[..., 0]
-    if self.scale is None:
-      assert out.shape[-1].value == 2
-      scale = tf.nn.softplus(out[..., 1]) + 1e-5
-    else:
-      assert out.shape[-1].value == 1
-      scale = self.scale
-    return tfd.Normal(loc=loc, scale=scale)
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            inputs = tf.concat(inputs, axis=-1)
+        else:
+            (inputs,) = inputs
+        out = self.dense1(inputs)
+        out = self.dense2(out)
+        out = self.output_layer(out)
+        loc = out[..., : self.latent_size]
+        if self.scale is None:
+            assert out.shape[-1].value == 2 * self.latent_size
+            scale_diag = tf.nn.softplus(out[..., self.latent_size :]) + 1e-5
+        else:
+            assert out.shape[-1].value == self.latent_size
+            scale_diag = tf.ones_like(loc) * self.scale
+        return tfd.MultivariateNormalDiag(loc=loc, scale_diag=scale_diag)
 
+class Deterministic(tf.Module):
+    def __init__(self, base_depth, latent_size, name=None):
+        super(Deterministic, self).__init__(name=name)
+        self.latent_size = latent_size
+        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.output_layer = tf.keras.layers.Dense(latent_size)
 
-class MultivariateNormalDiag(tf.keras.Model):
-  def __init__(self, base_depth, latent_size):
-    super(MultivariateNormalDiag, self).__init__()
-    self.latent_size = latent_size
-    self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-    self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-    self.output_layer = tf.keras.layers.Dense(2 * latent_size)
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            inputs = tf.concat(inputs, axis=-1)
+        else:
+            (inputs,) = inputs
+        out = self.dense1(inputs)
+        out = self.dense2(out)
+        loc = self.output_layer(out)
+        return tfd.VectorDeterministic(loc=loc)
 
-  def call(self, *inputs):
-    if len(inputs) > 1:
-      inputs = tf.concat(inputs, axis=-1)
-    else:
-      inputs, = inputs
-    out = self.dense1(inputs)
-    out = self.dense2(out)
-    out = self.output_layer(out)
-    loc = out[..., :self.latent_size]
-    scale_diag = tf.nn.softplus(out[..., self.latent_size:]) + 1e-5
-    return tfd.MultivariateNormalDiag(loc=loc, scale_diag=scale_diag)
+class ConstantMultivariateNormalDiag(tf.Module):
+    def __init__(self, latent_size, scale=None, name=None):
+        super(ConstantMultivariateNormalDiag, self).__init__(name=name)
+        self.latent_size = latent_size
+        self.scale = scale
 
-
-class Deterministic(tf.keras.Model):
-  def __init__(self, base_depth, latent_size):
-    super(Deterministic, self).__init__()
-    self.latent_size = latent_size
-    self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-    self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-    self.output_layer = tf.keras.layers.Dense(latent_size)
-
-  def call(self, *inputs):
-    if len(inputs) > 1:
-      inputs = tf.concat(inputs, axis=-1)
-    else:
-      inputs, = inputs
-    out = self.dense1(inputs)
-    out = self.dense2(out)
-    loc = self.output_layer(out)
-    return tfd.Deterministic(loc=loc)
-
-
-class ConstantMultivariateNormalDiag(tf.keras.Model):
-  def __init__(self, latent_size):
-    super(ConstantMultivariateNormalDiag, self).__init__()
-    self.latent_size = latent_size
-
-  def call(self, *inputs):
-    # first input should not have any dimensions after the batch_shape, step_type
-    batch_shape = tf.shape(inputs[0])  # input is only used to infer batch_shape
-    shape = tf.concat([batch_shape, [self.latent_size]], axis=0)
-    loc = tf.zeros(shape)
-    scale_diag = tf.ones(shape)
-    return tfd.MultivariateNormalDiag(loc=loc, scale_diag=scale_diag)
-
-
-class ConstantDeterministic(tf.keras.Model):
-  def __init__(self, latent_size):
-    super(ConstantDeterministic, self).__init__()
-    self.latent_size = latent_size
-
-  def call(self, *inputs):
-    # first input should not have any dimensions after the batch_shape, step_type
-    batch_shape = tf.shape(inputs[0])  # input is only used to infer batch_shape
-    shape = tf.concat([batch_shape, [self.latent_size]], axis=0)
-    loc = tf.zeros(shape)
-    return tfd.Deterministic(loc=loc)
+    def __call__(self, *inputs):
+        # first input should not have any dimensions after the batch_shape, step_type
+        batch_shape = tf.shape(inputs[0])  # input is only used to infer batch_shape
+        shape = tf.concat([batch_shape, [self.latent_size]], axis=0)
+        loc = tf.zeros(shape)
+        if self.scale is None:
+            scale_diag = tf.ones(shape)
+        else:
+            scale_diag = tf.ones(shape) * self.scale
+        return tfd.MultivariateNormalDiag(loc=loc, scale_diag=scale_diag)
 
 
-class Decoder(tf.keras.Model):
-  """Probabilistic decoder for `p(x_t | z_t)`.
-  """
+class Decoder(tf.Module):
+    """Probabilistic decoder for `p(x_t | z_t)`."""
 
-  def __init__(self, base_depth, channels=3, scale=1.0):
-    super(Decoder, self).__init__()
-    self.scale = scale
-    conv_transpose = functools.partial(
-        tf.keras.layers.Conv2DTranspose, padding="SAME", activation=tf.nn.leaky_relu)
-    self.conv_transpose1 = conv_transpose(8 * base_depth, 4, padding="VALID")
-    self.conv_transpose2 = conv_transpose(4 * base_depth, 3, 2)
-    self.conv_transpose3 = conv_transpose(2 * base_depth, 3, 2)
-    self.conv_transpose4 = conv_transpose(base_depth, 3, 2)
-    self.conv_transpose5 = conv_transpose(channels, 5, 2)  # , activation=tf.nn.sigmoid)
+    def __init__(self, base_depth, channels=3, scale=1.0, name=None):
+        super(Decoder, self).__init__(name=name)
+        self.scale = scale
+        conv_transpose = functools.partial(
+            tf.keras.layers.Conv2DTranspose, padding="SAME", activation=tf.nn.leaky_relu
+        )
+        self.conv_transpose1 = conv_transpose(8 * base_depth, 4, padding="VALID")
+        self.conv_transpose2 = conv_transpose(4 * base_depth, 3, 2)
+        self.conv_transpose3 = conv_transpose(2 * base_depth, 3, 2)
+        self.conv_transpose4 = conv_transpose(base_depth, 3, 2)
+        self.conv_transpose5 = conv_transpose(channels, 5, 2)
 
-  def call(self, *inputs):
-    # import ipdb;ipdb.set_trace()
-    if len(inputs) > 1:
-      latent = tf.concat(inputs, axis=-1)
-    else:
-      latent, = inputs
-    # (sample, N, T, latent)
-    collapsed_shape = tf.stack([-1, 1, 1, tf.shape(latent)[-1]], axis=0)
-    out = tf.reshape(latent, collapsed_shape)
-    out = self.conv_transpose1(out)
-    out = self.conv_transpose2(out)
-    out = self.conv_transpose3(out)
-    out = self.conv_transpose4(out)
-    out = self.conv_transpose5(out)  # (sample*N*T, h, w, c)
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            latent = tf.concat(inputs, axis=-1)
+        else:
+            (latent,) = inputs
+        # (sample, N, T, latent)
+        collapsed_shape = tf.stack([-1, 1, 1, tf.shape(latent)[-1]], axis=0)
+        out = tf.reshape(latent, collapsed_shape)
+        out = self.conv_transpose1(out)
+        out = self.conv_transpose2(out)
+        out = self.conv_transpose3(out)
+        out = self.conv_transpose4(out)
+        out = self.conv_transpose5(out)  # (sample*N*T, h, w, c)
 
-    expanded_shape = tf.concat(
-        [tf.shape(latent)[:-1], tf.shape(out)[1:]], axis=0)
-    out = tf.reshape(out, expanded_shape)  # (sample, N, T, h, w, c)
-    return tfd.Independent(
-        distribution=tfd.Normal(loc=out, scale=self.scale),
-        reinterpreted_batch_ndims=3)  # wrap (h, w, c)
+        expanded_shape = tf.concat([tf.shape(latent)[:-1], tf.shape(out)[1:]], axis=0)
+        out = tf.reshape(out, expanded_shape)  # (sample, N, T, h, w, c)
+        return tfd.Independent(
+            distribution=tfd.Normal(loc=out, scale=self.scale),
+            reinterpreted_batch_ndims=3,
+        )  # wrap (h, w, c)
 
+class Compressor(tf.Module):
+    """Feature extractor."""
 
-class Compressor(tf.keras.Model):
-  """Feature extractor.
-  """
+    def __init__(self, base_depth, feature_size, name=None):
+        super(Compressor, self).__init__(name=name)
+        self.feature_size = feature_size
+        conv = functools.partial(
+            tf.keras.layers.Conv2D, padding="SAME", activation=tf.nn.leaky_relu
+        )
+        self.conv1 = conv(base_depth, 5, 2)
+        self.conv2 = conv(2 * base_depth, 3, 2)
+        self.conv3 = conv(4 * base_depth, 3, 2)
+        self.conv4 = conv(8 * base_depth, 3, 2)
+        self.conv5 = conv(8 * base_depth, 4, padding="VALID")
 
-  def __init__(self, base_depth, feature_size):
-    super(Compressor, self).__init__()
-    self.feature_size = feature_size
-    conv = functools.partial(
-        tf.keras.layers.Conv2D, padding="SAME", activation=tf.nn.leaky_relu)
-    self.conv1 = conv(base_depth, 5, 2)
-    self.conv2 = conv(2 * base_depth, 3, 2)
-    self.conv3 = conv(4 * base_depth, 3, 2)
-    self.conv4 = conv(8 * base_depth, 3, 2)
-    self.conv5 = conv(8 * base_depth, 4, padding="VALID")
+    def __call__(self, image):
+        image_shape = tf.shape(image)[-3:]
+        collapsed_shape = tf.concat(([-1], image_shape), axis=0)
+        out = tf.reshape(image, collapsed_shape)  # (sample*N*T, h, w, c)
+        out = self.conv1(out)
+        out = self.conv2(out)
+        out = self.conv3(out)
+        out = self.conv4(out)
+        out = self.conv5(out)
+        expanded_shape = tf.concat((tf.shape(image)[:-3], [self.feature_size]), axis=0)
+        return tf.reshape(out, expanded_shape)  # (sample, N, T, feature)
 
-  def call(self, image):
-    image_shape = tf.shape(image)[-3:]
-    collapsed_shape = tf.concat(([-1], image_shape), axis=0)
-    out = tf.reshape(image, collapsed_shape)  # (sample*N*T, h, w, c)
-    out = self.conv1(out)
-    out = self.conv2(out)
-    out = self.conv3(out)
-    out = self.conv4(out)
-    out = self.conv5(out)
-    expanded_shape = tf.concat((tf.shape(image)[:-3], [self.feature_size]), axis=0)
-    return tf.reshape(out, expanded_shape)  # (sample, N, T, feature)
 
 class SLACModel(SiameseNetwork):
     
@@ -360,6 +353,7 @@ class SLACModel(SiameseNetwork):
         decoder_stddev=np.sqrt(0.1, dtype=np.float32)
         reward_stddev=None
         name='SlacModelDistributionNetwork'
+        compressor=None
         self.observation_spec = observation_spec
         self.action_spec = action_spec
         self.base_depth = base_depth
@@ -372,343 +366,493 @@ class SLACModel(SiameseNetwork):
         self.model_discount = model_discount
         self.fps = fps
     
-        if self.latent1_deterministic:
-          latent1_first_prior_distribution_ctor = ConstantDeterministic
-          latent1_distribution_ctor = Deterministic
-        else:
-          latent1_first_prior_distribution_ctor = ConstantMultivariateNormalDiag
-          latent1_distribution_ctor = MultivariateNormalDiag
-        if self.latent2_deterministic:
-          latent2_distribution_ctor = Deterministic
-        else:
-          latent2_distribution_ctor = MultivariateNormalDiag
-    
+        latent1_first_prior_distribution_ctor = ConstantMultivariateNormalDiag
+        latent1_distribution_ctor = MultivariateNormalDiag
+        latent2_distribution_ctor = MultivariateNormalDiag
+
         # p(z_1^1)
-        self.latent1_first_prior = latent1_first_prior_distribution_ctor(latent1_size)
+        self.latent1_first_prior = latent1_first_prior_distribution_ctor(latent1_size, name='Latent1FirstPrior')
         # p(z_1^2 | z_1^1)
-        self.latent2_first_prior = latent2_distribution_ctor(8 * base_depth, latent2_size)
+        self.latent2_first_prior = latent2_distribution_ctor(
+            8 * base_depth, latent2_size, name='Latent2FirstPrior'
+        )
         # p(z_{t+1}^1 | z_t^2, a_t)
-        self.latent1_prior = latent1_distribution_ctor(8 * base_depth, latent1_size)
-        # p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t)
-        self.latent2_prior = latent2_distribution_ctor(8 * base_depth, latent2_size)
-    
+        self.latent1_prior = latent1_distribution_ctor(8 * base_depth, latent1_size, name='Latent1Prior')
+        # p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t) (? Conceptually similar to p(z_{t+1} | z_t, a_t) ?)
+        self.latent2_prior = latent2_distribution_ctor(8 * base_depth, latent2_size, name='Latent2Prior')
+
         # q(z_1^1 | x_1)
-        self.latent1_first_posterior = latent1_distribution_ctor(8 * base_depth, latent1_size)
+        self.latent1_first_posterior = latent1_distribution_ctor(
+            8 * base_depth, latent1_size, name='Latent1_FirstPosterior'
+        )
+        # TODO ?????????????????????????????????????????????????????????????????????????????????????????????????????
+        # This next line seems extremely broken? WHY?
         # q(z_1^2 | z_1^1) = p(z_1^2 | z_1^1)
         self.latent2_first_posterior = self.latent2_first_prior
-        # q(z_{t+1}^1 | x_{t+1}, z_t^2, a_t)
-        self.latent1_posterior = self.latent1_first_posterior
-        # self.latent1_posterior = latent1_distribution_ctor(8 * base_depth, latent1_size)
-        # q(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t) = p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t)
-        # self.latent2_posterior = self.latent2_prior
-        self.latent2_posterior = self.latent2_first_posterior
-     
-        # compresses x_t into a vector
-        self.compressor = Compressor(base_depth, 8 * base_depth)
-        # p(x_t | z_t^1, z_t^2)
-        self.decoder = Decoder(base_depth, scale=decoder_stddev)
-    
-        if self.model_reward:
-          # p(r_t | z_t^1, z_t^2, a_t, z_{t+1}^1, z_{t+1}^2)
-          self.reward_predictor = Normal(8 * base_depth, scale=reward_stddev)
-        else:
-          self.reward_predictor = None
-        if self.model_discount:
-          # p(d_t | z_{t+1}^1, z_{t+1}^2)
-          self.discount_predictor = Bernoulli(8 * base_depth)
-        else:
-          self.discount_predictor = None
-          
-        SLACModel.compile(self)
         
+        # q(z_{t+1}^1 | x_{t+1}, z_t^2, a_t)
+        self.latent1_posterior = latent1_distribution_ctor(8 * base_depth, latent1_size, name='Latent1Posterior')
+
+        # TODO ?????????????????????????????????????????????????????????????????????????????????????????????????????
+        # This next line seems extremely broken? WHY?
+        # q(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t) = p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t)        
+        self.latent2_posterior = self.latent2_prior
+
+        # compresses x_t into a vector
+        if compressor is None:
+            self.compressor = Compressor(base_depth, 8 * base_depth)
+            # p(x_t | z_t^1, z_t^2)
+            self.observation_decoder = Decoder(base_depth, scale=decoder_stddev)
+        else:
+            self.compressor = compressor
+            # Decode to vectors! p(x_t | z_t^1, z_t^2)
+            # HACK
+            assert(observation_spec['pixels'].shape.rank == 1)
+            observation_dimension = observation_spec['pixels'].shape[0].value
+            self.observation_decoder = MultivariateNormalDiag(base_depth, observation_dimension)
+        if self.model_reward:
+            # p(r_t | z_t^1, z_t^2, a_t, z_{t+1}^1, z_{t+1}^2)
+            self.reward_predictor = Normal(8 * base_depth, scale=reward_stddev)
+        else:
+            self.reward_predictor = None
+        if self.model_discount:
+            # p(d_t | z_{t+1}^1, z_{t+1}^2)
+            self.discount_predictor = Bernoulli(8 * base_depth)
+        else:
+            self.discount_predictor = None
+
     @property
     def state_size(self):
         return self.latent1_size + self.latent2_size
-    
-    def compute_loss(self, images, actions, step_types, rewards=None, discounts=None, latent_posterior_samples_and_dists=None):
+
+    def compute_loss(
+        self,
+        images,
+        actions,
+        step_types,
+        rewards=None,
+        discounts=None,
+        latent_posterior_samples_and_dists=None,
+    ):
         sequence_length = step_types.shape[1].value - 1
-    
+        # semihack for discrete actions
+        actions = tf.cast(actions, dtype=tf.float32)
+
         if latent_posterior_samples_and_dists is None:
-          latent_posterior_samples_and_dists = self.sample_posterior(images, actions, step_types)
-        (latent1_posterior_samples, latent2_posterior_samples), (latent1_posterior_dists, latent2_posterior_dists) = (
-            latent_posterior_samples_and_dists)
-        (latent1_conditional_prior_samples, latent2_conditional_prior_samples), _ = self.sample_conditional_prior(images[:, 0], actions, step_types)  # for visualization
-        (latent1_prior_samples, latent2_prior_samples), _ = self.sample_prior(actions, step_types)  # for visualization
-    
+            latent_posterior_samples_and_dists = self.sample_posterior(
+                images, actions, step_types
+            )
+        (
+            (latent1_posterior_samples, latent2_posterior_samples),
+            (latent1_posterior_dists, latent2_posterior_dists),
+        ) = latent_posterior_samples_and_dists
+
+        # for visualization
+        ((latent1_prior_samples, latent2_prior_samples), _) = self.sample_prior_or_posterior(actions, step_types)  
+
+        # for visualization. condition on first image only
+        ((latent1_conditional_prior_samples, latent2_conditional_prior_samples), _) = self.sample_prior_or_posterior(
+            actions, step_types, images=images[:, :1])
+
         def where_and_concat(reset_masks, first_prior_tensors, after_first_prior_tensors):
-          after_first_prior_tensors = tf.where(reset_masks[:, 1:], first_prior_tensors[:, 1:], after_first_prior_tensors)
-          prior_tensors = tf.concat([first_prior_tensors[:, 0:1], after_first_prior_tensors], axis=1)
-          return prior_tensors
-    
+            after_first_prior_tensors = tf.where(
+                reset_masks[:, 1:],
+                first_prior_tensors[:, 1:],
+                after_first_prior_tensors,
+            )
+            prior_tensors = tf.concat(
+                [first_prior_tensors[:, 0:1], after_first_prior_tensors], axis=1
+            )
+            return prior_tensors
+
         reset_masks = tf.concat([tf.ones_like(step_types[:, 0:1], dtype=tf.bool),
-                                 tf.equal(step_types[:, 1:], StepType.FIRST)], axis=1)
-    
+                                 tf.equal(step_types[:, 1:], ts.StepType.FIRST), ], axis=1)
+
         latent1_reset_masks = tf.tile(reset_masks[:, :, None], [1, 1, self.latent1_size])
+        
         latent1_first_prior_dists = self.latent1_first_prior(step_types)
+
         # these distributions start at t=1 and the inputs are from t-1
-        latent1_after_first_prior_dists = self.latent1_prior(
-            latent2_posterior_samples[:, :sequence_length], actions[:, :sequence_length])
-        latent1_prior_dists = map_distribution_structure(
+        latent1_after_first_prior_dists = self.latent1_prior(latent2_posterior_samples[:, :sequence_length],
+                                                             actions[:, :sequence_length])
+        latent1_prior_dists = nest_utils.map_distribution_structure(
             functools.partial(where_and_concat, latent1_reset_masks),
             latent1_first_prior_dists,
-            latent1_after_first_prior_dists)
-    
+            latent1_after_first_prior_dists,
+        )
+
         latent2_reset_masks = tf.tile(reset_masks[:, :, None], [1, 1, self.latent2_size])
+        
         latent2_first_prior_dists = self.latent2_first_prior(latent1_posterior_samples)
         # these distributions start at t=1 and the last 2 inputs are from t-1
         latent2_after_first_prior_dists = self.latent2_prior(
-            latent1_posterior_samples[:, 1:sequence_length+1],
+            latent1_posterior_samples[:, 1:sequence_length + 1],
             latent2_posterior_samples[:, :sequence_length],
-            actions[:, :sequence_length])
-        latent2_prior_dists = map_distribution_structure(
+            actions[:, :sequence_length],
+        )
+        latent2_prior_dists = nest_utils.map_distribution_structure(
             functools.partial(where_and_concat, latent2_reset_masks),
             latent2_first_prior_dists,
-            latent2_after_first_prior_dists)
-    
-        outputs = {}
-    
-        if self.latent1_deterministic:
-          latent1_kl_divergences = 0.0
-        else:
-          if self.kl_analytic:
-            latent1_kl_divergences = tfd.kl_divergence(latent1_posterior_dists, latent1_prior_dists)
-          else:
-            latent1_kl_divergences = (latent1_posterior_dists.log_prob(latent1_posterior_samples)
-                                      - latent1_prior_dists.log_prob(latent1_posterior_samples))
-          outputs.update({
-            'latent1_kl_divergence': tf.reduce_mean(latent1_kl_divergences),
-          })
-        if self.latent2_deterministic:
-          latent2_kl_divergences = 0.0
-        else:
-          if self.latent2_posterior == self.latent2_prior:
-            latent2_kl_divergences = 0.0
-          else:
-            if self.kl_analytic:
-              latent2_kl_divergences = tfd.kl_divergence(latent2_posterior_dists, latent2_prior_dists)
-            else:
-              latent2_kl_divergences = (latent2_posterior_dists.log_prob(latent2_posterior_samples)
-                                        - latent2_prior_dists.log_prob(latent2_posterior_samples))
-          outputs.update({
-            'latent2_kl_divergence': tf.reduce_mean(latent2_kl_divergences),
-          })
-        if not self.latent1_deterministic or not self.latent2_deterministic:
-          outputs.update({
-            'kl_divergence': tf.reduce_mean(latent1_kl_divergences + latent2_kl_divergences),
-          })
-    
-        likelihood_dists = self.decoder(latent1_posterior_samples, latent2_posterior_samples)
-        likelihood_log_probs = likelihood_dists.log_prob(images)
-        reconstruction_error = tf.reduce_sum(tf.square(images - likelihood_dists.distribution.loc),
-                                             axis=list(range(-likelihood_dists.reinterpreted_batch_ndims, 0)))
-        outputs.update({
-          'neg_log_likelihood': -tf.reduce_mean(likelihood_log_probs),
-          'reconstruction_error': tf.reduce_mean(reconstruction_error),
-        })
-    
-        # summed over the time dimension
-        elbo = tf.reduce_sum(likelihood_log_probs - latent1_kl_divergences - latent2_kl_divergences, axis=1)
-    
-        if self.model_reward:
-          reward_dists = self.reward_predictor(
-              latent1_posterior_samples[:, :sequence_length],
-              latent2_posterior_samples[:, :sequence_length],
-              actions[:, :sequence_length],
-              latent1_posterior_samples[:, 1:sequence_length + 1],
-              latent2_posterior_samples[:, 1:sequence_length + 1])
-          reward_log_probs = reward_dists.log_prob(rewards[:, :sequence_length])
-          reward_reconstruction_error = tf.square(rewards[:, :sequence_length] - reward_dists.loc)
-          reward_valid_mask = tf.cast(tf.not_equal(step_types[:, :sequence_length], StepType.LAST), tf.float32)
-          reward_log_probs *= reward_valid_mask
-          reward_reconstruction_error *= reward_valid_mask
-          outputs.update({
-            'reward_neg_log_likelihood': -tf.reduce_mean(reward_log_probs),
-            'reward_reconstruction_error': tf.reduce_mean(reward_reconstruction_error),
-          })
-          elbo += tf.reduce_sum(reward_log_probs, axis=1)
-    
-        if self.model_discount:
-          discount_dists = self.discount_predictor(
-              latent1_posterior_samples[:, 1:sequence_length + 1],
-              latent2_posterior_samples[:, 1:sequence_length + 1])
-          discount_log_probs = discount_dists.log_prob(discounts[:, :sequence_length])
-          discount_accuracy = tf.cast(
-              tf.equal(tf.cast(discount_dists.mode(), tf.float32), discounts[:, :sequence_length]), tf.float32)
-          outputs.update({
-            'discount_neg_log_likelihood': -tf.reduce_mean(discount_log_probs),
-            'discount_accuracy': tf.reduce_mean(discount_accuracy),
-          })
-          elbo += tf.reduce_sum(discount_log_probs, axis=1)
-    
-        # average over the batch dimension
-        elbo = tf.reduce_mean(elbo)
-        loss = -elbo
-    
-        posterior_images = likelihood_dists.mean()
-        conditional_prior_images = self.decoder(latent1_conditional_prior_samples, latent2_conditional_prior_samples).mean()
-        prior_images = self.decoder(latent1_prior_samples, latent2_prior_samples).mean()
-    
-        outputs.update({
-          'elbo': elbo,
-          'images': images,
-          'posterior_images': posterior_images,
-          'conditional_prior_images': conditional_prior_images,
-          'prior_images': prior_images,
-        })
-        return loss, outputs
-    
-    def sample_prior(self, actions, step_types=None):
-        if step_types is None:
-          batch_size = tf.shape(actions)[0]
-          sequence_length = actions.shape[1].value  # should be statically defined
-          step_types = tf.fill(
-              [batch_size, sequence_length + 1], StepType.MID)
-        else:
-          sequence_length = step_types.shape[1].value - 1
-          actions = actions[:, :sequence_length]
-        
-        # swap batch and time axes
-        actions = tf.transpose(actions, [1, 0, 2])
-        step_types = tf.transpose(step_types, [1, 0])
-        
-        latent1_dists = []
-        latent1_samples = []
-        latent2_dists = []
-        latent2_samples = []
-        for t in range(sequence_length + 1):
-          if t == 0:
-            latent1_dist = self.latent1_first_prior(step_types[t])  # step_types is only used to infer batch_size
-            latent1_sample = latent1_dist.sample()
-            latent2_dist = self.latent2_first_prior(latent1_sample)
-            latent2_sample = latent2_dist.sample()
-          else:
-            reset_mask = tf.equal(step_types[t], StepType.FIRST)
-            latent1_first_dist = self.latent1_first_prior(step_types[t])
-            latent1_dist = self.latent1_prior(latent2_samples[t-1], actions[t-1])
-            latent1_dist = map_distribution_structure(
-                functools.partial(tf.where, reset_mask), latent1_first_dist, latent1_dist)
-            latent1_sample = latent1_dist.sample()
-        
-            latent2_first_dist = self.latent2_first_prior(latent1_sample)
-            latent2_dist = self.latent2_prior(latent1_sample, latent2_samples[t-1], actions[t-1])
-        
-            latent2_dist = map_distribution_structure(
-                functools.partial(tf.where, reset_mask), latent2_first_dist, latent2_dist)
-            latent2_sample = latent2_dist.sample()
-        
-          latent1_dists.append(latent1_dist)
-          latent1_samples.append(latent1_sample)
-          latent2_dists.append(latent2_dist)
-          latent2_samples.append(latent2_sample)
-        
-        latent1_dists = map_distribution_structure(lambda *x: tf.stack(x, axis=1), *latent1_dists)
-        latent1_samples = tf.stack(latent1_samples, axis=1)
-        latent2_dists = map_distribution_structure(lambda *x: tf.stack(x, axis=1), *latent2_dists)
-        latent2_samples = tf.stack(latent2_samples, axis=1)
-        return (latent1_samples, latent2_samples), (latent1_dists, latent2_dists)
+            latent2_after_first_prior_dists,
+        )
 
-    def sample_conditional_prior(self, first_image, actions, step_types=None):
-        # import ipdb ; ipdb.set_trace()
-        if step_types is None:
-          batch_size = tf.shape(actions)[0]
-          sequence_length = actions.shape[1].value  # should be statically defined
-          step_types = tf.fill(
-              [batch_size, sequence_length + 1], StepType.MID)
+        outputs = {}
+
+        if self.kl_analytic:
+            latent1_kl_divergences = tfd.kl_divergence(latent1_posterior_dists, latent1_prior_dists)
         else:
-          sequence_length = step_types.shape[1].value - 1
-          actions = actions[:, :sequence_length]
-        
-        first_feature = self.compressor(first_image)
-        
-        # swap batch and time axes
+            latent1_kl_divergences = (latent1_posterior_dists.log_prob(latent1_posterior_samples) - 
+                                      latent1_prior_dists.log_prob(latent1_posterior_samples))
+        latent1_kl_divergences = tf.reduce_sum(latent1_kl_divergences, axis=1)
+
+        outputs.update({"latent1_kl_divergence": tf.reduce_mean(latent1_kl_divergences)})
+        if self.latent2_posterior == self.latent2_prior: latent2_kl_divergences = 0.0
+        else:
+            if self.kl_analytic:
+                latent2_kl_divergences = tfd.kl_divergence(latent2_posterior_dists, latent2_prior_dists)
+            else:
+                latent2_kl_divergences = (latent2_posterior_dists.log_prob(latent2_posterior_samples) -
+                                          latent2_prior_dists.log_prob(latent2_posterior_samples))
+            latent2_kl_divergences = tf.reduce_sum(latent2_kl_divergences, axis=1)
+
+        outputs.update({"latent2_kl_divergence": tf.reduce_mean(latent2_kl_divergences),})
+        outputs.update({"kl_divergence": tf.reduce_mean(latent1_kl_divergences + latent2_kl_divergences)})
+
+        likelihood_dists = self.observation_decoder(latent1_posterior_samples, latent2_posterior_samples)
+        likelihood_log_probs = likelihood_dists.log_prob(images)
+        likelihood_log_probs = tf.reduce_sum(likelihood_log_probs, axis=1)
+
+        image_mean_diffs = images - likelihood_dists.distribution.loc
+        render_mean_diffs = image_mean_diffs #tf.minimum(tf.maximum(tf.abs(image_mean_diffs), 0), 255)
+        reconstruction_error = tf.reduce_sum(
+            tf.square(image_mean_diffs),
+            axis=list(range(-len(likelihood_dists.event_shape), 0)),
+        )
+        reconstruction_error = tf.reduce_sum(reconstruction_error, axis=1)
+        outputs.update({"log_likelihood": tf.reduce_mean(likelihood_log_probs),
+                        "reconstruction_error": tf.reduce_mean(reconstruction_error), })
+
+        # summed over the time dimension
+        elbo = likelihood_log_probs - latent1_kl_divergences - latent2_kl_divergences
+
+        if self.model_reward:
+            # Tries to predict rewards!
+            reward_dists = self.reward_predictor(
+                latent1_posterior_samples[:, :sequence_length],
+                latent2_posterior_samples[:, :sequence_length],
+                actions[:, :sequence_length],
+                latent1_posterior_samples[:, 1:sequence_length + 1],
+                latent2_posterior_samples[:, 1:sequence_length + 1],
+            )
+            reward_valid_mask = tf.cast(
+                tf.not_equal(step_types[:, :sequence_length], ts.StepType.LAST),
+                tf.float32,
+            )
+            reward_log_probs = reward_dists.log_prob(rewards[:, :sequence_length])
+            reward_log_probs = tf.reduce_sum(
+                reward_log_probs * reward_valid_mask, axis=1
+            )
+            reward_reconstruction_error = tf.square(
+                rewards[:, :sequence_length] - reward_dists.loc
+            )
+            reward_reconstruction_error = tf.reduce_sum(
+                reward_reconstruction_error * reward_valid_mask, axis=1
+            )
+            outputs.update(
+                {
+                    "reward_log_likelihood": tf.reduce_mean(reward_log_probs),
+                    "reward_reconstruction_error": tf.reduce_mean(
+                        reward_reconstruction_error
+                    ),
+                }
+            )
+            elbo += reward_log_probs
+
+        if self.model_discount:
+            discount_dists = self.discount_predictor(
+                latent1_posterior_samples[:, 1 : sequence_length + 1],
+                latent2_posterior_samples[:, 1 : sequence_length + 1],
+            )
+            discount_log_probs = discount_dists.log_prob(discounts[:, :sequence_length])
+            discount_log_probs = tf.reduce_sum(discount_log_probs, axis=1)
+            discount_accuracy = tf.cast(
+                tf.equal(
+                    tf.cast(discount_dists.mode(), tf.float32),
+                    discounts[:, :sequence_length],
+                ),
+                tf.float32,
+            )
+            discount_accuracy = tf.reduce_sum(discount_accuracy, axis=1)
+            outputs.update(
+                {
+                    "discount_log_likelihood": tf.reduce_mean(discount_log_probs),
+                    "discount_accuracy": tf.reduce_mean(discount_accuracy),
+                }
+            )
+            elbo += discount_log_probs
+
+        # average over the batch dimension
+        loss = -tf.reduce_mean(elbo)
+
+        posterior_images = likelihood_dists.mean()
+        prior_images = self.observation_decoder(latent1_prior_samples, latent2_prior_samples).mean()
+        conditional_prior_images = self.observation_decoder(
+            latent1_conditional_prior_samples, latent2_conditional_prior_samples
+        ).mean()
+
+        outputs.update(
+            {
+                "elbo": tf.reduce_mean(elbo),
+                "images": images,
+                "posterior_images": posterior_images,
+                "prior_images": prior_images,
+                "image_mean_diffs": render_mean_diffs,
+                "conditional_prior_images": conditional_prior_images,
+            }
+        )
+        return loss, outputs
+
+    def sample_prior_or_posterior(self, actions, step_types=None, images=None):
+        """Samples from the prior, except for the time steps in which conditioning images are given.
+
+        Samples the posteriors p(z_{t+1} | a_{1:t}, x_{1:t})) OR
+        Samples the priors     p(z_{t+1} | a_{1:t}))
+
+        It returns lists of intermediate distributions used for sampling, as well as those samples:
+
+        z_{t+1} ~ p(z_{t+1} | a_t, z_t, [x_t])
+
+        Because the model has two layers, the samples and distributions are:
+
+        z^1_{t+1} ~ p(z_{t+1}^1 | z_t^2, a_t, [x_{t+1}])         [Latent1 prior or posterior]
+        z^2_{t+1} ~ p(z_{t+1}^2 | a_t, z_t^2, z_{t+1}^1)         [Latent2 prior or posterior]
+
+        :param actions: (B, T-1, A)
+        :param step_types: (B, T)
+        :param images: (B, ?, ..., ?) (optional) If provided, the first distribution will be the posterior instead of the prior.
+
+        """
+        # semihack to handle discrete actions
+        actions = tf.cast(actions, dtype=tf.float32)
+
+        if step_types is None:
+            # Create step types if they're not provided, assume they're all MID-type. [TODO seems risky assumption]
+            batch_size = tf.shape(actions)[0]
+            sequence_length = actions.shape[1].value  # should be statically defined
+            step_types = tf.fill([batch_size, sequence_length + 1], ts.StepType.MID)
+        else:
+            # Clip the actions to the correct length (if necessary).
+            # sequence_length = T-1
+            sequence_length = step_types.shape[1].value - 1
+            actions = actions[:, :sequence_length]
+
+        # Compute features from the images, if provided.
+        if images is not None: features = self.compressor(images)
+
+        # Swap batch and time axes.
         actions = tf.transpose(actions, [1, 0, 2])
         step_types = tf.transpose(step_types, [1, 0])
-        
+        if images is not None:
+            features = tf.transpose(features, [1, 0, 2])
+
+        # Collect the sequences of distributions and samples.
         latent1_dists = []
         latent1_samples = []
         latent2_dists = []
         latent2_samples = []
+
+        # This means: for t in range(T)
         for t in range(sequence_length + 1):
-          if t == 0:
-            latent1_dist = self.latent1_first_posterior(first_feature)
-            latent1_sample = latent1_dist.sample()
-            latent2_dist = self.latent2_first_posterior(latent1_sample)
-            latent2_sample = latent2_dist.sample()
-          else:
-            reset_mask = tf.equal(step_types[t], StepType.FIRST)
-            latent1_first_dist = self.latent1_first_prior(step_types[t])
-        
-            latent1_dist = self.latent1_prior(latent2_samples[t-1], actions[t-1])
-            latent1_dist = map_distribution_structure(
-                functools.partial(tf.where, reset_mask), latent1_first_dist, latent1_dist)
-            latent1_sample = latent1_dist.sample()
-        
-            latent2_first_dist = self.latent2_first_prior(latent1_sample)
-            latent2_dist = self.latent2_prior(latent1_sample, latent2_samples[t-1], actions[t-1])
-        
-            latent2_dist = map_distribution_structure(
-                functools.partial(tf.where, reset_mask), latent2_first_dist, latent2_dist)
-            latent2_sample = latent2_dist.sample()
-        
-          latent1_dists.append(latent1_dist)
-          latent1_samples.append(latent1_sample)
-          latent2_dists.append(latent2_dist)
-          latent2_samples.append(latent2_sample)
-        
-        latent1_dists = map_distribution_structure(lambda *x: tf.stack(x, axis=1), *latent1_dists)
+            # Make the next distribution conditional if we have images and? [TODO comment]
+            is_conditional = images is not None and (t < images.shape[1].value)
+            if t == 0:
+                # If conditional, create the first-level posterior.
+                # q(z_1^1 | x_1). Receives the image!
+                if is_conditional: latent1_dist = self.latent1_first_posterior(features[t])
+                # If unconditional, create the first-level prior.
+                # p(z_1^1)
+                else: latent1_dist = self.latent1_first_prior(step_types[t])  
+
+                # Sample from the first-level distribution.
+                latent1_sample = latent1_dist.sample()
+
+                # Create the second-level distribution.
+                # The posterior depends on the image indirectly through the latent1 first posterior.
+                # q(z_1^2 | z_1^1) = p(z_1^2 | z_1^1)
+                if is_conditional: latent2_dist = self.latent2_first_posterior(latent1_sample)
+                # p(z_1^2 | z_1^1)
+                else: latent2_dist = self.latent2_first_prior(latent1_sample)
+
+                # Sample from the second-level distribution.
+                latent2_sample = latent2_dist.sample()
+            else:
+                reset_mask = tf.equal(step_types[t], ts.StepType.FIRST)
+                if is_conditional:
+                    # q(z_1^1 | x_1). Receives the image! Althought t > 0, we may need this depending on the reset mask.
+                    latent1_first_dist = self.latent1_first_posterior(features[t])
+                    # q(z_{t+1}^1 | x_{t+1}, z_t^2, a_t)
+                    latent1_dist = self.latent1_posterior(features[t], latent2_samples[t - 1], actions[t - 1])
+                else:
+                    # p(z_1^1). Althought t > 0, we may need this depending on the reset mask.
+                    latent1_first_dist = self.latent1_first_prior(step_types[t])
+                    latent1_dist = self.latent1_prior(latent2_samples[t - 1], actions[t - 1])
+                latent1_dist = nest_utils.map_distribution_structure(
+                    functools.partial(tf.where, reset_mask),
+                    latent1_first_dist,
+                    latent1_dist,
+                )
+                latent1_sample = latent1_dist.sample()
+
+                if is_conditional:
+                    latent2_first_dist = self.latent2_first_posterior(latent1_sample)
+                    latent2_dist = self.latent2_posterior(
+                        latent1_sample, latent2_samples[t - 1], actions[t - 1]
+                    )
+                else:
+                    latent2_first_dist = self.latent2_first_prior(latent1_sample)
+                    latent2_dist = self.latent2_prior(
+                        latent1_sample, latent2_samples[t - 1], actions[t - 1]
+                    )
+                latent2_dist = nest_utils.map_distribution_structure(
+                    functools.partial(tf.where, reset_mask),
+                    latent2_first_dist,
+                    latent2_dist,
+                )
+                latent2_sample = latent2_dist.sample()
+
+            latent1_dists.append(latent1_dist)
+            latent1_samples.append(latent1_sample)
+            latent2_dists.append(latent2_dist)
+            latent2_samples.append(latent2_sample)
+
+        latent1_dists = nest_utils.map_distribution_structure(
+            lambda *x: tf.stack(x, axis=1), *latent1_dists
+        )
+        # (B T, latent1_dim)
         latent1_samples = tf.stack(latent1_samples, axis=1)
-        latent2_dists = map_distribution_structure(lambda *x: tf.stack(x, axis=1), *latent2_dists)
+        latent2_dists = nest_utils.map_distribution_structure(
+            lambda *x: tf.stack(x, axis=1), *latent2_dists
+        )
+        # (B, T, latent2_dim)
         latent2_samples = tf.stack(latent2_samples, axis=1)
         return (latent1_samples, latent2_samples), (latent1_dists, latent2_dists)
 
     def sample_posterior(self, images, actions, step_types, features=None):
+        """
+        q(z_{t+1} | x_{t+1}, z_t, a_t) for each image
+
+        :param images: 
+        :param actions: 
+        :param step_types: 
+        :param features: 
+        :returns: 
+        :rtype: 
+
+        """
+        # semihack for discrete actions
+        actions = tf.cast(actions, dtype=tf.float32)
+        
         sequence_length = step_types.shape[1].value - 1
         actions = actions[:, :sequence_length]
-        
+
         if features is None:
-          features = self.compressor(images)
-        
+            features = self.compressor(images)
+
         # swap batch and time axes
         features = tf.transpose(features, [1, 0, 2])
         actions = tf.transpose(actions, [1, 0, 2])
         step_types = tf.transpose(step_types, [1, 0])
-        
+
         latent1_dists = []
         latent1_samples = []
         latent2_dists = []
         latent2_samples = []
         for t in range(sequence_length + 1):
-          if t == 0:
-            latent1_dist = self.latent1_first_posterior(features[t])
-            latent1_sample = latent1_dist.sample()
-            latent2_dist = self.latent2_first_posterior(latent1_sample)
-            latent2_sample = latent2_dist.sample()
-          else:
-            reset_mask = tf.equal(step_types[t], StepType.FIRST)
-            latent1_first_dist = self.latent1_first_posterior(features[t])
-            latent1_dist = self.latent1_posterior(features[t], latent2_samples[t-1], actions[t-1])
-            # latent1_dist = self.latent1_posterior(features[t])
-            latent1_dist = map_distribution_structure(
-                functools.partial(tf.where, reset_mask), latent1_first_dist, latent1_dist)
-            latent1_sample = latent1_dist.sample()
-        
-            latent2_first_dist = self.latent2_first_posterior(latent1_sample)
-            latent2_dist = self.latent2_posterior(latent1_sample, latent2_samples[t-1], actions[t-1])
-            #latent2_dist = self.latent2_posterior(latent1_sample)
-            latent2_dist = map_distribution_structure(
-                functools.partial(tf.where, reset_mask), latent2_first_dist, latent2_dist)
-            latent2_sample = latent2_dist.sample()
-        
-          latent1_dists.append(latent1_dist)
-          latent1_samples.append(latent1_sample)
-          latent2_dists.append(latent2_dist)
-          latent2_samples.append(latent2_sample)
-        
-        latent1_dists = map_distribution_structure(lambda *x: tf.stack(x, axis=1), *latent1_dists)
+            if t == 0:
+                latent1_dist = self.latent1_first_posterior(features[t])
+                latent1_sample = latent1_dist.sample()
+                latent2_dist = self.latent2_first_posterior(latent1_sample)
+                latent2_sample = latent2_dist.sample()
+            else:
+                # This handles the case of the stype types changing from MID/END to FIRST
+                reset_mask = tf.equal(step_types[t], ts.StepType.FIRST)
+                latent1_first_dist = self.latent1_first_posterior(features[t])
+
+                # Create the latent1-posterior based on the features (images), the most-recently sampled z from layer 2, and the most recent action
+                latent1_dist = self.latent1_posterior(
+                    features[t], latent2_samples[t - 1], actions[t - 1]
+                )
+                latent1_dist = nest_utils.map_distribution_structure(
+                    functools.partial(tf.where, reset_mask),
+                    latent1_first_dist,
+                    latent1_dist,
+                )
+                latent1_sample = latent1_dist.sample()
+
+                latent2_first_dist = self.latent2_first_posterior(latent1_sample)
+
+                # Create the latent2-posterior based on the features (images), the most-recently sampled z from both layers,
+                #    and the most recent action
+                latent2_dist = self.latent2_posterior(
+                    latent1_sample, latent2_samples[t - 1], actions[t - 1]
+                )
+                # TODO fix so it doesn't destroy our names.
+                latent2_dist = nest_utils.map_distribution_structure(
+                    functools.partial(tf.where, reset_mask),
+                    latent2_first_dist,
+                    latent2_dist,
+                )
+                latent2_sample = latent2_dist.sample()
+
+            latent1_dists.append(latent1_dist)
+            latent1_samples.append(latent1_sample)
+            latent2_dists.append(latent2_dist)
+            latent2_samples.append(latent2_sample)
+
+        latent1_dists = nest_utils.map_distribution_structure(
+            lambda *x: tf.stack(x, axis=1), *latent1_dists
+        )
         latent1_samples = tf.stack(latent1_samples, axis=1)
-        latent2_dists = map_distribution_structure(lambda *x: tf.stack(x, axis=1), *latent2_dists)
+        latent2_dists = nest_utils.map_distribution_structure(
+            lambda *x: tf.stack(x, axis=1), *latent2_dists
+        )
         latent2_samples = tf.stack(latent2_samples, axis=1)
         return (latent1_samples, latent2_samples), (latent1_dists, latent2_dists)
+
+    def compute_future_observation_likelihoods(self, actions, step_types, images):
+        """ Estimate:
+              p(x_T=future_image | a_{1:T-1}=actions, x_{1:T-1}=past_images) 
+                =E_{z_{T} ~ p(z_{T} | x_{1:T-1}, a_{1:T-1})} p(x_{T} | z_{T} )
+
+        :param actions: (B, T-1, A) action sequence
+        :param step_types: (B, T) step-type sequence
+        :param images: (B, T, ...) observed images sequence
+        :returns: 
+        :rtype: 
+        """
+
+        x_1toTm1 = images[:, :-1]
+        x_T = images[:, -1]
+        del images
+
+        # Sample z_{t+1} ~ p(z_{t+1} | x_{1:t}, a_{1:t})
+        # TODO compute a bunch of z_{t+1}! Not just one. This will better-estimate the expectation. 
+        ((l1_samples, l2_samples), _) = (self.sample_prior_or_posterior(actions=actions, step_types=step_types, images=x_1toTm1))
+
+        # (z^1_T, z^2_T)
+        last_latents = (l1_samples[:, -1], l2_samples[:, -1])
+
+        # Approximation of p(x_T | x_{1:T-1}, a_{1:T}). Not exact since the latents are samples.
+        # p(x_{T}=future_image | a_{1:T-1}=actions, x_{1:T-1}=past_images)  =
+        #    E_{z_{T} ~ p(z_{T} | x_{1:T-1}, a_{1:T-1})} p(x_{T} | z_{T})
+        approx_p_xT_pdf = self.observation_decoder(*last_latents)
+
+        # (B,) Likelihoods of the last image, x_T.
+        approx_log_p_xT_value = approx_p_xT_pdf.log_prob(x_T)
+        return approx_log_p_xT_value
+
+    # def compute_future_latent_log_prob(self, actions, step_types, images):
+        # latent1_dist.log_prob(
     
     def _parser(self, images, actions):
         num_shifts = self._all_sequence_length - self._sequence_length
@@ -733,8 +877,8 @@ class SLACModel(SiameseNetwork):
         
         data_array = data_array.astype(np.float32)
         self._all_batch_size, self._all_sequence_length = data_array.shape[:2]
-        self._batch_size = 32
-        self._sequence_length = 10
+        self._batch_size = 1
+        self._sequence_length = 8
         shuffle = True
         num_epochs = None
         dataset = tf.data.Dataset.from_tensor_slices((data_array[..., :64*64*3].reshape(data_array.shape[:2] + (64, 64, 3)), data_array[..., 64*64*3:64*64*3+2]))
@@ -798,31 +942,33 @@ class SLACModel(SiameseNetwork):
         """
             Reset any state for the agent model
         """
-        self._model.reset()
-        self._model._reward_net.reset_states()
-        self._model._forward_dynamics_net.reset_states()
-        if not (self._modelTarget is None):
-            self._modelTarget._forward_dynamics_net.reset_states()
+        pass
+#         self._model.reset()
+#         self._model._reward_net.reset_states()
+#         self._model._forward_dynamics_net.reset_states()
+#         if not (self._modelTarget is None):
+#             self._modelTarget._forward_dynamics_net.reset_states()
             # self._modelTarget._reward_net.reset_states()
             # self._modelTarget.reset()
             
     def getNetworkParameters(self):
         params = []
-        params.append(copy.deepcopy(self._model._forward_dynamics_net.get_weights()))
-        params.append(copy.deepcopy(self._model._reward_net.get_weights()))
-        
-        if ( "return_rnn_sequence" in self.getSettings()
-             and (self.getSettings()["return_rnn_sequence"])):
-            params.append(copy.deepcopy(self._model._reward_net_seq.get_weights()))
+#         params.append(copy.deepcopy(self._model._forward_dynamics_net.get_weights()))
+#         params.append(copy.deepcopy(self._model._reward_net.get_weights()))
+#         
+#         if ( "return_rnn_sequence" in self.getSettings()
+#              and (self.getSettings()["return_rnn_sequence"])):
+#             params.append(copy.deepcopy(self._model._reward_net_seq.get_weights()))
                 
         return params
     
     def setNetworkParameters(self, params):
-        self._model._forward_dynamics_net.set_weights(params[0])
-        self._model._reward_net.set_weights(params[1])
-        if ( "return_rnn_sequence" in self.getSettings()
-             and (self.getSettings()["return_rnn_sequence"])):
-            self._model._reward_net_seq.set_weights(params[2])
+#         self._model._forward_dynamics_net.set_weights(params[0])
+#         self._model._reward_net.set_weights(params[1])
+#         if ( "return_rnn_sequence" in self.getSettings()
+#              and (self.getSettings()["return_rnn_sequence"])):
+#             self._model._reward_net_seq.set_weights(params[2])
+        pass
         
     def setGradTarget(self, grad):
         self._fd_grad_target_shared.set_value(grad)
