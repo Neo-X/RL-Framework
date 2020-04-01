@@ -156,6 +156,11 @@ class ExperienceMemory(object):
                 # print ("From traj_start: ", traj_start)
             else:
                 traj_start = random.sample(set(inds), 1)[0]
+        if ("shorter_smaller_rnn_batches" in self._settings
+                and (self._settings["shorter_smaller_rnn_batches"])):
+            inds = range(0, shortest_traj - self._settings["shorter_smaller_rnn_batches"])
+            traj_start = random.sample(set(inds), 1)[0]
+            shortest_traj = traj_start + self._settings["shorter_smaller_rnn_batches"]
                 
         if ( randomLength == True 
             and (shortest_traj > traj_start + min_seq_length)):  ### shortest_traj Must be at least 2 for this to return 1

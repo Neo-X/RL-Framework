@@ -335,6 +335,68 @@ class Compressor(tf.Module):
         expanded_shape = tf.concat((tf.shape(image)[:-3], [self.feature_size]), axis=0)
         return tf.reshape(out, expanded_shape)  # (sample, N, T, feature)
 
+class DecoderSmall(tf.Module):
+    """Probabilistic decoder for `p(x_t | z_t)`."""
+
+    def __init__(self, base_depth, channels=3, scale=1.0, name=None):
+        super(DecoderSmall, self).__init__(name=name)
+        self.scale = scale
+        conv_transpose = functools.partial(
+            tf.keras.layers.Conv2DTranspose, padding="SAME", activation=tf.nn.leaky_relu
+        )
+        self.conv_transpose1 = conv_transpose(8 * base_depth, 4, padding="VALID")
+#         self.conv_transpose2 = conv_transpose(4 * base_depth, 3, 2)
+        self.conv_transpose3 = conv_transpose(2 * base_depth, 3, 2)
+#         self.conv_transpose4 = conv_transpose(base_depth, 3, 2)
+        self.conv_transpose5 = conv_transpose(channels, 5, 2)
+
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            latent = tf.concat(inputs, axis=-1)
+        else:
+            (latent,) = inputs
+        # (sample, N, T, latent)
+        collapsed_shape = tf.stack([-1, 1, 1, tf.shape(latent)[-1]], axis=0)
+        out = tf.reshape(latent, collapsed_shape)
+        out = self.conv_transpose1(out)
+#         out = self.conv_transpose2(out)
+        out = self.conv_transpose3(out)
+#         out = self.conv_transpose4(out)
+        out = self.conv_transpose5(out)  # (sample*N*T, h, w, c)
+
+        expanded_shape = tf.concat([tf.shape(latent)[:-1], tf.shape(out)[1:]], axis=0)
+        out = tf.reshape(out, expanded_shape)  # (sample, N, T, h, w, c)
+        return tfd.Independent(
+            distribution=tfd.Normal(loc=out, scale=self.scale),
+            reinterpreted_batch_ndims=3,
+        )  # wrap (h, w, c)
+
+class CompressorSmall(tf.Module):
+    """Feature extractor."""
+
+    def __init__(self, base_depth, feature_size, name=None):
+        super(CompressorSmall, self).__init__(name=name)
+        self.feature_size = feature_size
+        conv = functools.partial(
+            tf.keras.layers.Conv2D, padding="SAME", activation=tf.nn.leaky_relu
+        )
+        self.conv1 = conv(base_depth, 5, 2)
+#         self.conv2 = conv(2 * base_depth, 3, 2)
+        self.conv3 = conv(4 * base_depth, 3, 2)
+#         self.conv4 = conv(8 * base_depth, 3, 2)
+        self.conv5 = conv(8 * base_depth, 4, padding="VALID")
+
+    def __call__(self, image):
+        image_shape = tf.shape(image)[-3:]
+        collapsed_shape = tf.concat(([-1], image_shape), axis=0)
+        out = tf.reshape(image, collapsed_shape)  # (sample*N*T, h, w, c)
+        out = self.conv1(out)
+#         out = self.conv2(out)
+        out = self.conv3(out)
+#         out = self.conv4(out)
+        out = self.conv5(out)
+        expanded_shape = tf.concat((tf.shape(image)[:-3], [self.feature_size]), axis=0)
+        return tf.reshape(out, expanded_shape)  # (sample, N, T, feature)
 
 class SLACModel(SiameseNetwork):
     
@@ -402,9 +464,16 @@ class SLACModel(SiameseNetwork):
 
         # compresses x_t into a vector
         if compressor is None:
-            self.compressor = Compressor(base_depth, 8 * base_depth)
-            # p(x_t | z_t^1, z_t^2)
-            self.observation_decoder = Decoder(base_depth, scale=decoder_stddev)
+            if ("slac_use_small_imgs" in self.getSettings()
+                and (self.getSettings()["slac_use_small_imgs"])):
+                self.compressor = CompressorSmall(base_depth, 8 * base_depth)
+                # p(x_t | z_t^1, z_t^2)
+                self.observation_decoder = DecoderSmall(base_depth, scale=decoder_stddev)
+            
+            else:
+                self.compressor = Compressor(base_depth, 8 * base_depth)
+                # p(x_t | z_t^1, z_t^2)
+                self.observation_decoder = Decoder(base_depth, scale=decoder_stddev)
         else:
             self.compressor = compressor
             # Decode to vectors! p(x_t | z_t^1, z_t^2)
@@ -870,6 +939,20 @@ class SLACModel(SiameseNetwork):
             'actions': actions,
         }
         return seqs  
+    
+    def parser(self, images, actions):
+        ### I think this code randomly parses out a sequence from the full sequence
+        num_shifts = self._all_sequence_length - self._sequence_length
+        t_start = int(np.random.uniform(0, num_shifts + 1, size=1)[0])
+        images = images[t_start:t_start+self._sequence_length]
+        images.set_shape([self._sequence_length] + images.shape.as_list()[1:])
+        actions = actions[t_start:t_start+self._sequence_length-1]
+        actions.set_shape([self._sequence_length-1] + actions.shape.as_list()[1:])
+        seqs = {
+            'images': images,
+            'actions': actions,
+        }
+        return seqs  
         
 
     def compile(self):
@@ -877,8 +960,8 @@ class SLACModel(SiameseNetwork):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth=True
         self._sess = tf.Session(config=config)
-        img_size = (64,64,3)
-        action_size = 2
+        img_size = self.getSettings()["fd_terrain_shape"]
+        action_size = 3
         reward_size = 1
         data_array = np.zeros((64,16,np.prod(img_size) + action_size + reward_size))
         # data_array = np.concatenate([data1, data2, data4, data5,data6,data7])
@@ -887,9 +970,11 @@ class SLACModel(SiameseNetwork):
         self._all_batch_size, self._all_sequence_length = data_array.shape[:2]
         self._batch_size = 32
         self._sequence_length = 8
+        self._states_placeholder = tf.placeholder(shape=[32, self._sequence_length] + self.getSettings()["fd_terrain_shape"], dtype=tf.float32)
+        self._action_placeholder = tf.placeholder(shape=[32, self._sequence_length, action_size], dtype=tf.float32)
         shuffle = True
         num_epochs = None
-        dataset = tf.data.Dataset.from_tensor_slices((data_array[..., :64*64*3].reshape(data_array.shape[:2] + (64, 64, 3)), data_array[..., 64*64*3:64*64*3+2]))
+        dataset = tf.data.Dataset.from_tensor_slices((data_array[..., :np.prod(img_size)].reshape(data_array.shape[:2] + tuple(img_size)), data_array[..., np.prod(img_size):np.prod(img_size)+action_size]))
         
         if shuffle:
             dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=1024, count=num_epochs))
@@ -908,7 +993,7 @@ class SLACModel(SiameseNetwork):
 #         ### 100 trajectories of length 100 for 3 actions
 #         data["actions"] = np.zeros((10,8,3))
         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
-        self._loss, outputs = self.compute_loss(data['images'], data['actions'], step_types)
+        self._loss, outputs = self.compute_loss(self._states_placeholder, self._action_placeholder, step_types)
         
         self._global_step = tf.train.create_global_step()
         self._adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
@@ -1019,54 +1104,27 @@ class SLACModel(SiameseNetwork):
         # print ("state length: ", len(self.getStateBounds()[0]))
         update_data = True
         if (update_data):
-            img_size = (64,64,3)
-            action_size = 2
+            img_size = self.getSettings()["fd_terrain_shape"]
+            action_size = 3
             reward_size = 1
-            data_array = np.zeros((32,16,np.prod(img_size) + action_size + reward_size))
+            # data_array = np.zeros((32,16,np.prod(img_size) + action_size + reward_size))
             # data_array = np.concatenate([data1, data2, data4, data5,data6,data7])
+            data_array = states
             
-            data_array = data_array.astype(np.float32)
-            self._all_batch_size, self._all_sequence_length = data_array.shape[:2]
-            self._batch_size = 16
+            self._batch_size = 32
             self._sequence_length = 8
-            # data_array = states
             self.reset()
             shuffle = True
             num_epochs = None
-            print ("States shape: ", states.shape, " data_array shape: ", data_array.shape, " actions shape: ", actions.shape)
-            dataset = tf.data.Dataset.from_tensor_slices((data_array[..., :64*64*3].reshape(data_array.shape[:2] + (64, 64, 3)), actions[..., 0:0+2]))
-            
-            if shuffle:
-                dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=1024, count=num_epochs))
-            else:
-                dataset = dataset.repeat(num_epochs)
-            
-            dataset = dataset.apply(tf.data.experimental.map_and_batch(self._parser, self._batch_size, drop_remainder=True))
-            dataset = dataset.prefetch(self._batch_size)
-            
-            iterator = dataset.make_one_shot_iterator()
-            data = iterator.get_next()
-    # #         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
-    #         data = {}
-    #         ### 100 trajectories of length 100 for 64x64x3 images
-    #         data["images"] = np.zeros((10,8,64,64,3))
-    #         ### 100 trajectories of length 100 for 3 actions
-    #         data["actions"] = np.zeros((10,8,3))
-    
-            step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
-            self._loss, outputs = self.compute_loss(data['images'], data['actions'], step_types)
-            
-    #         self._global_step = tf.train.create_global_step()
-    #         adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
-            self._train_op = self._adam_optimizer.minimize(self._loss, global_step=self._global_step)
+            states = states.reshape(data_array.shape[:2] + tuple(img_size))
         
-        states_ = states
         if ('anneal_learning_rate' in self.getSettings()
             and (self.getSettings()['anneal_learning_rate'] == True)):
             K.set_value(self._model._forward_dynamics_net.optimizer.lr, np.float32(self.getSettings()['fd_learning_rate']) * p)
 
         for i in range(1):
-          _, loss_val, global_step_val = self._sess.run([self._train_op,self._loss, self._global_step])
+          _, loss_val, global_step_val = self._sess.run([self._train_op,self._loss, self._global_step], 
+                                                        feed_dict={self._states_placeholder: states, self._action_placeholder: actions})
 #           if i % 100 == 0:
 #             print('step = %d, loss = %f' % (global_step_val, loss_val))
 #           if i % 10000 == 0:
