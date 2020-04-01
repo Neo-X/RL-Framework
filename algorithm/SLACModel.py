@@ -1017,13 +1017,24 @@ class SLACModel(SiameseNetwork):
         """
         # print ("fd: ", self)
         # print ("state length: ", len(self.getStateBounds()[0]))
-        update_data = False
+        update_data = True
         if (update_data):
-            data_array = states
+            img_size = (64,64,3)
+            action_size = 2
+            reward_size = 1
+            data_array = np.zeros((32,16,np.prod(img_size) + action_size + reward_size))
+            # data_array = np.concatenate([data1, data2, data4, data5,data6,data7])
+            
+            data_array = data_array.astype(np.float32)
+            self._all_batch_size, self._all_sequence_length = data_array.shape[:2]
+            self._batch_size = 16
+            self._sequence_length = 8
+            # data_array = states
             self.reset()
             shuffle = True
             num_epochs = None
-            dataset = tf.data.Dataset.from_tensor_slices((states[..., :64*64*3].reshape(data_array.shape[:2] + (64, 64, 3)), actions[..., 0:0+2]))
+            print ("States shape: ", states.shape, " data_array shape: ", data_array.shape, " actions shape: ", actions.shape)
+            dataset = tf.data.Dataset.from_tensor_slices((data_array[..., :64*64*3].reshape(data_array.shape[:2] + (64, 64, 3)), actions[..., 0:0+2]))
             
             if shuffle:
                 dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=1024, count=num_epochs))
@@ -1043,7 +1054,7 @@ class SLACModel(SiameseNetwork):
     #         data["actions"] = np.zeros((10,8,3))
     
             step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
-            loss, outputs = model.compute_loss(data['images'], data['actions'], step_types)
+            self._loss, outputs = self.compute_loss(data['images'], data['actions'], step_types)
             
     #         self._global_step = tf.train.create_global_step()
     #         adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
