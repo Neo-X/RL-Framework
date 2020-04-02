@@ -22,7 +22,7 @@
     "comment__": "Number of epochs to perform per round",
 "epochs": 4,
     "comment__": "Number of epoch/episode to evaluate the policy over",
-"eval_epochs": 32,
+"eval_epochs": 16,
     "comment__": "Discount factor used during learning",
 "discount_factor": 0.95,
     "comment__": "Should the training be plotted during learning",
@@ -398,7 +398,7 @@
 	"comment__": "last policy type of activation to use",
 "last_fd_layer_activation_type": "sigmoid",
 	"comment__": "The number of fd network to be done per actor update.",
-"fd_updates_per_actor_update": 16.0,
+"fd_updates_per_actor_update": 2.0,
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false,
 	"comment__": "Leave off the final layer of the network that would result in a state sized output",
@@ -513,7 +513,7 @@
 "seperate_posandneg_pairs": true,
 	"comment__": "Add noise to the target noise values",
 "target_noise_scale": 0.1,
-"rnn_updates" : 32,
+"rnn_updates" : 4,
 	"comment__": "Flag to indicate to SLAC to use a smaller image and conv net size",
 "slac_use_small_imgs": true	
 }

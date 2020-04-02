@@ -121,7 +121,7 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
         print ("pretraining critic round: ", i)
         masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
                                        _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
-                                       _G_t=G_ts_, datas=datas, p=1.0)
+                                       _G_t=G_ts_, datas=datas, p=1.0, trainInfo={"epoch": i})
         ### Send keep alive to sim processes
         if (masterAgent.getSettings()['on_policy'] == "fast"):
             out = simModelMoreParrallel( sw_message_queues=sim_work_queues
@@ -160,7 +160,7 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
         print ("pretraining fd round: ", i)
         masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
                                        _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
-                                       _G_t=G_ts_, datas=datas, p=1.0)
+                                       _G_t=G_ts_, datas=datas, p=1.0, trainInfo={"epoch": i})
         ### Send keep alive to sim processes
         if (masterAgent.getSettings()['on_policy'] == "fast"):
             out = simModelMoreParrallel( sw_message_queues=sim_work_queues
@@ -900,7 +900,8 @@ def trainModelParallel(inputData):
                     
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
-                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_, datas=datas__)
+                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_, 
+                                           datas=datas__, trainInfo={"epoch": epoch, "round": settings["round"]})
                     masterAgent.reset()
                     
                     data = getLearningData(masterAgent, settings, p)

@@ -73,36 +73,39 @@ def sampling(args):
     epsilon = K.random_normal(shape=(batch, dim))
     return z_mean + K.exp(0.5 * z_log_var) * epsilon
 
-def display_gif(images, logdir, fps=10, max_outputs=8):
-  images = images[:max_outputs]
-  images = np.clip(images, 0.0, 1.0)
-  images = (images * 255.0).astype(np.uint8)
-  images = np.concatenate(images, axis=-2)
-  clip = mpy.ImageSequenceClip(list(images), fps=fps)
-  # clip.write_videofile(logdir+str(global_counter)+".mp4", fps=fps)
+def display_gif(images, logdir, fps=10, max_outputs=8, counter=0):
+    import moviepy.editor as mpy
+    images = images[:max_outputs]
+    images = np.clip(images, 0.0, 1.0)
+    images = (images * 255.0).astype(np.uint8)
+    images = np.concatenate(images, axis=-2)
+    clip = mpy.ImageSequenceClip(list(images), fps=fps)
+    # clip.write_videofile(logdir+str(global_counter)+".mp4", fps=fps)
+    
+    # import moviepy.editor as mpy
+    # clip = mpy.ImageSequenceClip(images, fps=20)
+    
+    # video_dir = video_dir_prefix + 'BCpolicy-gripper_state2'+str(reset_arg)+'/'
+    
+    # if os.path.isdir(video_dir)!=True:
+    #     os.makedirs(video_dir, exist_ok = True)
+    clip.write_gif(logdir+str(counter)+".gif", fps=20)
 
-  # import moviepy.editor as mpy
-  # clip = mpy.ImageSequenceClip(images, fps=20)
-  
-  # video_dir = video_dir_prefix + 'BCpolicy-gripper_state2'+str(reset_arg)+'/'
-
-  # if os.path.isdir(video_dir)!=True:
-  #     os.makedirs(video_dir, exist_ok = True)
-  clip.write_gif(logdir+str(global_counter)+".gif", fps=20)
-
-def save_weights(sess, logdir):
-  vars_dict = {}
-  graph_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
-  for var in graph_vars:
-    vars_dict[var.name]= sess.run(var)
-  fobj = open(logdir+str(global_counter)+'-weights.pkl', 'wb')
-  pickle.dump(vars_dict , fobj)
+def save_weights(sess, logdir, counter):
+    import pickle
+    vars_dict = {}
+    graph_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+    for var in graph_vars:
+        vars_dict[var.name]= sess.run(var)
+    fobj = open(logdir+str(counter)+'-weights.pkl', 'wb')
+    pickle.dump(vars_dict , fobj)
 
 def load_trainable_weights(sess, pathname):
-  load_data = pickle.load(open(pathname, 'rb')) #sorry
-  assign_ops = [tf.assign(var, load_data[var.name]) for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)]
-  for op in assign_ops:
-    sess.run(op)
+    import pickle
+    load_data = pickle.load(open(pathname, 'rb')) #sorry
+    assign_ops = [tf.assign(var, load_data[var.name]) for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)]
+    for op in assign_ops:
+        sess.run(op)
 
 def map_distribution_structure(func, *dist_structure):
   def _get_params(dist):
@@ -993,7 +996,7 @@ class SLACModel(SiameseNetwork):
 #         ### 100 trajectories of length 100 for 3 actions
 #         data["actions"] = np.zeros((10,8,3))
         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
-        self._loss, outputs = self.compute_loss(self._states_placeholder, self._action_placeholder, step_types)
+        self._loss, self._outputs = self.compute_loss(self._states_placeholder, self._action_placeholder, step_types)
         
         self._global_step = tf.train.create_global_step()
         self._adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
@@ -1095,7 +1098,7 @@ class SLACModel(SiameseNetwork):
     def updateTargetModel(self):
         pass
                 
-    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True, datas=None):
+    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True, datas=None, trainInfo=None):
         """
             states will come for the agent and
             results_states can come from the imitation agent
@@ -1123,18 +1126,20 @@ class SLACModel(SiameseNetwork):
             K.set_value(self._model._forward_dynamics_net.optimizer.lr, np.float32(self.getSettings()['fd_learning_rate']) * p)
 
         for i in range(1):
-          _, loss_val, global_step_val = self._sess.run([self._train_op,self._loss, self._global_step], 
+            out, loss_val, global_step_val = self._sess.run([self._train_op,self._loss, self._global_step], 
                                                         feed_dict={self._states_placeholder: states, self._action_placeholder: actions})
+          
+        print('step = %d, loss = %f' % (global_step_val, loss_val))
+        print ("trainInfo: ", trainInfo)
 #           if i % 100 == 0:
-#             print('step = %d, loss = %f' % (global_step_val, loss_val))
-#           if i % 10000 == 0:
-#             global_counter=i
-#             images, posterior_images, conditional_prior_images, prior_images = self._sess.run(
-#                 [outputs['images'], outputs['posterior_images'], outputs['conditional_prior_images'], outputs['prior_images']])
-#             all_images = np.concatenate([images, posterior_images, conditional_prior_images, prior_images], axis=2)
-#             save_weights(sess, logdir)
-#             #import ipdb;ipdb.set_trace()
-#             display_gif(all_images, logdir)
+#         if trainInfo["round"] % 5 == 0 and (trainInfo["epoch"] == 0) and (trainInfo["iteration"] == 0) :
+#           images, posterior_images, conditional_prior_images, prior_images = self._sess.run(
+#               [self._outputs['images'], self._outputs['posterior_images'], self._outputs['conditional_prior_images'], self._outputs['prior_images']],
+#                                                         feed_dict={self._states_placeholder: states, self._action_placeholder: actions})
+#           all_images = np.concatenate([images, posterior_images, conditional_prior_images, prior_images], axis=2)
+#           save_weights(self._sess, "data/", counter=trainInfo["round"])
+#           #import ipdb;ipdb.set_trace()
+#           display_gif(all_images, "data/", counter=trainInfo["round"])
         return loss_val
     
     def predict_encoding(self, state):
@@ -1379,6 +1384,14 @@ class SLACModel(SiameseNetwork):
     def saveTo(self, fileName, states=None, actions=None):
         # print(self, "saving model")
         import h5py
+        states = states.reshape(states.shape[:2] + tuple(self.getSettings()["fd_terrain_shape"]))
+        images, posterior_images, conditional_prior_images, prior_images = self._sess.run(
+            [self._outputs['images'], self._outputs['posterior_images'], self._outputs['conditional_prior_images'], self._outputs['prior_images']],
+                                                      feed_dict={self._states_placeholder: states, self._action_placeholder: actions})
+        all_images = np.concatenate([images, posterior_images, conditional_prior_images, prior_images], axis=2)
+        save_weights(self._sess, fileName+"_slac_model", counter=0)
+        #import ipdb;ipdb.set_trace()
+        display_gif(all_images, fileName+"_slac_model", counter=0)
 #         self.reset()
 #         hf = h5py.File(fileName+"_bounds.h5", "w")
 #         hf.create_dataset('_state_bounds', data=self.getStateBounds())

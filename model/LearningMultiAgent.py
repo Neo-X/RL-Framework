@@ -574,7 +574,7 @@ class LearningMultiAgent(LearningAgent):
                 falls__, advantage__, exp_actions__, G_t__, datas__)
     # @profile(precision=5)
     def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
-              _exp_actions=None, _G_t=None, p=1.0, datas=None):
+              _exp_actions=None, _G_t=None, p=1.0, datas=None, trainInfo=None):
         import numpy as np 
         
         # for agent_ in range(len(self.getAgents())):
@@ -692,7 +692,7 @@ class LearningMultiAgent(LearningAgent):
                         break
             """
             self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
-              _exp_actions=exp_actions__, _G_t=G_t__, p=p, datas=datas__)
+              _exp_actions=exp_actions__, _G_t=G_t__, p=p, datas=datas__, trainInfo=trainInfo)
         
     def recomputeRewards(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t):
