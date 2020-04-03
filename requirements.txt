@@ -26,3 +26,4 @@ imageio-ffmpeg
 pandas==1.0.1
 seaborn==0.10.0
 moviepy==1.0.2
+gym==0.15.4

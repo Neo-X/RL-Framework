@@ -1129,8 +1129,8 @@ class SLACModel(SiameseNetwork):
             out, loss_val, global_step_val = self._sess.run([self._train_op,self._loss, self._global_step], 
                                                         feed_dict={self._states_placeholder: states, self._action_placeholder: actions})
           
-        print('step = %d, loss = %f' % (global_step_val, loss_val))
-        print ("trainInfo: ", trainInfo)
+#         print('step = %d, loss = %f' % (global_step_val, loss_val))
+#         print ("trainInfo: ", trainInfo)
 #           if i % 100 == 0:
 #         if trainInfo["round"] % 5 == 0 and (trainInfo["epoch"] == 0) and (trainInfo["iteration"] == 0) :
 #           images, posterior_images, conditional_prior_images, prior_images = self._sess.run(

@@ -67,11 +67,12 @@ RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 # RUN git clone https://github.com/rll/rllab.git /root/playground/rllab
 WORKDIR /root/playground
 RUN git clone git@github.com:FracturedPlane/RLSimulationEnvironments.git
+RUN pip install -r /root/playground/RLSimulationEnvironments/requirements.txt
 ENV RLSIMENV_PATH /root/playground/RLSimulationEnvironments
+RUN pip install -v -e $RLSIMENV_PATH
 
 RUN ls
 RUN git clone git@github.com:Neo-X/RL-Framework.git 
-
 RUN pip install -r /root/playground/RL-Framework/requirements.txt
 # RUN popd
 
