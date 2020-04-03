@@ -1116,7 +1116,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                 env.see_through_walls = True
                 return env
             env = env_factory()
-        else:
+        else: ### simpleRoom-v0
             from surprise.envs.minigrid.envs.simple_room import SimpleEnemyEnv
             from surprise.buffers.buffers import BernoulliBuffer
             from surprise.wrappers.base_surprise import BaseSurpriseWrapper
