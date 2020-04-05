@@ -91,22 +91,6 @@ def display_gif(images, logdir, fps=10, max_outputs=8, counter=0):
     #     os.makedirs(video_dir, exist_ok = True)
     clip.write_gif(logdir+str(counter)+".gif", fps=20)
 
-def save_weights(sess, logdir, counter):
-    import pickle
-    vars_dict = {}
-    graph_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
-    for var in graph_vars:
-        vars_dict[var.name]= sess.run(var)
-    fobj = open(logdir+str(counter)+'-weights.pkl', 'wb')
-    pickle.dump(vars_dict , fobj)
-
-def load_trainable_weights(sess, pathname):
-    import pickle
-    load_data = pickle.load(open(pathname, 'rb')) #sorry
-    assign_ops = [tf.assign(var, load_data[var.name]) for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)]
-    for op in assign_ops:
-        sess.run(op)
-
 def map_distribution_structure(func, *dist_structure):
   def _get_params(dist):
     return {k: v for k, v in dist.parameters.items() if isinstance(v, tf.Tensor)}
@@ -1389,7 +1373,7 @@ class SLACModel(SiameseNetwork):
             [self._outputs['images'], self._outputs['posterior_images'], self._outputs['conditional_prior_images'], self._outputs['prior_images']],
                                                       feed_dict={self._states_placeholder: states, self._action_placeholder: actions})
         all_images = np.concatenate([images, posterior_images, conditional_prior_images, prior_images], axis=2)
-        save_weights(self._sess, fileName+"_slac_model", counter=0)
+        self.save_weights(self._sess, fileName+"_slac_model", counter=0)
         #import ipdb;ipdb.set_trace()
         display_gif(all_images, fileName+"_slac_model", counter=0)
 #         self.reset()
@@ -1466,6 +1450,22 @@ class SLACModel(SiameseNetwork):
 #             imageio.mimsave(fileName+"viz_state_input_"+'.gif', images_x, duration=0.5,)
 #             imageio.mimsave(fileName+"viz_conditional_"+'.gif', images_y, duration=0.5,)
 # #             imageio.mimsave(fileName+"viz_marginal_"+'.gif', images_z, duration=0.5,)
+
+    def save_weights(self, sess, logdir, counter):
+        import pickle
+        vars_dict = {}
+        graph_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+#         for var in graph_vars:
+#             vars_dict[var.name]= self._sess.run(var)
+        fobj = open(logdir+str(counter)+'-weights.pkl', 'wb')
+        pickle.dump(vars_dict , fobj)
+    
+    def load_trainable_weights(self, sess, pathname):
+        import pickle
+        load_data = pickle.load(open(pathname, 'rb')) #sorry
+        assign_ops = [tf.assign(var, load_data[var.name]) for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)]
+        for op in assign_ops:
+            self._sess.run(op)
         
     def loadFrom(self, fileName):
         import h5py
