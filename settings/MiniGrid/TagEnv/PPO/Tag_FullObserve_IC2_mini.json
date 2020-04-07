@@ -507,5 +507,7 @@
 "target_noise_scale": 0.1,
 "rnn_updates" : 16,
 	"comment__": "Flag to indicate to SLAC to use a smaller image and conv net size",
-"slac_use_small_imgs": true	
+"slac_use_small_imgs": true,
+	"comment__": "Recompute the rewards using the learning reward model.",
+"refresh_rewards": "lstm_fd"	
 }
