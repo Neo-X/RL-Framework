@@ -75,7 +75,7 @@ class LoggingWorker(Process):
                         print('Creating video for checkpoint round', roundNum)
                         settings_copy = copy.deepcopy(self._settings)
                         filename = settings_copy['save_video_to_file']
-                        settings_copy['save_video_to_file'] = filename[:filename.rindex('.')] + '_round' + str(roundNum) + '(' + str(episodes) + 'episodes)' + filename[filename.rindex('.'):]
+                        settings_copy['save_video_to_file'] = filename[:filename.rindex('.')] + '_round' + str(roundNum) + '_' + str(episodes) + 'eps' + filename[filename.rindex('.'):]
                         settings_copy['visualize_expected_value'] = False
                         try:
                             modelEvaluation("", settings=settings_copy, exp=exp) # Save a video for this checkpoint
@@ -85,6 +85,7 @@ class LoggingWorker(Process):
                             import traceback
                             print(traceback.format_exc())
                             raise e
+                        print('Finished creating video for checkpoint round', roundNum)
                 else:
                     running = running and data_
                     if (not running):
