@@ -91,22 +91,6 @@ def display_gif(images, logdir, fps=10, max_outputs=8, counter=0):
     #     os.makedirs(video_dir, exist_ok = True)
     clip.write_gif(logdir+str(counter)+".gif", fps=20)
 
-def save_weights(sess, logdir, counter):
-    import pickle
-    vars_dict = {}
-    graph_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
-    for var in graph_vars:
-        vars_dict[var.name]= sess.run(var)
-    fobj = open(logdir+str(counter)+'-weights.pkl', 'wb')
-    pickle.dump(vars_dict , fobj)
-
-def load_trainable_weights(sess, pathname):
-    import pickle
-    load_data = pickle.load(open(pathname, 'rb')) #sorry
-    assign_ops = [tf.assign(var, load_data[var.name]) for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)]
-    for op in assign_ops:
-        sess.run(op)
-
 def map_distribution_structure(func, *dist_structure):
   def _get_params(dist):
     return {k: v for k, v in dist.parameters.items() if isinstance(v, tf.Tensor)}
@@ -424,8 +408,13 @@ class SLACModel(SiameseNetwork):
         self.observation_spec = observation_spec
         self.action_spec = action_spec
         self.base_depth = base_depth
-        self.latent1_size = latent1_size
-        self.latent2_size = latent2_size
+        if ("slac_use_small_imgs" in self.getSettings()
+                and (self.getSettings()["slac_use_small_imgs"])):
+            self.latent1_size = int(latent1_size/4)
+            self.latent2_size = int(latent2_size/4)
+        else:
+            self.latent1_size = latent1_size
+            self.latent2_size = latent2_size
         self.kl_analytic = kl_analytic
         self.latent1_deterministic = latent1_deterministic
         self.latent2_deterministic = latent2_deterministic
@@ -438,19 +427,19 @@ class SLACModel(SiameseNetwork):
         latent2_distribution_ctor = MultivariateNormalDiag
 
         # p(z_1^1)
-        self.latent1_first_prior = latent1_first_prior_distribution_ctor(latent1_size, name='Latent1FirstPrior')
+        self.latent1_first_prior = latent1_first_prior_distribution_ctor(self.latent1_size, name='Latent1FirstPrior')
         # p(z_1^2 | z_1^1)
         self.latent2_first_prior = latent2_distribution_ctor(
-            8 * base_depth, latent2_size, name='Latent2FirstPrior'
+            8 * base_depth, self.latent2_size, name='Latent2FirstPrior'
         )
         # p(z_{t+1}^1 | z_t^2, a_t)
-        self.latent1_prior = latent1_distribution_ctor(8 * base_depth, latent1_size, name='Latent1Prior')
+        self.latent1_prior = latent1_distribution_ctor(8 * base_depth, self.latent1_size, name='Latent1Prior')
         # p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t) (? Conceptually similar to p(z_{t+1} | z_t, a_t) ?)
-        self.latent2_prior = latent2_distribution_ctor(8 * base_depth, latent2_size, name='Latent2Prior')
+        self.latent2_prior = latent2_distribution_ctor(8 * base_depth, self.latent2_size, name='Latent2Prior')
 
         # q(z_1^1 | x_1)
         self.latent1_first_posterior = latent1_distribution_ctor(
-            8 * base_depth, latent1_size, name='Latent1_FirstPosterior'
+            8 * base_depth, self.latent1_size, name='Latent1_FirstPosterior'
         )
         # TODO ?????????????????????????????????????????????????????????????????????????????????????????????????????
         # This next line seems extremely broken? WHY?
@@ -458,7 +447,7 @@ class SLACModel(SiameseNetwork):
         self.latent2_first_posterior = self.latent2_first_prior
         
         # q(z_{t+1}^1 | x_{t+1}, z_t^2, a_t)
-        self.latent1_posterior = latent1_distribution_ctor(8 * base_depth, latent1_size, name='Latent1Posterior')
+        self.latent1_posterior = latent1_distribution_ctor(8 * base_depth, self.latent1_size, name='Latent1Posterior')
 
         # TODO ?????????????????????????????????????????????????????????????????????????????????????????????????????
         # This next line seems extremely broken? WHY?
@@ -1274,19 +1263,17 @@ class SLACModel(SiameseNetwork):
         # print ("fd: ", self)
         state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         state2 = np.array(norm_state(state2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
-        if (("train_LSTM_Reward" in self._settings)
-            and (self._settings["train_LSTM_Reward"] == True)):
-            ### Used because we need to keep two separate RNN networks and not mix the hidden states
-            # print ("State shape: ", np.array([np.array([state])]).shape)
-            h_a = self._model.processed_a_r.predict([np.array([state])])
-            h_b = self._model.processed_b_r.predict([np.array([state2])])
-            reward_ = self._distance_func_np((h_a, h_b))[0]
-            # print ("siamese dist: ", state_)
-            # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
-        else:
-            predicted_reward = self._model._reward_net.predict([state, state2])[0]
-            # reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
-            reward_ = predicted_reward
+        
+        latent_samples_and_dists = self._model_network.sample_posterior(
+                        images, actions, experience.step_type
+                    )
+        latents, dists = latent_samples_and_dists
+        l1dist, l2dist = dists
+        
+        # Approximate log p(x_T | x_{1:T-1}, a_{1:T-1})
+        approx_log_p_xT_value = self._model_network.compute_future_observation_likelihoods(
+            actions=actions, step_types=experience.step_type, images=images)
+        critic_next_time_step = critic_next_time_step._replace(reward=approx_log_p_xT_value)
             
         return reward_
     
@@ -1389,7 +1376,7 @@ class SLACModel(SiameseNetwork):
             [self._outputs['images'], self._outputs['posterior_images'], self._outputs['conditional_prior_images'], self._outputs['prior_images']],
                                                       feed_dict={self._states_placeholder: states, self._action_placeholder: actions})
         all_images = np.concatenate([images, posterior_images, conditional_prior_images, prior_images], axis=2)
-        save_weights(self._sess, fileName+"_slac_model", counter=0)
+        self.save_weights(self._sess, fileName+"_slac_model", counter=0)
         #import ipdb;ipdb.set_trace()
         display_gif(all_images, fileName+"_slac_model", counter=0)
 #         self.reset()
@@ -1466,6 +1453,22 @@ class SLACModel(SiameseNetwork):
 #             imageio.mimsave(fileName+"viz_state_input_"+'.gif', images_x, duration=0.5,)
 #             imageio.mimsave(fileName+"viz_conditional_"+'.gif', images_y, duration=0.5,)
 # #             imageio.mimsave(fileName+"viz_marginal_"+'.gif', images_z, duration=0.5,)
+
+    def save_weights(self, sess, logdir, counter):
+        import pickle
+        vars_dict = {}
+        graph_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+#         for var in graph_vars:
+#             vars_dict[var.name]= self._sess.run(var)
+        fobj = open(logdir+str(counter)+'-weights.pkl', 'wb')
+        pickle.dump(vars_dict , fobj)
+    
+    def load_trainable_weights(self, sess, pathname):
+        import pickle
+        load_data = pickle.load(open(pathname, 'rb')) #sorry
+        assign_ops = [tf.assign(var, load_data[var.name]) for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)]
+        for op in assign_ops:
+            self._sess.run(op)
         
     def loadFrom(self, fileName):
         import h5py
