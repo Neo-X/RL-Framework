@@ -40,6 +40,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         Data exported out of here should be converted back to 2D data.
         
     """
+    movie_frame_shape = None
+
     ### Maybe the model has state
     model.reset()
     if action_space_continuous:
@@ -229,6 +231,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             and (not exp.movieWriterSupport())):
             ### If the sim does not have it's own writing support
             vizData = exp.getEnvironment().render()
+            movie_frame_shape = vizData.shape
             image_ = np.zeros((vizData.shape))
             for row in range(len(vizData)):
                 image_[row] = vizData[len(vizData)-row - 1]
@@ -483,7 +486,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             visualizeEvaluation.updateLoss(viz_q_values_, np.zeros(len(viz_q_values_)))
             visualizeEvaluation.redraw()
             # print ("viz_value")
-            
+
         state_num += 1
         pa = None
         i_ += 1
@@ -494,6 +497,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):
             break
+
+    if movieWriter is not None:
+        # Add some black frames between epochs
+        blank_img = np.zeros(movie_frame_shape, dtype="uint8")
+        for _ in range(50):  
+            movieWriter.append_data(blank_img.copy())
 
     ### This logic is not perfect yet, It should all sample() again to check if the goal should have been updated after the last action.
     if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
