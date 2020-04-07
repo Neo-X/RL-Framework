@@ -71,11 +71,20 @@ class LoggingWorker(Process):
                     if data_[0] == "checkpoint_vid_rounds":
                         from ModelEvaluation import modelEvaluation
                         roundNum = data_[1]
+                        episodes = self._settings['epochs'] * (roundNum + 1) # rounds are 0-indexed
                         print('Creating video for checkpoint round', roundNum)
                         settings_copy = copy.deepcopy(self._settings)
                         filename = settings_copy['save_video_to_file']
-                        settings_copy['save_video_to_file'] = filename[:filename.rindex('.')] + '_round' + str(roundNum) + filename[filename.rindex('.'):]
-                        modelEvaluation("", settings=settings_copy, exp=exp) # Save a video for this checkpoint
+                        settings_copy['save_video_to_file'] = filename[:filename.rindex('.')] + '_round' + str(roundNum) + '(' + str(episodes) + 'episodes)' + filename[filename.rindex('.'):]
+                        settings_copy['visualize_expected_value'] = False
+                        try:
+                            modelEvaluation("", settings=settings_copy, exp=exp) # Save a video for this checkpoint
+                        except Exception as e:
+                            print("Error: An error occurred during LoggingWorker's call to modelEvaluation()")
+                            print(e)
+                            import traceback
+                            print(traceback.format_exc())
+                            raise e
                 else:
                     running = running and data_
                     if (not running):

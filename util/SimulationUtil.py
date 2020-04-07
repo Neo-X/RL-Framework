@@ -1116,6 +1116,24 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                 env.see_through_walls = True
                 return env
             env = env_factory()
+        elif (settings["sim_config_file"] == "simpleRoomTagHMMMarginalSMiRLPartObs-v0"):
+            from surprise.envs.minigrid.envs.simple_room_hmm_tag_marginal import SimpleEnemyEnvTagHMMMarginal
+            from surprise.buffers.buffers import BernoulliBuffer
+            from surprise.wrappers.base_surprise import BaseSurpriseWrapper
+            from surprise.wrappers.visitation_count import VisitationCountWrapper
+            from sim.OpenAIGymEnv import OpenAIGymEnv
+            import numpy as np
+            env_name = config_file
+            def env_factory():
+                env = SimpleEnemyEnvTagHMMMarginal(max_steps=500)
+                env.see_through_walls = True
+                env = BaseSurpriseWrapper(
+                        env, 
+                        BernoulliBuffer(74), # TODO: check why 74 works  
+                        env.max_steps
+                    )
+                return env
+            env = env_factory()
         else: ### simpleRoom-v0
             from surprise.envs.minigrid.envs.simple_room import SimpleEnemyEnv
             from surprise.buffers.buffers import BernoulliBuffer

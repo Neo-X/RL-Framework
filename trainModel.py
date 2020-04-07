@@ -1664,13 +1664,20 @@ if (__name__ == "__main__"):
         metaSettings = json.load(file)
         file.close()
         
-    if 'checkpoint_vid+rounds' in settings:
-        if 'save_video_to_file' in settings:
+    if 'checkpoint_vid_rounds' in settings:
+        if not 'save_video_to_file' in settings:
             print('\nerror: checkpoint_vid_rounds set but save_video_to_file is unset. Exiting.')        
             sys.exit()
         elif 'saving_update_freq_num_rounds' not in settings or settings['saving_update_freq_num_rounds'] > settings['checkpoint_vid_rounds']:
-            print('saving_update_freq_num_rounds > checkpoint_vid_rounds. Updating saving_update_freq_num_rounds to checkpoing_vid_rounds')
+            print('Modified option: saving_update_freq_num_rounds > checkpoint_vid_rounds. Updating saving_update_freq_num_rounds to checkpoing_vid_rounds')
             settings['saving_update_freq_num_rounds'] = settings['checkpoint_vid_rounds']
+        elif settings['checkpoint_vid_rounds'] % settings['saving_update_freq_num_rounds'] != 0:
+            # Sweep to find the largest factor of checkpoint_vid_rounds less than saving_update_freq_num_rounds. Should terminate at 1 at least
+            new_freq = settings['saving_update_freq_num_rounds'] - 1
+            while settings['checkpoint_vid_rounds'] % new_freq != 0:
+                new_freq -= 1
+            print('Modified option: checkpoint_vid_rounds % saving_update_freq_num_rounds != 0. Updating saving_update_freq_num_rounds to ', new_freq)
+            settings['saving_update_freq_num_rounds'] = new_freq
 
     t0 = time.time()
     simData = []
