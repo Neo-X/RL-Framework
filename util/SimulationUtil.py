@@ -851,6 +851,13 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
             print ("rlsimenv not installed")
             pass
         try:
+            ### This should import the terrainrlsim environments
+            import simAdapter 
+            import terrainRLSim
+        except:
+            print ("TerrainRLSim not installed")
+            pass
+        try:
             sys.path.append('/home/gberseth/playground/BayesianSurpriseCode/')
             import surprise
         except:

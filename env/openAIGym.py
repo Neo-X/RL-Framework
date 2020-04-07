@@ -1,6 +1,3 @@
-import gym
-from gym import wrappers
-from gym import envs
 try:
     import roboschool
 except:
@@ -16,6 +13,16 @@ try:
 except:
     print ("pybullet not installed")
     pass
+try:
+    import simAdapter
+except:
+    print ("simAdapter not installed")
+    pass
+import gym
+import os, sys
+terrainRL_PATH = os.environ['TERRAINRL_PATH']
+print ("terrainRL_PATH: ", terrainRL_PATH)
+sys.path.append(terrainRL_PATH+'/lib')
 # from OpenGL import GL
 import numpy as np
 # print(envs.registry.all())
@@ -24,7 +31,8 @@ import numpy as np
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 # env = gym.make('MembraneTarget-v0')
-env = gym.make('CartPole-v1')
+# env = gym.make('CartPole-v1')
+env = gym.make("PD-Biped3D-HLC-Obstacles-render-v2")
 # MembraneHardware-v0
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
