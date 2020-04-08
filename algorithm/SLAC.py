@@ -1,22 +1,22 @@
 ###
 # python3 trainModel.py --config=settings/terrainRLImitate/PPO/SLAC_mini.json -p 4 --bootstrap_samples=1000 --max_epoch_length=16 --rollouts=4 --skip_rollouts=true --train_actor=false --train_critic=false --epochs=32 --fd_updates_per_actor_update=64 --on_policy=fast
 
-import numpy as np
-# import lasagne
-import sys
 from dill.settings import settings
-sys.path.append('../')
+import keras
+from keras.optimizers import SGD
+import keras.backend as K
+from keras.layers import RepeatVector
+from keras.losses import mse, binary_crossentropy
+from keras.models import Sequential, Model
+import numpy as np
+import sys
+
+from algorithm.SiameseNetwork import *
 from model.ModelUtil import *
 from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl_D_keras, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
-from keras.optimizers import SGD
-# from keras.utils.np_utils import to_categoricalnetwork
-import keras.backend as K
-import keras
-from keras.layers import RepeatVector
-from keras.models import Sequential, Model
-from algorithm.SiameseNetwork import *
 from util.SimulationUtil import createForwardDynamicsNetwork
-from keras.losses import mse, binary_crossentropy
+
+sys.path.append('../')
 
 def euclidean_distance_fd2(vects):
     x, y = vects
@@ -30,7 +30,6 @@ def eucl_dist_output_shape_fd2(shapes):
     shape1, shape2 = shapes
     return (shape1[0], shape1[1], 1)
 
-
 def vae_loss(network_vae, network_vae_log_var):
     def _vae_loss(y_true, y_pred):
         reconstruction_loss_a = mse(y_true, y_pred)
@@ -38,8 +37,8 @@ def vae_loss(network_vae, network_vae_log_var):
         kl_loss = 1 + network_vae_log_var - K.square(network_vae) - K.exp(network_vae_log_var)
         kl_loss = K.sum(kl_loss, axis=-1)
         kl_loss *= -0.5
-        vae_loss = K.mean(reconstruction_loss_a + kl_loss)
-        return vae_loss
+        vae_loss_ = K.mean(reconstruction_loss_a + kl_loss)
+        return vae_loss_
 
 # reparameterization trick from Keras example
 # https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
@@ -60,8 +59,7 @@ def sampling(args):
     epsilon = K.random_normal(shape=(batch, dim))
     return z_mean + K.exp(0.5 * z_log_var) * epsilon
 
-class SLAC(SiameseNetwork):
-    
+class SLAC(SiameseNetwork):    
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
 
         super(SiameseNetwork,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
@@ -81,16 +79,20 @@ class SLAC(SiameseNetwork):
         
         inputs_ = [self._model.getStateSymbolicVariable()] 
         print ("forward dynamics shape: ", repr(self._model._forward_dynamics_net))
-        self._model._forward_dynamics_z_mean = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear', name='mean')(self._model._forward_dynamics_net)
-        self._model._forward_dynamics_z_log_var = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid', name="log_var")(self._model._forward_dynamics_net)
-        self._model._forward_dynamics_z = keras.layers.Lambda(sampling, output_shape=(self.getSettings()["encoding_vector_size"],), name='z')([self._model._forward_dynamics_z_mean, 
-                                                                   self._model._forward_dynamics_z_log_var])
+        self._model._forward_dynamics_z_mean = keras.layers.Dense(self.getSettings()["encoding_vector_size"],
+                                                                  activation='linear',
+                                                                  name='mean')(self._model._forward_dynamics_net)
+        self._model._forward_dynamics_z_log_var = keras.layers.Dense(self.getSettings()["encoding_vector_size"],
+                                                                     activation = 'sigmoid',
+                                                                     name="log_var")(self._model._forward_dynamics_net)
         
-        self._model._forward_dynamics_net = Model(inputs=inputs_, outputs=[self._model._forward_dynamics_z_mean, 
-                                                                           self._model._forward_dynamics_z_log_var,
-                                                                           self._model._forward_dynamics_z], 
-                                                                           name="forward_encoder"
-                                                                           )
+        self._model._forward_dynamics_z = keras.layers.Lambda(sampling,
+                                                              output_shape=(self.getSettings()["encoding_vector_size"],),
+                                                              name='z')([self._model._forward_dynamics_z_mean, self._model._forward_dynamics_z_log_var])
+        
+        self._model._forward_dynamics_net = Model(inputs=inputs_,
+                                                  outputs=[self._model._forward_dynamics_z_mean, self._model._forward_dynamics_z_log_var, self._model._forward_dynamics_z], 
+                                                  name="forward_encoder")
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Net summary: ", self._model._forward_dynamics_net.summary())
@@ -131,6 +133,8 @@ class SLAC(SiameseNetwork):
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("Reward Decoder Net summary: ", self._modelTarget._reward_net.summary())
+
+        # Compile the graph.
         SLAC.compile(self)
     
     def compile(self):
@@ -158,14 +162,17 @@ class SLAC(SiameseNetwork):
         self._model.processed_a_vae = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_vae, name="forward_encoder_outputs_z")
         ### Distribute compressor over sequence
         ### p(mu_0, ... , mu_t|x_0, ..., x_t)
-        network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length), name='forward_mean_encoding')(self._model.getResultStateSymbolicVariable())
+        network_ = keras.layers.TimeDistributed(
+            self._model.processed_a, input_shape=(None, 1, self._state_length), name='forward_mean_encoding')(self._model.getResultStateSymbolicVariable())
         print ("network_: ", repr(network_))
         ### p(sig_0, ... , sig_t|x_0, ..., x_t)
         self._network_vae_log_var = keras.layers.TimeDistributed(self._model.processed_a_log_var, input_shape=(None, 1, self._state_length), name='forward_log_var')(self._model.getResultStateSymbolicVariable())
         print ("network_vae: ", repr(network_))
         ### This will be used later mostly as an auxilerary loss, maybe will be the marginal z model at some point.
         ### p(z_0, ... , z_t|x_0, ..., x_t)
-        self._network_vae = keras.layers.TimeDistributed(self._model.processed_a_vae, input_shape=(None, 1, self._state_length), name='forward_z_sample_seq')(self._model.getResultStateSymbolicVariable())
+        self._network_vae = keras.layers.TimeDistributed(self._model.processed_a_vae,
+                                                         input_shape=(None, 1, self._state_length),
+                                                         name='forward_z_sample_seq')(self._model.getResultStateSymbolicVariable())
         print ("network_vae: ", repr(network_))
         
         ### p(z_1^1)
