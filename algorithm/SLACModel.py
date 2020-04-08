@@ -1266,12 +1266,15 @@ class SLACModel(SiameseNetwork):
         state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         action = np.array(norm_state(action, self.getActionBounds()), dtype=self.getSettings()['float_type'])
         
-        images = np.reshape(state, tuple([1]) + state.shape[:1] + tuple(img_size))
-        actions = np.reshape(action, tuple([1]) + action.shape)
+        images = np.reshape(state, state.shape[:1] + tuple(img_size))
+        actions = np.reshape(action, action.shape)
 #         actions = action
         data = self.parser(images, actions)
         images = data["images"]
         actions = data["actions"]
+        
+        images = np.reshape(images, tuple([1]) + images.shape[:1] + tuple(img_size))
+        actions = np.reshape(actions, tuple([1]) + actions.shape)
 #         latent_samples_and_dists = self._model_network.sample_posterior(
 #                         images, actions, experience.step_type
 #                     )
