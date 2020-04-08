@@ -4,6 +4,7 @@ import cProfile, pstats, io
 import datetime
 import gc
 import json
+import matplotlib
 import multiprocessing
 import logging
 import os
@@ -1606,6 +1607,7 @@ def main():
         ]
     )
     log.info("Starting main. Command-line: {}".format(sys.argv))
+    log.info("matplotlib backend: {}".format(matplotlib.get_backend()))
     
     options = getOptions(sys.argv)
     options = vars(options)
