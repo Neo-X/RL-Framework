@@ -986,6 +986,8 @@ class SLACModel(SiameseNetwork):
 #         data["actions"] = np.zeros((10,8,3))
         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
         self._loss, self._outputs = self.compute_loss(self._states_placeholder, self._action_placeholder, step_types)
+        # def compute_future_observation_likelihoods(self, actions, step_types, images):
+        self._future_obs_likies = self.compute_future_observation_likelihoods(self._action_placeholder, step_types, self._states_placeholder)
         
         self._global_step = tf.train.create_global_step()
         self._adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
@@ -1284,8 +1286,11 @@ class SLACModel(SiameseNetwork):
         # Approximate log p(x_T | x_{1:T-1}, a_{1:T-1})
 #         step_types = tf.fill([batch_size, sequence_length + 1], StepType.MID)
         step_types = tf.fill([1, state.shape[0] + 1], StepType.MID)
-        approx_log_p_xT_value = self.compute_future_observation_likelihoods(
-            actions=actions, step_types=step_types, images=images)
+        
+#         approx_log_p_xT_value = self.compute_future_observation_likelihoods(
+#             actions=actions, step_types=step_types, images=images)
+        approx_log_p_xT_value = self._sess.run([self._future_obs_likies], 
+                                                feed_dict={self._states_placeholder: images, self._action_placeholder: actions})
         # critic_next_time_step = critic_next_time_step._replace(reward=approx_log_p_xT_value)
         reward = approx_log_p_xT_value
         return reward_
