@@ -1,35 +1,29 @@
+
 import copy
-import sys
-import traceback
-import logging
-sys.setrecursionlimit(50000)
-import os
+import cProfile, pstats, io
+import datetime
+import gc
 import json
+import multiprocessing
+import logging
+import os
+import sys
+import time
+import traceback
+
+from util.simOptions import getOptions
+
+sys.setrecursionlimit(50000)
 sys.path.append("../")
 sys.path.append("../characterSimAdapter/")
-import cProfile, pstats, io
-# import memory_profiler
-# import psutil
-import gc
-# from guppy import hpy; h=hpy()
-# from memprof import memprof
 
-# import pathos.multiprocessing
-import multiprocessing
-
-
+# Global variables to manage multiprocessing / multithreading.
 sim_processes = []
 learning_processes = []
 _input_anchor_queue = None
 _output_experience_queue = None
 _eval_episode_data_queue = None
 _sim_work_queues = []
-
-def addLogData(trainData, key, data):
-    if key in trainData:
-        trainData[key].append(data)
-    else:
-        trainData[key] = [data]
 
 def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     from sendEmail import sendEmail
@@ -1620,23 +1614,16 @@ def signal_handler(signal, frame):
         sys.exit(0)
 # signal.signal(signal.SIGINT, signal_handler)
 
-
-if (__name__ == "__main__"):
+def main():
     
     """
         python trainModel.py <sim_settings_file>
         Example:
         python trainModel.py settings/navGame/PPO_5D.json 
     """
-    import time
-    import datetime
-    from util.simOptions import getOptions
     
     options = getOptions(sys.argv)
     options = vars(options)
-    # print("options: ", options)
-    # print("options['configFile']: ", options['configFile'])
-        
     file = open(options['configFile'])
     settings = json.load(file)
     file.close()
@@ -1654,10 +1641,8 @@ if (__name__ == "__main__"):
                 settings[option] = True
             elif ( options[option] == 'false'):
                 settings[option] = False
-        # settings['num_available_threads'] = options['num_available_threads']
-
-        # print ("Settings: " + str(json.dumps(settings, indent=4)))
     metaSettings = None
+    
     if ( 'metaConfigFile' in settings and (settings['metaConfigFile'] is not None)):
         ### Import meta settings
         file = open(settings['metaConfigFile'])
@@ -1676,12 +1661,7 @@ if (__name__ == "__main__"):
     simData = []
     if ( (metaSettings is None)
         or ((metaSettings is not None) and (not metaSettings['testing'])) ):
-        # try:
-            simData = trainModelParallel((sys.argv[1], settings))
-        # except:
-            ### Nothing to really do, but can still send email of progress
-            # print("Printing stack trace:")
-            # print_full_stack()
+        simData = trainModelParallel((sys.argv[1], settings))
     t1 = time.time()
     sim_time_ = datetime.timedelta(seconds=(t1-t0))
     print ("Model training complete in " + str(sim_time_) + " seconds")
@@ -1696,3 +1676,6 @@ if (__name__ == "__main__"):
 
     print("All Done.")
     sys.exit(0)
+
+if (__name__ == "__main__"):
+    main()
