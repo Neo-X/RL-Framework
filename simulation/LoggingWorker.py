@@ -103,9 +103,13 @@ class LoggingWorker(Process):
                 if ("save_video_to_file" in self._settings
                     and (exp is not None)):
                     print("Saving video email function calling: ", exp)
-                    self._emailFunction(self._settings, self._metaSettings, sim_time_=timesteps, simData=self._simData, exp=exp)
+                    settings_copy = copy.deepcopy(self._settings)
+                    settings_copy['visualize_expected_value'] = False
+                    self._emailFunction(settings_copy, self._metaSettings, sim_time_=timesteps, simData=self._simData, exp=exp)
                 else:
-                    self._emailFunction(self._settings, self._metaSettings, sim_time_=timesteps, simData=self._simData)
+                    settings_copy = copy.deepcopy(self._settings)
+                    settings_copy['visualize_expected_value'] = False
+                    self._emailFunction(settings_copy, self._metaSettings, sim_time_=timesteps, simData=self._simData)
                     
                 steps__ = 0
                 
