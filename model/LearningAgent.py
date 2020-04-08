@@ -2,18 +2,19 @@
     An interface class for Agents to be used in the system.
 
 """
+import copy
+import datetime
+import numpy as np
 from multiprocessing import Process, Queue
-# from pathos.multiprocessing import Pool
+import os
 import threading
 import time
+
+
 from model.AgentInterface import AgentInterface
 from model.ModelUtil import *
+from util.SimulationUtil import logExperimentData
 from util.utils import rlPrint
-import os
-import copy
-import time
-import datetime
-# np.set_printoptions(threshold=np.nan)
 
 class LearningAgent(AgentInterface):
     
@@ -295,8 +296,6 @@ class LearningAgent(AgentInterface):
         loss = 0
         critic_loss = 0
         loss_actor = 0
-        import numpy as np
-        from util.SimulationUtil import logExperimentData
         
         if ("value_function_batch_size" in self._settings):
             value_function_batch_size = self._settings['value_function_batch_size']

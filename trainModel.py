@@ -331,11 +331,10 @@ def trainModelParallel(inputData):
     if (not validateSettings(settings)):
         return False
 
-    # TODO add comment.
-    exp_logger = setupEnvironmentVariable(settings)
+    # Creates and stores the comet logger.
+    exp_logger = settings["logger_instance"] = setupEnvironmentVariable(settings)
+    settings['sample_single_trajectories'] = True    
     settingsFileName = inputData[0]    
-    settings['sample_single_trajectories'] = True
-    
     try:
         trainData = _initialize_train_data()
         rounds = settings["rounds"]
@@ -803,7 +802,7 @@ def trainModelParallel(inputData):
                 actor_regularization_viz.setInteractive()
                 actor_regularization_viz.init()
                 
-        settings["logger_instance"] = exp_logger
+
         settings["round"] = int(trainData["round"])
         masterAgent.setSettings(settings)
 
