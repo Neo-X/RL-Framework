@@ -1594,7 +1594,8 @@ def main():
         Example:
         python trainModel.py settings/navGame/PPO_5D.json 
     """
-    # TODO set log path more intelligently.
+    # TODO set log path more intelligently, including date/time
+    if not os.path.isdir('training_logs'): os.mkdir('training_logs')
     log_fn = "training_logs/trainModel_log_{}.log".format(random_string(8))
     logging.basicConfig(
         level=logging.INFO,
