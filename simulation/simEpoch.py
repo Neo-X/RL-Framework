@@ -594,10 +594,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (worker_id is not None):
             otherData["task_id"].extend(task_ids[s])
         for key in info:
-            if (type(infos[s][key]) is list):
-                otherData[key].extend(infos[s][key])
-            else:
-                otherData[key].extend([infos[s][key]])
+            try: ## Sometimes there are some weird random keys in the info
+                if (type(infos[s][key]) is list):
+                    otherData[key].extend(infos[s][key])
+                else:
+                    otherData[key].extend([infos[s][key]])
+            except:
+                pass
         ### Advantage is in a different format (agent , state)
         adv__ = []
         base__ = []

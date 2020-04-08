@@ -937,9 +937,9 @@ class SLACModel(SiameseNetwork):
         num_shifts = self._all_sequence_length - self._sequence_length
         t_start = int(np.random.uniform(0, num_shifts + 1, size=1)[0])
         images = images[t_start:t_start+self._sequence_length]
-        images.set_shape([self._sequence_length] + images.shape.as_list()[1:])
+        images = np.reshape(images, [self._sequence_length] + list(images.shape[1:]))
         actions = actions[t_start:t_start+self._sequence_length-1]
-        actions.set_shape([self._sequence_length-1] + actions.shape.as_list()[1:])
+        actions = np.reshape(actions, [self._sequence_length-1] + list(actions.shape[1:]))
         seqs = {
             'images': images,
             'actions': actions,
@@ -1255,26 +1255,36 @@ class SLACModel(SiameseNetwork):
         state_ = self._forwardDynamics_std() * (action_bound_std(self.getStateBounds()))
         return state_
     
-    def predict_reward(self, state, state2):
+    def predict_reward(self, state, action):
         """
             Predict reward which is inverse of distance metric
         """
         # print ("state bounds length: ", self.getStateBounds())
         # print ("fd: ", self)
+        img_size = self.getSettings()["fd_terrain_shape"]
+        action_size = 3
         state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
-        state2 = np.array(norm_state(state2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        action = np.array(norm_state(action, self.getActionBounds()), dtype=self.getSettings()['float_type'])
         
-        latent_samples_and_dists = self._model_network.sample_posterior(
-                        images, actions, experience.step_type
-                    )
-        latents, dists = latent_samples_and_dists
-        l1dist, l2dist = dists
+        images = np.reshape(state, tuple([1]) + state.shape[:1] + tuple(img_size))
+        actions = np.reshape(action, tuple([1]) + action.shape)
+#         actions = action
+        data = self.parser(images, actions)
+        images = data["images"]
+        actions = data["actions"]
+#         latent_samples_and_dists = self._model_network.sample_posterior(
+#                         images, actions, experience.step_type
+#                     )
+#         latents, dists = latent_samples_and_dists
+#         l1dist, l2dist = dists
         
         # Approximate log p(x_T | x_{1:T-1}, a_{1:T-1})
-        approx_log_p_xT_value = self._model_network.compute_future_observation_likelihoods(
-            actions=actions, step_types=experience.step_type, images=images)
-        critic_next_time_step = critic_next_time_step._replace(reward=approx_log_p_xT_value)
-            
+#         step_types = tf.fill([batch_size, sequence_length + 1], StepType.MID)
+        step_types = tf.fill([1, state.shape[0] + 1], StepType.MID)
+        approx_log_p_xT_value = self.compute_future_observation_likelihoods(
+            actions=actions, step_types=step_types, images=images)
+        # critic_next_time_step = critic_next_time_step._replace(reward=approx_log_p_xT_value)
+        reward = approx_log_p_xT_value
         return reward_
     
     def predict_reward_encoding(self, state):

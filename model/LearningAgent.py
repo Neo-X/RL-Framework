@@ -138,12 +138,17 @@ class LearningAgent(AgentInterface):
                     path = {}
                     ### timestep, agent, state
                     path["terminated"] = False
-                    agent_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
-                    # print ("agent_traj shape: ", agent_traj.shape)
-                    imitation_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in next_state__])])
+                
                     # print ("imitation_traj shape: ", imitation_traj.shape)
                     # print ("previous reward__: ", reward__)
-                    reward__ = -self.getForwardDynamics().predict_reward_(agent_traj, imitation_traj)
+                    if ("use_learned_reward_function" in self._settings
+                        and (self._settings["use_learned_reward_function"] == "ic2")):
+                        reward__ = self.getForwardDynamics().predict_reward(state__, action__)
+                    else:
+                        agent_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
+                        # print ("agent_traj shape: ", agent_traj.shape)
+                        imitation_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in next_state__])])
+                        reward__ = -self.getForwardDynamics().predict_reward_(agent_traj, imitation_traj)
                     w_d = -2.0
                     if ("learned_reward_function_norm_weight" in self._settings):
                         w_d = self._settings["learned_reward_function_norm_weight"]

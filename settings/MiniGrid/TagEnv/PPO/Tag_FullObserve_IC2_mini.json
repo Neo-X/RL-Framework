@@ -398,7 +398,7 @@
 	"comment__": "Dropout for fd network",
 "fd_network_dropout": 0.0,
 	"comment__": "Use learned reward function",
-"use_learned_reward_function": false,
+"use_learned_reward_function": "ic2",
 	"comment__": "Mix different state description types, used for debugging visual imitation learning",
 "use_dual_state_representations": false,
 	"comment__": "Use vis state for policy instead of dense state",
@@ -509,5 +509,6 @@
 	"comment__": "Flag to indicate to SLAC to use a smaller image and conv net size",
 "slac_use_small_imgs": true,
 	"comment__": "Recompute the rewards using the learning reward model.",
-"refresh_rewards": "lstm_fd"	
+"refresh_rewards": "lstm_fd",
+"return_rnn_sequence": true	
 }
