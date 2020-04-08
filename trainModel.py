@@ -1,23 +1,32 @@
+
 import copy
-import sys
-import traceback
-import logging
-sys.setrecursionlimit(50000)
-import os
+import cProfile, pstats, io
+import datetime
+import gc
+import inspect
 import json
+import matplotlib
+import multiprocessing
+import logging
+import os
+import pdb
+import random
+import signal
+import string
+import sys
+import time
+import traceback
+
+from model.LearningMultiAgent import LearningMultiAgent
+from simulation.SimWorker import SimWorker
+from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
+from util.simOptions import getOptions
+
+sys.setrecursionlimit(50000)
 sys.path.append("../")
 sys.path.append("../characterSimAdapter/")
-import cProfile, pstats, io
-# import memory_profiler
-# import psutil
-import gc
-# from guppy import hpy; h=hpy()
-# from memprof import memprof
 
-# import pathos.multiprocessing
-import multiprocessing
-
-
+# Global variables to manage multiprocessing / multithreading.
 sim_processes = []
 learning_processes = []
 _input_anchor_queue = None
@@ -25,11 +34,14 @@ _output_experience_queue = None
 _eval_episode_data_queue = None
 _sim_work_queues = []
 
-def addLogData(trainData, key, data):
-    if key in trainData:
-        trainData[key].append(data)
-    else:
-        trainData[key] = [data]
+log = logging.getLogger(__file__)
+
+def random_string(N_chars):
+    randstate = random.getstate()
+    random.seed(int.from_bytes(os.urandom(2), 'big'))
+    rstring = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(N_chars))
+    random.setstate(randstate)
+    return rstring
 
 def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     from sendEmail import sendEmail
@@ -189,12 +201,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
     """
         Creates a number of simulation workers and the message queues that
         are used to tell them what to simulate.
-    """
-    
-    from model.LearningMultiAgent import LearningMultiAgent
-    from simulation.SimWorker import SimWorker
-    from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
-    
+    """    
     
     sim_workers = []
     sim_work_queues = []
@@ -273,7 +280,34 @@ def createLearningAgent(settings, output_experience_queue, print_info=False):
 # python -m memory_profiler example.py
 # @profile(precision=5)
 # def trainModelParallel(settingsFileName, settings):
+def _initialize_train_data():
+    trainData = {}
+    trainData["mean_reward"]=[]
+    trainData["std_reward"]=[]
+    trainData["mean_bellman_error"]=[]
+    trainData["std_bellman_error"]=[]
+    trainData["mean_discount_error"]=[]
+    trainData["std_discount_error"]=[]
+    trainData["mean_forward_dynamics_loss"]=[]
+    trainData["std_forward_dynamics_loss"]=[]
+    trainData["mean_forward_dynamics_reward_loss"]=[]
+    trainData["std_forward_dynamics_reward_loss"]=[]
+    trainData["mean_eval"]=[]
+    trainData["std_eval"]=[]
+    trainData["mean_critic_loss"]=[]
+    trainData["std_critic_loss"]=[]
+    trainData["mean_critic_regularization_cost"]=[]
+    trainData["std_critic_regularization_cost"]=[]
+    trainData["mean_actor_loss"]=[]
+    trainData["std_actor_loss"]=[]
+    trainData["mean_actor_regularization_cost"]=[]
+    trainData["std_actor_regularization_cost"]=[]
+    trainData["anneal_p"]=[]
+    trainData["round"]=0
+    return trainData
+
 def trainModelParallel(inputData):
+    # TODO this function is way too long
     # (sys.argv[1], settings)
     settings = inputData[1]
     if ("perform_multiagent_training" not in settings):
@@ -302,31 +336,8 @@ def trainModelParallel(inputData):
     # settings['shouldRender'] = True
     # pr = cProfile.Profile()
     # pr.enable()
-    trainData = {}
-    trainData["mean_reward"]=[]
-    trainData["std_reward"]=[]
-    trainData["mean_bellman_error"]=[]
-    trainData["std_bellman_error"]=[]
-    trainData["mean_discount_error"]=[]
-    trainData["std_discount_error"]=[]
-    trainData["mean_forward_dynamics_loss"]=[]
-    trainData["std_forward_dynamics_loss"]=[]
-    trainData["mean_forward_dynamics_reward_loss"]=[]
-    trainData["std_forward_dynamics_reward_loss"]=[]
-    trainData["mean_eval"]=[]
-    trainData["std_eval"]=[]
-    trainData["mean_critic_loss"]=[]
-    trainData["std_critic_loss"]=[]
-    trainData["mean_critic_regularization_cost"]=[]
-    trainData["std_critic_regularization_cost"]=[]
-    trainData["mean_actor_loss"]=[]
-    trainData["std_actor_loss"]=[]
-    trainData["mean_actor_regularization_cost"]=[]
-    trainData["std_actor_regularization_cost"]=[]
-    trainData["anneal_p"]=[]
-    trainData["round"]=0
     try:
-            
+        trainData = _initialize_train_data()
         rounds = settings["rounds"]
         epochs = settings["epochs"]
         # settings["num_available_threads"] = int(settings["num_available_threads"])
@@ -343,8 +354,6 @@ def trainModelParallel(inputData):
         state_bounds = settings['state_bounds']
         discrete_actions = settings['discrete_actions']
         print ("Sim config file name: " + str(settings["sim_config_file"]))
-        # c = characterSim.Configuration(str(settings["sim_config_file"]))
-        # c = characterSim.Configuration("../data/epsilon0Config.ini")
         action_space_continuous=settings['action_space_continuous']
 
         sim_work_queues = []
@@ -354,10 +363,7 @@ def trainModelParallel(inputData):
             action_bounds = settings["action_bounds"]
         else:
             action_bounds = [None]
-            # action_bounds = [[-1] * settings["discrete_actions"],
-            #                    [1] * settings["discrete_actions"]]
-            
-            
+
         if (settings['num_available_threads'] == -1):
             input_anchor_queue = multiprocessing.Queue(settings['queue_size_limit'])
             input_anchor_queue_eval = multiprocessing.Queue(settings['queue_size_limit'])
@@ -445,11 +451,6 @@ def trainModelParallel(inputData):
         dynamicsLosses = []
         dynamicsRewardLosses = []
         
-        """
-        for lw in learning_workers:
-            print ("Learning worker" )
-            print (lw)
-        """
         if (int(settings["num_available_threads"]) > 0):
             for sw in sim_workers:
                 print ("Sim worker")
@@ -460,14 +461,9 @@ def trainModelParallel(inputData):
                     print ("Sim worker")
                     print (sw)
                     sw.start()
-        """
-        if ("numpy" in sys.modules):
-            print ("Numpy is already loaded")
-        else:
-            print ("Numpy is not loaded")
-        sys.exit()
-        """
+                    
         ## Theano and numpy needs to be imported after the flags are set.
+        ## TODO explain why this is true. Modules should be imported at the top of the file.
         import numpy as np
         import math
         import random
@@ -475,8 +471,8 @@ def trainModelParallel(inputData):
         import datetime
         np.random.seed(int(settings['random_seed']))
         setupLearningBackend(settings)
-        
-        # print ( "theano.config.mode: ", theano.config.mode)
+
+        # TODO all of these imports should happen at the beginning of the file.
         from simulation.SimWorker import SimWorker
         from simulation.simEpoch import simEpoch, simModelParrallel, simModelMoreParrallel
         from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
@@ -489,7 +485,6 @@ def trainModelParallel(inputData):
         from util.SimulationUtil import createActor, getAgentName, updateSettings, getAgentNameString
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
         from util.utils import current_mem_usage
-        
         from util.ExperienceMemory import ExperienceMemory
         
         model_type= settings["model_type"]
@@ -539,22 +534,6 @@ def trainModelParallel(inputData):
                 print("Reward bounds invalid: ", reward_bounds[i])
                 sys.exit()
         
-        """
-        if settings['action_space_continuous']:
-            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'], continuous_actions=True, settings=settings)
-        else:
-            experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
-            
-        experience.setSettings(settings)
-        """
-
-        # mgr = multiprocessing.Manager()
-        # namespace = mgr.Namespace()
-        ## This needs to be done after the simulation worker processes are created
-        # exp_val = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'], )
-        # if (int(settings["num_available_threads"]) == -1
-        #     or (state_bounds == "ask_env")
-        #     or (action_bounds == "ask_env")): # This is okay if there is one thread only...
         exp_val = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
         exp_val.setActor(actor)
         exp_val.getActor().init()
@@ -611,18 +590,12 @@ def trainModelParallel(inputData):
                                                 " to policy ",  model[settings["policy_connections"][c][1]])
                 masterAgent.getAgents()[settings["policy_connections"][c][1]].getPolicy().setFrontPolicy(
                     masterAgent.getAgents()[settings["policy_connections"][c][0]])
-        
-        # print ("masterAgent state bounds: ", masterAgent.getStateBounds())
-        # print ("state bounds: ", state_bounds)
-        ### If the policy loaded state bounds use those
         state_bounds = masterAgent.getStateBounds()
         action_bounds = masterAgent.getActionBounds()
         reward_bounds = masterAgent.getRewardBounds()
         settings['state_bounds'] = masterAgent.getStateBounds()
         settings['action_bounds'] = masterAgent.getActionBounds()
         settings['reward_bounds'] = masterAgent.getRewardBounds()
-        # sys.exit()
-        
         
         tmp_p=1.0
         message={}
@@ -636,13 +609,20 @@ def trainModelParallel(inputData):
             m_q.put(message, timeout=timeout_)
         
         if ( int(settings["num_available_threads"]) ==  -1):
-           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), experiencefd = collectExperience(actor, exp_val, masterAgent, settings,
-                           sim_work_queues=None, 
-                           eval_episode_data_queue=None)
+            # We don't have threads.
+            # TODO what does this function do.
+           experience, state_bounds, reward_bounds, action_bounds, \
+           (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), \
+           experiencefd = collectExperience(actor,
+                                            exp_val,
+                                            masterAgent,
+                                            settings,
+                                            sim_work_queues=None,
+                                            eval_episode_data_queue=None)
             
         else:
+            # We have threads.
             if (settings['on_policy'] == True):
-                
                 experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), experiencefd = collectExperience(actor, None, masterAgent, settings,
                            sim_work_queues=sim_work_queues, 
                            eval_episode_data_queue=eval_episode_data_queue)
@@ -663,10 +643,6 @@ def trainModelParallel(inputData):
             # masterAgent.setFDStateBounds(copy.deepcopy(state_bounds__))
             # masterAgent.setFDActionBounds(copy.deepcopy(action_bounds))
             # masterAgent.setFDRewardBounds(copy.deepcopy(reward_bounds))
-            
-        # print ("masterAgent.getFDExperience().getStateBounds() shape : ", masterAgent.getFDExperience().getStateBounds().shape)
-        # sys.exit()
-        
         if (settings["load_saved_model"] and
             (settings["save_experience_memory"] == "continual")):
             ### load exp mem
@@ -677,12 +653,7 @@ def trainModelParallel(inputData):
             if (settings['train_forward_dynamics']):
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                     print ("Loading Experience FD memory")
-                # masterAgent.getFDExperience().loadFromFile(file_name)
-                # file_name=directory+getAgentName()"forward_dynamics"
-                # file_name=directory+getAgentName()"forward_dynamics"
                 masterAgent.loadFDExperience(file_name)
-                # print ("****** state bounds mean: ", np.mean(masterAgent.getFDExperience().getStateBounds()))
-                # print ("****** fd exp mem insters ***: ", masterAgent.getFDExperience().inserts())
             
         if (action_space_continuous
             and not validBounds(action_bounds)):
@@ -841,12 +812,14 @@ def trainModelParallel(inputData):
 
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)
             and (trainData["round"] == 0)):
+            # Pretrain the critic
             pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
                            falls_, G_ts_, exp_actions, advantage_, datas, sim_work_queues, 
                            eval_episode_data_queue)
             
         if ("pretrain_fd" in settings and (settings["pretrain_fd"] > 0)
             and (trainData["round"] == 0)):
+            # Pretrain forward dynamics
             pretrainFD(masterAgent=masterAgent, states=states, actions=actions, resultStates=resultStates, rewards_=rewards_, 
                            falls_=falls_, G_ts_=G_ts_, exp_actions=exp_actions, advantage_=advantage_, sim_work_queues=sim_work_queues,
                            datas=datas, eval_episode_data_queue=eval_episode_data_queue)
@@ -1564,7 +1537,6 @@ def trainModelParallel(inputData):
     print ("Done sim")
     return trainData
         
-import inspect
 def print_full_stack(tb=None):
     """
     Only good way to print stack trace yourself.
@@ -1586,8 +1558,6 @@ def print_full_stack(tb=None):
     print (out)
     return out
             
-import signal
-import sys
 def signal_handler(signal, frame):
         print('You pressed Ctrl+C!')
         # global sim_processes
@@ -1620,31 +1590,35 @@ def signal_handler(signal, frame):
         sys.exit(0)
 # signal.signal(signal.SIGINT, signal_handler)
 
-
-if (__name__ == "__main__"):
+def main():
     
     """
         python trainModel.py <sim_settings_file>
         Example:
         python trainModel.py settings/navGame/PPO_5D.json 
     """
-    import time
-    import datetime
-    from util.simOptions import getOptions
+    # TODO set log path more intelligently.
+    log_fn = "trainModel_log_{}.log".format(random_string(8))
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
+        handlers=[
+            logging.FileHandler(log_fn),
+            logging.StreamHandler()
+        ]
+    )
+    log.info("Starting main. Command-line: {}".format(sys.argv))
+    log.info("matplotlib backend: {}".format(matplotlib.get_backend()))
     
     options = getOptions(sys.argv)
     options = vars(options)
-    # print("options: ", options)
-    # print("options['configFile']: ", options['configFile'])
-        
     file = open(options['configFile'])
     settings = json.load(file)
     file.close()
     
     for option in options:
         if ( not (options[option] is None) ):
-            print ("Updateing option: ", option, " = ", options[option])
-            # settings[option] = json.loads(options[option])
+            log.info("Updating option: {}={} ".format(option, options[option]))
             settings[option] = options[option]
             try:
                 settings[option] = json.loads(settings[option])
@@ -1654,10 +1628,8 @@ if (__name__ == "__main__"):
                 settings[option] = True
             elif ( options[option] == 'false'):
                 settings[option] = False
-        # settings['num_available_threads'] = options['num_available_threads']
-
-        # print ("Settings: " + str(json.dumps(settings, indent=4)))
     metaSettings = None
+    
     if ( 'metaConfigFile' in settings and (settings['metaConfigFile'] is not None)):
         ### Import meta settings
         file = open(settings['metaConfigFile'])
@@ -1666,22 +1638,17 @@ if (__name__ == "__main__"):
         
     if 'checkpoint_vid+rounds' in settings:
         if 'save_video_to_file' in settings:
-            print('\nerror: checkpoint_vid_rounds set but save_video_to_file is unset. Exiting.')        
+            log.error('\nerror: checkpoint_vid_rounds set but save_video_to_file is unset. Exiting.')        
             sys.exit()
         elif 'saving_update_freq_num_rounds' not in settings or settings['saving_update_freq_num_rounds'] > settings['checkpoint_vid_rounds']:
-            print('saving_update_freq_num_rounds > checkpoint_vid_rounds. Updating saving_update_freq_num_rounds to checkpoing_vid_rounds')
+            log.warning('saving_update_freq_num_rounds > checkpoint_vid_rounds. Updating saving_update_freq_num_rounds to checkpoing_vid_rounds')
             settings['saving_update_freq_num_rounds'] = settings['checkpoint_vid_rounds']
 
     t0 = time.time()
     simData = []
     if ( (metaSettings is None)
         or ((metaSettings is not None) and (not metaSettings['testing'])) ):
-        # try:
-            simData = trainModelParallel((sys.argv[1], settings))
-        # except:
-            ### Nothing to really do, but can still send email of progress
-            # print("Printing stack trace:")
-            # print_full_stack()
+        simData = trainModelParallel((sys.argv[1], settings))
     t1 = time.time()
     sim_time_ = datetime.timedelta(seconds=(t1-t0))
     print ("Model training complete in " + str(sim_time_) + " seconds")
@@ -1696,3 +1663,6 @@ if (__name__ == "__main__"):
 
     print("All Done.")
     sys.exit(0)
+
+if (__name__ == "__main__"):
+    main()
