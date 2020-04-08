@@ -14,13 +14,22 @@ import random
 import signal
 import string
 import sys
+import tarfile
 import time
 import traceback
 
 from model.LearningMultiAgent import LearningMultiAgent
 from simulation.SimWorker import SimWorker
+from simulation.LoggingWorker import LoggingWorker
 from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
 from util.simOptions import getOptions
+from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+from util.SimulationUtil import validateSettings, getFDStateSize
+from util.SimulationUtil import getDataDirectory, getAgentNameString
+from sendEmail import sendEmail
+from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
+from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
+from ModelEvaluation import modelEvaluation
 
 sys.setrecursionlimit(50000)
 sys.path.append("../")
@@ -44,14 +53,6 @@ def random_string(N_chars):
     return rstring
 
 def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
-    from sendEmail import sendEmail
-    import json
-    import tarfile
-    from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
-    from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
-    from ModelEvaluation import modelEvaluation
-    import os
-    
     if (("email_log_data_periodically" in settings)
         and (settings["email_log_data_periodically"] == True)
         and (not (("experiment_logging" in settings)
@@ -310,6 +311,8 @@ def trainModelParallel(inputData):
     # TODO this function is way too long
     # (sys.argv[1], settings)
     settings = inputData[1]
+
+    # Tag_FullObserve_SLAC_mini.json: True (not in settings)
     if ("perform_multiagent_training" not in settings):
         settings["perform_multiagent_training"] = 1
         settings["state_bounds"] = [settings["state_bounds"]]
@@ -319,69 +322,64 @@ def trainModelParallel(inputData):
         settings["experience_length"] = [settings["experience_length"]]
         settings["critic_network_layer_sizes"] = [settings["critic_network_layer_sizes"]]
         settings["policy_network_layer_sizes"] = [settings["policy_network_layer_sizes"]]
+        # Tag_FullObserve_SLAC_mini.json: True
         if (settings["train_forward_dynamics"]):
             settings["fd_network_layer_sizes"] = [settings["fd_network_layer_sizes"]]
             settings["reward_network_layer_sizes"] = [settings["reward_network_layer_sizes"]]
         
     print ("Number of agents: ", settings["perform_multiagent_training"])
-    # sys.exit()
-    from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
-    from simulation.LoggingWorker import LoggingWorker
-    from util.SimulationUtil import validateSettings, getFDStateSize
     if (not validateSettings(settings)):
         return False
+
+    # TODO add comment.
     exp_logger = setupEnvironmentVariable(settings)
-    settingsFileName = inputData[0]
+    settingsFileName = inputData[0]    
     settings['sample_single_trajectories'] = True
-    # settings['shouldRender'] = True
-    # pr = cProfile.Profile()
-    # pr.enable()
+    
     try:
         trainData = _initialize_train_data()
         rounds = settings["rounds"]
         epochs = settings["epochs"]
-        # settings["num_available_threads"] = int(settings["num_available_threads"])
-        # num_states=settings["num_states"]
         epsilon = settings["epsilon"]
         discount_factor=settings["discount_factor"]
         reward_bounds=settings["reward_bounds"]
-        # reward_bounds = np.array([[-10.1],[0.0]])
-        if ( 'value_function_batch_size' in settings):
-            batch_size=settings["value_function_batch_size"]
-        else:
-            batch_size=settings["batch_size"]
+
+        # Tag_FullObserve_SLAC_mini.json: True, 64
+        if ( 'value_function_batch_size' in settings): batch_size=settings["value_function_batch_size"]
+        else: batch_size=settings["batch_size"]
         train_on_validation_set=settings["train_on_validation_set"]
         state_bounds = settings['state_bounds']
         discrete_actions = settings['discrete_actions']
-        print ("Sim config file name: " + str(settings["sim_config_file"]))
+        log.debug("Sim config file name: " + str(settings["sim_config_file"]))
         action_space_continuous=settings['action_space_continuous']
-
         sim_work_queues = []
-        
         action_space_continuous=settings['action_space_continuous']
-        if action_space_continuous:
-            action_bounds = settings["action_bounds"]
-        else:
-            action_bounds = [None]
+        
+        if action_space_continuous: action_bounds = settings["action_bounds"]
+        else: action_bounds = [None]
 
         if (settings['num_available_threads'] == -1):
+            # No threading
             input_anchor_queue = multiprocessing.Queue(settings['queue_size_limit'])
             input_anchor_queue_eval = multiprocessing.Queue(settings['queue_size_limit'])
             output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
             eval_episode_data_queue = multiprocessing.Queue(settings['queue_size_limit'])
         else:
+            # Threading.
             input_anchor_queue = multiprocessing.Queue(settings['num_available_threads'])
             input_anchor_queue_eval = multiprocessing.Queue(settings['num_available_threads'])
             output_experience_queue = multiprocessing.Queue(settings['num_available_threads'])
             eval_episode_data_queue = multiprocessing.Queue(settings['num_available_threads'])
-            
-        if (settings['on_policy']): ## So that off-policy agent does not learn
+
+        # Tag_FullObserve_SLAC_mini.json: True            
+        if (settings['on_policy']):
+            ## So that off-policy agent does not learn
             output_experience_queue = None
             
         exp_val = None
         timeout_ = 60 * 10 ### 10 min timeout
-        if ("simulation_timeout" in settings):
-            timeout_ = settings["simulation_timeout"]
+        # Tag_FullObserve_SLAC_mini.json: True, 1800        
+        if ("simulation_timeout" in settings): timeout_ = settings["simulation_timeout"]
         
         ### Try and load previous data
         if ( ((settings["load_saved_model"] == True)
@@ -389,7 +387,6 @@ def trainModelParallel(inputData):
             (settings["save_experience_memory"] == "continual")):
             
             ### load training data
-            from util.SimulationUtil import getDataDirectory, getAgentNameString
             directory = getDataDirectory(settings)
             file_name_ = directory+"trainingData_" + str(getAgentNameString(settings['agent_name'])) + ".json"
             print ("loading previous settings file: ", file_name_)
@@ -1597,8 +1594,9 @@ def main():
         Example:
         python trainModel.py settings/navGame/PPO_5D.json 
     """
-    # TODO set log path more intelligently.
-    log_fn = "trainModel_log_{}.log".format(random_string(8))
+    # TODO set log path more intelligently, including date/time
+    if not os.path.isdir('training_logs'): os.mkdir('training_logs')
+    log_fn = "training_logs/trainModel_log_{}.log".format(random_string(8))
     logging.basicConfig(
         level=logging.INFO,
         format="[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
@@ -1629,20 +1627,26 @@ def main():
             elif ( options[option] == 'false'):
                 settings[option] = False
     metaSettings = None
-    
+
+    # Tag_FullObserve_SLAC_mini.json: false
     if ( 'metaConfigFile' in settings and (settings['metaConfigFile'] is not None)):
         ### Import meta settings
         file = open(settings['metaConfigFile'])
         metaSettings = json.load(file)
         file.close()
-        
+
+    # Tag_FullObserve_SLAC_mini.json: false
     if 'checkpoint_vid+rounds' in settings:
+        # Tag_FullObserve_SLAC_mini.json: false
         if 'save_video_to_file' in settings:
             log.error('\nerror: checkpoint_vid_rounds set but save_video_to_file is unset. Exiting.')        
             sys.exit()
+        # Tag_FullObserve_SLAC_mini.json: false            
         elif 'saving_update_freq_num_rounds' not in settings or settings['saving_update_freq_num_rounds'] > settings['checkpoint_vid_rounds']:
             log.warning('saving_update_freq_num_rounds > checkpoint_vid_rounds. Updating saving_update_freq_num_rounds to checkpoing_vid_rounds')
             settings['saving_update_freq_num_rounds'] = settings['checkpoint_vid_rounds']
+        else:
+            log.warning("Unhandled else statement!")
 
     t0 = time.time()
     simData = []
