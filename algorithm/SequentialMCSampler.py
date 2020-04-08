@@ -1,5 +1,4 @@
 import numpy as np
-import lasagne
 import sys
 sys.path.append('../')
 sys.path.append("../characterSimAdapter/")
