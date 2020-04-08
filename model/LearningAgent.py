@@ -120,7 +120,9 @@ class LearningAgent(AgentInterface):
         tmp_datas = []
         ### Causes the new scaling values to be computed but not applied. They are applied later after the updates
         self.getExperience()._settings["state_normalization"] = "variance"
-        for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, advantage__, datas__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t, _exp_actions, _advantage, datas):
+        for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, advantage__,
+              datas__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t,
+                               _exp_actions, _advantage, datas):
 
             ### Because the valid state checks only like numpy arrays, not lists
             state___ = state__
@@ -157,6 +159,7 @@ class LearningAgent(AgentInterface):
                     path['states'] = state__ # np.array([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in state__])
                     path['reward'] = reward__
                     path['falls'] = fall__
+                    path['agent_id'] = datas__['agent_id']
                     # print ("state__ shape: ", path['states'].shape)
                     paths = compute_advantage_(self, [path], self._settings["discount_factor"], self._settings['GAE_lambda'])
                     advantage__ = paths["advantage"]
