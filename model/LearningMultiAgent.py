@@ -140,6 +140,10 @@ class LearningMultiAgent(LearningAgent):
                     set["round"] = self._settings["round"]
                 
                 self.getAgents()[a].setSettings(set)
+                if forceCopy == "all":
+                    self.getAgents()[a].getPolicy().setSettings(set)
+                    if (self.getSettings()['train_forward_dynamics']):
+                        self.getAgents()[a].getForwardDynamics().setSettings(set)
         
     def getSettings(self):
         return self._settings

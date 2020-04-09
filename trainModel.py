@@ -814,7 +814,7 @@ def trainModelParallel(inputData):
                 
         settings["logger_instance"] = exp_logger
         settings["round"] = int(trainData["round"])
-        masterAgent.setSettings(settings)
+        masterAgent.setSettings(settings, forceCopy="all")
 
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)
             and (trainData["round"] == 0)):

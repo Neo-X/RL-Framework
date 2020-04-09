@@ -35,51 +35,27 @@ class LearningAgent(AgentInterface):
             self.getForwardDynamics().reset()
         
     def getPolicy(self):
-        if self._useLock:
-            self._accesLock.acquire()
         pol = self._pol
-        if self._useLock:
-            self._accesLock.release()
         return pol
         
     def setPolicy(self, pol):
-        if self._useLock:
-            self._accesLock.acquire()
         self._pol = pol
         if (not self._sampler == None ):
             self._sampler.setPolicy(pol)
-        if self._useLock:
-            self._accesLock.release()
         
     def getForwardDynamics(self):
-        if self._useLock:
-            self._accesLock.acquire()
         fd = self._fd
-        if self._useLock:
-            self._accesLock.release()
         return fd
                 
     def setForwardDynamics(self, fd):
-        if self._useLock:
-            self._accesLock.acquire()
         self._fd = fd
-        if self._useLock:
-            self._accesLock.release()
             
     def getRewardModel(self):
-        if self._useLock:
-            self._accesLock.acquire()
         rm = self._rm
-        if self._useLock:
-            self._accesLock.release()
         return rm
                 
     def setRewardModel(self, rm):
-        if self._useLock:
-            self._accesLock.acquire()
         self._rm = rm
-        if self._useLock:
-            self._accesLock.release()
         
     def getPolicyNetworkParameters(self):
         return self.getPolicy().getNetworkParameters()
@@ -1424,6 +1400,13 @@ class LearningAgent(AgentInterface):
         self.getPolicy().updateTargetModel()
         if (self.getSettings()['train_forward_dynamics']):
             self.getForwardDynamics().updateTargetModel()
+            
+#     def setSettings(self, settings):
+# #         super().setSettings(self, settings)
+#         self._settings = settings
+#         self.getPolicy().setSettings(settings)
+#         if (self.getSettings()['train_forward_dynamics']):
+#             self.getForwardDynamics().setSettings(settings)
         
     
     def insertTuple(self, tuple):

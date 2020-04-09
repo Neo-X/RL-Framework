@@ -11,7 +11,7 @@ class AgentInterface(object):
         AgentInterface.setRewardBounds(self, reward_bound)    
         self._state_length = n_in
         self._action_length = n_out
-        self.setSettings(settings_) 
+        self._settings = (settings_) 
     
     def train(self, states, actions, rewards, result_states):
         pass
