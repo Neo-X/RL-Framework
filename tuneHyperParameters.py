@@ -49,7 +49,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
 def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     import os
     import tarfile
-    from sendEmail import sendEmail
+#     from sendEmail import sendEmail
     from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
     from tools.PlotMetadataSimulation import plotMetaDataSimulation
     

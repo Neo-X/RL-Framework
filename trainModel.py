@@ -26,7 +26,6 @@ from util.simOptions import getOptions
 from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
 from util.SimulationUtil import validateSettings, getFDStateSize
 from util.SimulationUtil import getDataDirectory, getAgentNameString
-from sendEmail import sendEmail
 from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
 from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
 from ModelEvaluation import modelEvaluation
@@ -88,13 +87,13 @@ def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
         if ('error' in simData):
             contents_ = contents_ + "\n" + simData['error']
             sub = "ERROR*****     " + "Simulation terminated: " + str(sim_time_)
-        try:
-            sendEmail(subject=sub, contents=contents_, hyperSettings=metaSettings, simSettings=settings['configFile'], dataFile=tarFileName,
-                      pictureFile=pictureFileName)
-        except Exception as e:
-            print("Error sending email this computer might not be authorized to use the email account.")
-            print("Error: ", e)
-            print (traceback.format_exc()) 
+#         try:
+#             sendEmail(subject=sub, contents=contents_, hyperSettings=metaSettings, simSettings=settings['configFile'], dataFile=tarFileName,
+#                       pictureFile=pictureFileName)
+#         except Exception as e:
+#             print("Error sending email this computer might not be authorized to use the email account.")
+#             print("Error: ", e)
+#             print (traceback.format_exc()) 
     
     if ("save_video_to_file" in settings):
         ### Render a video of the policies current performance
