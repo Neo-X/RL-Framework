@@ -1,0 +1,22 @@
+{
+"metaExps": [
+				 "settings/hyperParamTuning/element/use_fall_reward_shaping.json",
+				"settings/hyperParamTuning/element/use_learned_reward_function.json"
+],
+"simConfigs": [
+ 	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json",
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json",
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Run_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json",
+ 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json",
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Jog_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json",
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Dance_A_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json",
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Dance_B_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json",
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Jump_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+],
+"rounds": 1000,
+"opts": "",
+"meta_sim_samples": 2,
+"meta_sim_threads": 2,
+"tuning_threads": 2,
+"render_threads": 4
+}

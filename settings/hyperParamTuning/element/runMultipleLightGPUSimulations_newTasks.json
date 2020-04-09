@@ -1,0 +1,19 @@
+{
+"metaExps": [
+				"settings/hyperParamTuning/element/use_fall_reward_shaping.json",
+				"settings/hyperParamTuning/element/use_learned_reward_function.json"
+],
+"simConfigs": [
+	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64x1_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_BCE.json",
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Run_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_BCE.json",
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Jog_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_BCE.json",
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_BCE.json",
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_BCE.json"
+],
+"rounds": 1000,
+"opts": "",
+"meta_sim_samples": 2,
+"meta_sim_threads": 2,
+"tuning_threads": 2,
+"render_threads": 4
+}
