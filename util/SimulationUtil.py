@@ -728,7 +728,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
     else:
         # print("Not a list hoser, it is a ", type(config_file), " for ", config_file)
         print (config_file[0])
-    
+
     print("Creating sim Type: ", env_type)
     if env_type == 'ballgame_2d':
         from rlsimenv.BallGame2D import BallGame2D
@@ -813,6 +813,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         return exp
     
     elif env_type == 'open_AI_Gym':
+
         import gym
         from gym import wrappers
         from gym import envs
@@ -858,7 +859,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
             print ("TerrainRLSim not installed")
             pass
         try:
-            sys.path.append('/home/gberseth/playground/BayesianSurpriseCode/')
+            sys.path.append('/home/jcoreyes/entropy/BayesianSurprise/')
             import surprise
         except:
             print ("surprise not installed")
@@ -894,7 +895,30 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = MultiworldEnv(env, conf, image_key=image_key, state_key=conf['state_key'])
 
         return exp
+    elif env_type == 'doom':
+        import gym
+        from gym.wrappers import ResizeObservation, FlattenObservation
+        from sim.OpenAIGymEnv import OpenAIGymEnv
+        import multiprocessing
+        try:
+            import ppaquette_gym_doom as pgd
+            from ppaquette_gym_doom.wrappers.action_space import ToBox
 
+            from ppaquette_gym_doom.wrappers.observation_space import FlattenScaleObservation
+
+        except:
+            print("Doom not installed")
+            pass
+        env_name = config_file
+        env = gym.make(env_name)
+        # env._configure(lock=multiprocessing.Lock())
+        env = ToBox('minimal')(env)
+        env = ResizeObservation(env, (16, 16))
+        env = FlattenScaleObservation(env)
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = OpenAIGymEnv(env, conf)
+        return exp
     elif env_type == 'Metaworld':
         import gym
         import metaworld.envs.mujoco
@@ -1404,6 +1428,7 @@ def createActor(env_type, settings, experience):
           or (env_type == 'MetaworldHRL')
           or (env_type == 'MetaworldGoal')
           or (env_type == 'miniGrid')
+          or (env_type == 'doom')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)

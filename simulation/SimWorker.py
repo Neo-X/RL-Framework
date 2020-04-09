@@ -17,7 +17,8 @@ from util.utils import current_mem_usage
 # import memory_profiler
 # import resources
 from simulation.simEpoch import simEpoch
-
+import traceback
+import sys
 
 # class SimWorker(threading.Thread):
 class SimWorker(Process):
@@ -88,9 +89,14 @@ class SimWorker(Process):
         
         self._p = data[1]
         
-        
-    # @profile(precision=5)
     def run(self):
+        try:
+            return self._run()
+        except:
+            raise Exception("".join(traceback.format_exception(*sys.exc_info())))
+
+    # @profile(precision=5)
+    def _run(self):
         # from pympler import summary
         # from pympler import muppy
         import os
@@ -548,8 +554,11 @@ class SimWorker(Process):
         
     def simEpochParallel(self, actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, p=0.0, validation=False, epoch=0, evaluation=False, 
                          bootstrapping=False):
-        out = simEpoch(actor, exp, model, discount_factor, anchors=anchors, action_space_continuous=action_space_continuous, settings=settings, 
-                       print_data=print_data, p=p, validation=validation, epoch=epoch, evaluation=evaluation, _output_queue=self._output_queue, epsilon=settings['epsilon'],
-                       bootstrapping=bootstrapping,
-                       worker_id=self._worker_id)
-        return out
+        try:
+            out = simEpoch(actor, exp, model, discount_factor, anchors=anchors, action_space_continuous=action_space_continuous, settings=settings,
+                           print_data=print_data, p=p, validation=validation, epoch=epoch, evaluation=evaluation, _output_queue=self._output_queue, epsilon=settings['epsilon'],
+                           bootstrapping=bootstrapping,
+                           worker_id=self._worker_id)
+            return out
+        except:
+            raise Exception("".join(traceback.format_exception(*sys.exc_info())))
