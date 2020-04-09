@@ -158,8 +158,15 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
 def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
                    sim_work_queues, datas=None, eval_episode_data_queue=None):
     from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
-    settings__ = copy.deepcopy(masterAgent.getSettings())
-    settings__2 = copy.deepcopy(masterAgent.getSettings())
+    
+    ### comet logging does not like being pickeled
+    set = masterAgent.getSettings()
+    if ("logger_instance" in set):
+        clog = set["logger_instance"]
+        set["logger_instance"] = None
+        
+    settings__ = copy.deepcopy(set)
+    settings__2 = copy.deepcopy(set)
     settings__["train_actor"] = False
     settings__["train_critic"] = False
     settings__["refresh_rewards"] = False
@@ -192,6 +199,8 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
                                    p=1)
 
     ### back to normal settings
+    if ("logger_instance" in set):
+        settings_2["logger_instance"] = clog
     masterAgent.setSettings(settings__2)
     masterAgent.getPolicy().setSettings(settings__2)
     print ("Done pretraining fd")

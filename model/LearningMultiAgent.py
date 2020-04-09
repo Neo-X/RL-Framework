@@ -128,7 +128,10 @@ class LearningMultiAgent(LearningAgent):
         if hasattr(self, '_agents'):
             for a in range(len(self.getAgents())):
                 if (forceCopy):
+                    log = self._settings["logger_instance"]
+                    self._settings["logger_instance"] = None
                     set = copy.deepcopy(self._settings)
+                    self._settings["logger_instance"] = log
                 else:
                     set = self.getAgents()[a].getSettings()
                 if "logger_instance" in self._settings:
