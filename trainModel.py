@@ -166,7 +166,7 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
     settings__["clear_exp_mem_on_poli"] = True
     ### Protects for the case when they are singular and don't want to skip training the critic and train the policy
     settings__["ppo_use_seperate_nets"] = True
-    masterAgent.setSettings(settings__)
+    masterAgent.setSettings(settings__, forceCopy=True)
     masterAgent.getPolicy().setSettings(settings__)
     # masterAgent.getForwardDynamics().setSettings(settings)
     for i in range(int(settings__["pretrain_fd"])):

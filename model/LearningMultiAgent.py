@@ -121,13 +121,16 @@ class LearningMultiAgent(LearningAgent):
         if self._useLock:
             self._accesLock.release()
         
-    def setSettings(self, settings):
+    def setSettings(self, settings, forceCopy=False):
         self._settings = settings
 
         ### Only propogate the logger settings because settings are unqiue for each agent.
         if hasattr(self, '_agents'):
             for a in range(len(self.getAgents())):
-                set = self.getAgents()[a].getSettings()
+                if (forceCopy):
+                    set = copy.deepcopy(self._settings)
+                else:
+                    set = self.getAgents()[a].getSettings()
                 if "logger_instance" in self._settings:
                     set["logger_instance"] = self._settings["logger_instance"]
                 if ("logger_instance" in self._settings):
