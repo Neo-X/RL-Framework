@@ -200,7 +200,7 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
 
     ### back to normal settings
     if ("logger_instance" in set):
-        settings_2["logger_instance"] = clog
+        settings__2["logger_instance"] = clog
     masterAgent.setSettings(settings__2)
     masterAgent.getPolicy().setSettings(settings__2)
     print ("Done pretraining fd")
