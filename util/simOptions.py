@@ -294,7 +294,7 @@ def getOptions(_args=None):
           metavar="IntegerxInteger", help="The pixel width and height, example 640x480")
     
     parser.add_option("--visualize_learning", "--plot", 
-          action="store", dest="visualize_learning", default=None,
+          action="store", dest="visualize_learning", default='false',
           type='choice',
           choices=['true', 'false', None],
           metavar="STRING", 
@@ -322,7 +322,7 @@ def getOptions(_args=None):
           help="Whether or not to save the experience memory after performing initial bootstrapping.")
     
     parser.add_option("--shouldRender", "--render",
-          action="store", dest="shouldRender", default=None,
+          action="store", dest="shouldRender", default='false',
           type='choice',
           choices=['true', 'false', None, 'yes'],
           metavar="STRING", 

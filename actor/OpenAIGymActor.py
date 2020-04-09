@@ -7,8 +7,8 @@ class OpenAIGymActor(ActorInterface):
     
     def __init__(self, discrete_actions, experience):
         super(OpenAIGymActor,self).__init__(discrete_actions, experience)
-        self._target_vel_weight=self._settings["target_velocity_decay"]
-        self._target_vel = self._settings["target_velocity"]
+#         self._target_vel_weight=self._settings["target_velocity_decay"]
+#         self._target_vel = self._settings["target_velocity"]
         # self._target_vel = self._settings["target_velocity"]
         self._end_of_episode=False
     

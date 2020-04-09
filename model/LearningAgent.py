@@ -1111,7 +1111,7 @@ class LearningAgent(AgentInterface):
                     sys.exit(1)
                 # randomAction = randomUniformExporation(np.array(self.getActionBounds(), dtype=float)) # Completely random action
                 # randomAction = random.choice(action_selection)
-                if (self.getSettings()["use_model_based_action_optimization"] and self.getSettings()["train_forward_dynamics"] ):
+                if ("use_model_based_action_optimization" in self.getSettings() and self.getSettings()["use_model_based_action_optimization"] and self.getSettings()["train_forward_dynamics"] ):
                     """
                     if ( ('anneal_mbae' in self.getSettings()) and self.getSettings()['anneal_mbae'] ):
                         mbae_omega = p * self.getSettings()["model_based_action_omega"]

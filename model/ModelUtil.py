@@ -1093,6 +1093,12 @@ def checkValidData(state, action, nextState, reward, advantage=None, verbose=Fal
                 
         return True
     
+def checkSettings(settings, key, value=True):
+    if (key in settings and 
+        (settings[key] == value)):
+        return True
+    else:
+        return False
     
 def getLearningData(masterAgent, settings, tmp_p):
     data = ('Update_Policy', tmp_p, 

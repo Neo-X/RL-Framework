@@ -162,6 +162,7 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
     settings__2 = copy.deepcopy(masterAgent.getSettings())
     settings__["train_actor"] = False
     settings__["train_critic"] = False
+    settings__["refresh_rewards"] = False
     settings__["clear_exp_mem_on_poli"] = True
     ### Protects for the case when they are singular and don't want to skip training the critic and train the policy
     settings__["ppo_use_seperate_nets"] = True

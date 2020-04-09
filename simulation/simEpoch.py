@@ -138,11 +138,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 
         outside_bounds=False
         action_=None
-        if (settings["clamp_actions_to_stay_inside_bounds"] or (settings['penalize_actions_outside_bounds'])):
+        if (("clamp_actions_to_stay_inside_bounds" in settings and settings["clamp_actions_to_stay_inside_bounds"]) or 
+        ("penalize_actions_outside_bounds" in settings and (settings['penalize_actions_outside_bounds']))):
             (action_, outside_bounds) = clampActionWarn(action, action_bounds)
             if (settings['clamp_actions_to_stay_inside_bounds']):
                 action = action_
-        if (settings["visualize_forward_dynamics"] and settings['train_forward_dynamics']):
+        if ("visualize_forward_dynamics" in settings and settings["visualize_forward_dynamics"] and 
+            "train_forward_dynamics" in settings and settings['train_forward_dynamics']):
             predicted_next_state = model.getForwardDynamics().predict(np.array(state_), action)
             # exp.visualizeNextState(state_[0], [0,0]) # visualize current state
             exp.visualizeNextState(predicted_next_state, action)
@@ -355,7 +357,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 ob = ob.flatten()
                 resultState_[0][1] = ob
         ## For testing remove later
-        if (settings["use_back_on_track_forcing"] and (not evaluation)):
+        if (checkSettings(settings,"use_back_on_track_forcing") and (not evaluation)):
             exp.getControllerBackOnTrack()
         # print ("reward_: ", reward_)
         if print_data:
