@@ -35,51 +35,27 @@ class LearningAgent(AgentInterface):
             self.getForwardDynamics().reset()
         
     def getPolicy(self):
-        if self._useLock:
-            self._accesLock.acquire()
         pol = self._pol
-        if self._useLock:
-            self._accesLock.release()
         return pol
         
     def setPolicy(self, pol):
-        if self._useLock:
-            self._accesLock.acquire()
         self._pol = pol
         if (not self._sampler == None ):
             self._sampler.setPolicy(pol)
-        if self._useLock:
-            self._accesLock.release()
         
     def getForwardDynamics(self):
-        if self._useLock:
-            self._accesLock.acquire()
         fd = self._fd
-        if self._useLock:
-            self._accesLock.release()
         return fd
                 
     def setForwardDynamics(self, fd):
-        if self._useLock:
-            self._accesLock.acquire()
         self._fd = fd
-        if self._useLock:
-            self._accesLock.release()
             
     def getRewardModel(self):
-        if self._useLock:
-            self._accesLock.acquire()
         rm = self._rm
-        if self._useLock:
-            self._accesLock.release()
         return rm
                 
     def setRewardModel(self, rm):
-        if self._useLock:
-            self._accesLock.acquire()
         self._rm = rm
-        if self._useLock:
-            self._accesLock.release()
         
     def getPolicyNetworkParameters(self):
         return self.getPolicy().getNetworkParameters()
@@ -120,7 +96,9 @@ class LearningAgent(AgentInterface):
         tmp_datas = []
         ### Causes the new scaling values to be computed but not applied. They are applied later after the updates
         self.getExperience()._settings["state_normalization"] = "variance"
-        for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, advantage__, datas__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t, _exp_actions, _advantage, datas):
+        for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, advantage__,
+              datas__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t,
+                               _exp_actions, _advantage, datas):
 
             ### Because the valid state checks only like numpy arrays, not lists
             state___ = state__
@@ -157,6 +135,7 @@ class LearningAgent(AgentInterface):
                     path['states'] = state__ # np.array([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in state__])
                     path['reward'] = reward__
                     path['falls'] = fall__
+                    path['agent_id'] = datas__['agent_id']
                     # print ("state__ shape: ", path['states'].shape)
                     paths = compute_advantage_(self, [path], self._settings["discount_factor"], self._settings['GAE_lambda'])
                     advantage__ = paths["advantage"]
@@ -1108,7 +1087,7 @@ class LearningAgent(AgentInterface):
                     sys.exit(1)
                 # randomAction = randomUniformExporation(np.array(self.getActionBounds(), dtype=float)) # Completely random action
                 # randomAction = random.choice(action_selection)
-                if (self.getSettings()["use_model_based_action_optimization"] and self.getSettings()["train_forward_dynamics"] ):
+                if ("use_model_based_action_optimization" in self.getSettings() and self.getSettings()["use_model_based_action_optimization"] and self.getSettings()["train_forward_dynamics"] ):
                     """
                     if ( ('anneal_mbae' in self.getSettings()) and self.getSettings()['anneal_mbae'] ):
                         mbae_omega = p * self.getSettings()["model_based_action_omega"]
@@ -1421,6 +1400,13 @@ class LearningAgent(AgentInterface):
         self.getPolicy().updateTargetModel()
         if (self.getSettings()['train_forward_dynamics']):
             self.getForwardDynamics().updateTargetModel()
+            
+#     def setSettings(self, settings):
+# #         super().setSettings(self, settings)
+#         self._settings = settings
+#         self.getPolicy().setSettings(settings)
+#         if (self.getSettings()['train_forward_dynamics']):
+#             self.getForwardDynamics().setSettings(settings)
         
     
     def insertTuple(self, tuple):

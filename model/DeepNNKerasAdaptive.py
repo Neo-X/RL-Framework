@@ -163,11 +163,6 @@ class DeepNNKerasAdaptive(ModelInterface):
                 print ("Actor Network layer sizes: ", layer_sizes)
             networkAct = inputAct
             
-            if ( self._dropout_p > 0.001 
-                 and ("use_dropout_in_actor" in self._settings 
-                      and (self._settings["use_dropout_in_actor"] == True)) ):
-                networkAct = Dropout(rate=self._dropout_p)(networkAct)
-                
             if ( "use_decoder" in self._settings
                   and (self._settings["use_decoder"] == True) ):
                 networkAct = keras.layers.Input(shape=(self._settings["encoding_vector_size"],), name="FD_Encoding_State")

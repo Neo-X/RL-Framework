@@ -4,4 +4,4 @@
 ### Not using nvidia/cuda for now
 docker build -f Dockerfile_smirl -t rlframe_smirl:latest .
 
-docker run --rm -it rlframe_smirl:latest /bin/bash -c "pushd /root/playground/RLSimulationEnvironments/; git pull origin master; popd; pushd /root/playground/RL-Framework; git pull origin master; python3 trainModel.py --config=settings/MiniGrid/TagEnv/PPO/Tag_SLAC_mini.json -p 4 --bootstrap_samples=2000 --max_epoch_length=16 --rollouts=4 --skip_rollouts=true --train_actor=false --train_critic=false --epochs=32 --fd_updates_per_actor_update=64 --on_policy=fast"
+docker run --rm -it rlframe_smirl:latest /bin/bash -c "pushd /root/playground/RLSimulationEnvironments/; git pull origin master; popd; pushd /root/playground/RL-Framework; git pull origin master; python3 -m pdb -c c trainModel.py --config=settings/MiniGrid/TagEnv/PPO/Tag_FullObserve_SLAC_mini.json -p 2 --bootstrap_samples=5000 --max_epoch_length=64 --rollouts=16 --epochs=4 --fd_updates_per_actor_update=16 --on_policy=fast --print_level=train --plot=false"

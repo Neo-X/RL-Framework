@@ -140,7 +140,8 @@ class SimWorker(Process):
                 settings_ = copy.deepcopy(self._settings)
                 settings_ = updateSettings(settings_, settings_["reward_metric_settings"])
                 self._model.setRewardModel(self.createNewFDModel(self._exp, settings_))
-            if ( self._settings['use_simulation_sampling'] ):
+            if ( "use_simulation_sampling" in self._settings
+                 and (self._settings['use_simulation_sampling'] )):
                 self._model.setSampler(self.createSampler(self._model.getPolicy(),
                                                           self._model.getForwardDynamics(), 
                                                           self._exp, self._actor))

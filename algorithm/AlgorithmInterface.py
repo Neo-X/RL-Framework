@@ -1,5 +1,3 @@
-# import theano
-# from theano import tensor as T
 import numpy as np
 # import lasagne
 import sys
@@ -512,7 +510,7 @@ class AlgorithmInterface(object):
     def getSettings(self):
         return self._settings
     def setSettings(self, settings_):
-        self._settings = copy.deepcopy(settings_)
+        self._settings = settings_
     
     def setStateBounds(self, bounds):
         bounds = np.array(bounds)

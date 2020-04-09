@@ -121,19 +121,29 @@ class LearningMultiAgent(LearningAgent):
         if self._useLock:
             self._accesLock.release()
         
-    def setSettings(self, settings):
+    def setSettings(self, settings, forceCopy=False):
         self._settings = settings
 
         ### Only propogate the logger settings because settings are unqiue for each agent.
         if hasattr(self, '_agents'):
             for a in range(len(self.getAgents())):
-                set = self.getAgents()[a].getSettings()
+                if (forceCopy):
+                    log = self._settings["logger_instance"]
+                    self._settings["logger_instance"] = None
+                    set = copy.deepcopy(self._settings)
+                    self._settings["logger_instance"] = log
+                else:
+                    set = self.getAgents()[a].getSettings()
                 if "logger_instance" in self._settings:
                     set["logger_instance"] = self._settings["logger_instance"]
                 if ("logger_instance" in self._settings):
                     set["round"] = self._settings["round"]
                 
                 self.getAgents()[a].setSettings(set)
+                if forceCopy == "all":
+                    self.getAgents()[a].getPolicy().setSettings(set)
+                    if (self.getSettings()['train_forward_dynamics']):
+                        self.getAgents()[a].getForwardDynamics().setSettings(set)
         
     def getSettings(self):
         return self._settings
