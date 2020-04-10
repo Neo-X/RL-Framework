@@ -26,360 +26,6 @@ tfd = tfp.distributions
 
 sys.path.append('../')
 
-def euclidean_distance_fd2(vects):
-    x, y = vects
-    return K.sum(K.square(x - y), axis=-1, keepdims=True)
-
-def l1_distance_fd2(vects):
-    x, y = vects
-    return K.sum(K.abs(x - y), axis=-1, keepdims=True)
-
-def eucl_dist_output_shape_fd2(shapes):
-    shape1, shape2 = shapes
-    return (shape1[0], shape1[1], 1)
-
-
-def vae_loss(network_vae, network_vae_log_var):
-    def _vae_loss(y_true, y_pred):
-        reconstruction_loss_a = mse(y_true, y_pred)
-        reconstruction_loss_a *= 4096
-        kl_loss = 1 + network_vae_log_var - K.square(network_vae) - K.exp(network_vae_log_var)
-        kl_loss = K.sum(kl_loss, axis=-1)
-        kl_loss *= -0.5
-        vae_loss = K.mean(reconstruction_loss_a + kl_loss)
-        return vae_loss
-
-# reparameterization trick from Keras example
-# https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
-# instead of sampling from Q(z|X), sample epsilon = N(0,I)
-# z = z_mean + sqrt(var) * epsilon
-
-def sampling(args):
-    """Reparameterization trick by sampling from an isotropic unit Gaussian.
-    # Arguments
-        args (tensor): mean and log of variance of Q(z|X)
-    # Returns
-        z (tensor): sampled latent vector
-    """
-
-    z_mean, z_log_var = args
-    batch = K.shape(z_mean)[0]
-    dim = K.int_shape(z_mean)[1]
-    # by default, random_normal has mean = 0 and std = 1.0
-    epsilon = K.random_normal(shape=(batch, dim))
-    return z_mean + K.exp(0.5 * z_log_var) * epsilon
-
-
-def display_gif(images, logdir, fps=10, max_outputs=8, counter=0):
-    import moviepy.editor as mpy
-    images = images[:max_outputs]
-    images = np.clip(images, 0.0, 1.0)
-    images = (images * 255.0).astype(np.uint8)
-    images = np.concatenate(images, axis=-2)
-    clip = mpy.ImageSequenceClip(list(images), fps=fps)
-    # clip.write_videofile(logdir+str(global_counter)+".mp4", fps=fps)
-    
-    # import moviepy.editor as mpy
-    # clip = mpy.ImageSequenceClip(images, fps=20)
-    
-    # video_dir = video_dir_prefix + 'BCpolicy-gripper_state2'+str(reset_arg)+'/'
-    
-    # if os.path.isdir(video_dir)!=True:
-    #     os.makedirs(video_dir, exist_ok = True)
-    clip.write_gif(logdir+str(counter)+".gif", fps=20)
-
-def map_distribution_structure(func, *dist_structure):
-    def _get_params(dist):
-        return {k: v for k, v in dist.parameters.items() if isinstance(v, tf.Tensor)}
-
-    def _get_other_params(dist):
-        return {k: v for k, v in dist.parameters.items() if not isinstance(v, tf.Tensor)}
- 
-    def _func(*dist_list):
-        # all dists should be instances of the same class
-        for dist in dist_list[1:]:
-            assert dist.__class__ == dist_list[0].__class__
-        dist_ctor = dist_list[0].__class__
-
-        dist_other_params_list = [_get_other_params(dist) for dist in dist_list]
-
-        # all dists should have the same non-tensor params
-        for dist_other_params in dist_other_params_list[1:]:
-            assert dist_other_params == dist_other_params_list[0]
-        dist_other_params = dist_other_params_list[0]
-
-        # filter out params that are not in the constructor's signature
-        sig = inspect.signature(dist_ctor)
-        dist_other_params = {k: v for k, v in dist_other_params.items() if k in sig.parameters}
-
-        dist_params_list = [_get_params(dist) for dist in dist_list]
-        values_list = [list(params.values()) for params in dist_params_list]
-        values_list = list(zip(*values_list))
-
-        structure_list = [func(*values) for values in values_list]
-
-        values_list = [nest.flatten(structure) for structure in structure_list]
-        values_list = list(zip(*values_list))
-        dist_params_list = [dict(zip(dist_params_list[0].keys(), values)) for values in values_list]
-        dist_list = [dist_ctor(**params, **dist_other_params) for params in dist_params_list]
-
-        dist_structure = nest.pack_sequence_as(structure_list[0], dist_list)
-        return dist_structure
-  return nest.map_structure(_func, *dist_structure)
-
-class StepType(object):
-  """Defines the status of a `TimeStep` within a sequence."""
-  # Denotes the first `TimeStep` in a sequence.
-  FIRST = np.asarray(0, dtype=np.int32)
-  # Denotes any `TimeStep` in a sequence that is not FIRST or LAST.
-  MID = np.asarray(1, dtype=np.int32)
-  # Denotes the last `TimeStep` in a sequence.
-  LAST = np.asarray(2, dtype=np.int32)
-
-  def __new__(cls, value):
-    """Add ability to create StepType constants from a value."""
-    if value == cls.FIRST:
-      return cls.FIRST
-    if value == cls.MID:
-      return cls.MID
-    if value == cls.LAST:
-      return cls.LAST
-
-    raise ValueError('No known conversion for `%r` into a StepType' % value)
-
-class Bernoulli(tf.Module):
-    def __init__(self, base_depth, name=None):
-        super(Bernoulli, self).__init__(name=name)
-        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-        self.output_layer = tf.keras.layers.Dense(1)
-
-    def __call__(self, *inputs):
-        if len(inputs) > 1:
-            inputs = tf.concat(inputs, axis=-1)
-        else:
-            (inputs,) = inputs
-        out = self.dense1(inputs)
-        out = self.dense2(out)
-        out = self.output_layer(out)
-        logits = tf.squeeze(out, axis=-1)
-        return tfd.Bernoulli(logits=logits)
-
-class Normal(tf.Module):
-    def __init__(self, base_depth, scale=None, name=None):
-        super(Normal, self).__init__(name=name)
-        self.scale = scale
-        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-        self.output_layer = tf.keras.layers.Dense(2 if self.scale is None else 1)
-
-    def __call__(self, *inputs):
-        if len(inputs) > 1:
-            inputs = tf.concat(inputs, axis=-1)
-        else:
-            (inputs,) = inputs
-        out = self.dense1(inputs)
-        out = self.dense2(out)
-        out = self.output_layer(out)
-        loc = out[..., 0]
-        if self.scale is None:
-            assert out.shape[-1].value == 2
-            scale = tf.nn.softplus(out[..., 1]) + 1e-5
-        else:
-            assert out.shape[-1].value == 1
-            scale = self.scale
-        return tfd.Normal(loc=loc, scale=scale)
-
-class MultivariateNormalDiag(tf.Module):
-    def __init__(self, base_depth, latent_size, scale=None, name=None):
-        super(MultivariateNormalDiag, self).__init__(name=name)
-        self.latent_size = latent_size
-        self.scale = scale
-        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-        self.output_layer = tf.keras.layers.Dense(
-            2 * latent_size if self.scale is None else latent_size
-        )
-
-    def __call__(self, *inputs):
-        if len(inputs) > 1:
-            inputs = tf.concat(inputs, axis=-1)
-        else:
-            (inputs,) = inputs
-        out = self.dense1(inputs)
-        out = self.dense2(out)
-        out = self.output_layer(out)
-        loc = out[..., : self.latent_size]
-        if self.scale is None:
-            assert out.shape[-1].value == 2 * self.latent_size
-            scale_diag = tf.nn.softplus(out[..., self.latent_size :]) + 1e-5
-        else:
-            assert out.shape[-1].value == self.latent_size
-            scale_diag = tf.ones_like(loc) * self.scale
-        return tfd.MultivariateNormalDiag(loc=loc, scale_diag=scale_diag)
-
-class Deterministic(tf.Module):
-    def __init__(self, base_depth, latent_size, name=None):
-        super(Deterministic, self).__init__(name=name)
-        self.latent_size = latent_size
-        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
-        self.output_layer = tf.keras.layers.Dense(latent_size)
-
-    def __call__(self, *inputs):
-        if len(inputs) > 1:
-            inputs = tf.concat(inputs, axis=-1)
-        else:
-            (inputs,) = inputs
-        out = self.dense1(inputs)
-        out = self.dense2(out)
-        loc = self.output_layer(out)
-        return tfd.VectorDeterministic(loc=loc)
-
-class ConstantMultivariateNormalDiag(tf.Module):
-    def __init__(self, latent_size, scale=None, name=None):
-        super(ConstantMultivariateNormalDiag, self).__init__(name=name)
-        self.latent_size = latent_size
-        self.scale = scale
-
-    def __call__(self, *inputs):
-        # first input should not have any dimensions after the batch_shape, step_type
-        batch_shape = tf.shape(inputs[0])  # input is only used to infer batch_shape
-        shape = tf.concat([batch_shape, [self.latent_size]], axis=0)
-        loc = tf.zeros(shape)
-        if self.scale is None:
-            scale_diag = tf.ones(shape)
-        else:
-            scale_diag = tf.ones(shape) * self.scale
-        return tfd.MultivariateNormalDiag(loc=loc, scale_diag=scale_diag)
-
-
-class Decoder(tf.Module):
-    """Probabilistic decoder for `p(x_t | z_t)`."""
-
-    def __init__(self, base_depth, channels=3, scale=1.0, name=None):
-        super(Decoder, self).__init__(name=name)
-        self.scale = scale
-        conv_transpose = functools.partial(
-            tf.keras.layers.Conv2DTranspose, padding="SAME", activation=tf.nn.leaky_relu
-        )
-        self.conv_transpose1 = conv_transpose(8 * base_depth, 4, padding="VALID")
-        self.conv_transpose2 = conv_transpose(4 * base_depth, 3, 2)
-        self.conv_transpose3 = conv_transpose(2 * base_depth, 3, 2)
-        self.conv_transpose4 = conv_transpose(base_depth, 3, 2)
-        self.conv_transpose5 = conv_transpose(channels, 5, 2)
-
-    def __call__(self, *inputs):
-        if len(inputs) > 1:
-            latent = tf.concat(inputs, axis=-1)
-        else:
-            (latent,) = inputs
-        # (sample, N, T, latent)
-        collapsed_shape = tf.stack([-1, 1, 1, tf.shape(latent)[-1]], axis=0)
-        out = tf.reshape(latent, collapsed_shape)
-        out = self.conv_transpose1(out)
-        out = self.conv_transpose2(out)
-        out = self.conv_transpose3(out)
-        out = self.conv_transpose4(out)
-        out = self.conv_transpose5(out)  # (sample*N*T, h, w, c)
-
-        expanded_shape = tf.concat([tf.shape(latent)[:-1], tf.shape(out)[1:]], axis=0)
-        out = tf.reshape(out, expanded_shape)  # (sample, N, T, h, w, c)
-        return tfd.Independent(
-            distribution=tfd.Normal(loc=out, scale=self.scale),
-            reinterpreted_batch_ndims=3,
-        )  # wrap (h, w, c)
-
-class Compressor(tf.Module):
-    """Feature extractor."""
-
-    def __init__(self, base_depth, feature_size, name=None):
-        super(Compressor, self).__init__(name=name)
-        self.feature_size = feature_size
-        conv = functools.partial(
-            tf.keras.layers.Conv2D, padding="SAME", activation=tf.nn.leaky_relu
-        )
-        self.conv1 = conv(base_depth, 5, 2)
-        self.conv2 = conv(2 * base_depth, 3, 2)
-        self.conv3 = conv(4 * base_depth, 3, 2)
-        self.conv4 = conv(8 * base_depth, 3, 2)
-        self.conv5 = conv(8 * base_depth, 4, padding="VALID")
-
-    def __call__(self, image):
-        image_shape = tf.shape(image)[-3:]
-        collapsed_shape = tf.concat(([-1], image_shape), axis=0)
-        out = tf.reshape(image, collapsed_shape)  # (sample*N*T, h, w, c)
-        out = self.conv1(out)
-        out = self.conv2(out)
-        out = self.conv3(out)
-        out = self.conv4(out)
-        out = self.conv5(out)
-        expanded_shape = tf.concat((tf.shape(image)[:-3], [self.feature_size]), axis=0)
-        return tf.reshape(out, expanded_shape)  # (sample, N, T, feature)
-
-class DecoderSmall(tf.Module):
-    """Probabilistic decoder for `p(x_t | z_t)`."""
-
-    def __init__(self, base_depth, channels=3, scale=1.0, name=None):
-        super(DecoderSmall, self).__init__(name=name)
-        self.scale = scale
-        conv_transpose = functools.partial(
-            tf.keras.layers.Conv2DTranspose, padding="SAME", activation=tf.nn.leaky_relu
-        )
-        self.conv_transpose1 = conv_transpose(8 * base_depth, 4, padding="VALID")
-#         self.conv_transpose2 = conv_transpose(4 * base_depth, 3, 2)
-        self.conv_transpose3 = conv_transpose(2 * base_depth, 3, 2)
-#         self.conv_transpose4 = conv_transpose(base_depth, 3, 2)
-        self.conv_transpose5 = conv_transpose(channels, 5, 2)
-
-    def __call__(self, *inputs):
-        if len(inputs) > 1:
-            latent = tf.concat(inputs, axis=-1)
-        else:
-            (latent,) = inputs
-        # (sample, N, T, latent)
-        collapsed_shape = tf.stack([-1, 1, 1, tf.shape(latent)[-1]], axis=0)
-        out = tf.reshape(latent, collapsed_shape)
-        out = self.conv_transpose1(out)
-#         out = self.conv_transpose2(out)
-        out = self.conv_transpose3(out)
-#         out = self.conv_transpose4(out)
-        out = self.conv_transpose5(out)  # (sample*N*T, h, w, c)
-
-        expanded_shape = tf.concat([tf.shape(latent)[:-1], tf.shape(out)[1:]], axis=0)
-        out = tf.reshape(out, expanded_shape)  # (sample, N, T, h, w, c)
-        return tfd.Independent(
-            distribution=tfd.Normal(loc=out, scale=self.scale),
-            reinterpreted_batch_ndims=3,
-        )  # wrap (h, w, c)
-
-class CompressorSmall(tf.Module):
-    """Feature extractor."""
-
-    def __init__(self, base_depth, feature_size, name=None):
-        super(CompressorSmall, self).__init__(name=name)
-        self.feature_size = feature_size
-        conv = functools.partial(
-            tf.keras.layers.Conv2D, padding="SAME", activation=tf.nn.leaky_relu
-        )
-        self.conv1 = conv(base_depth, 5, 2)
-#         self.conv2 = conv(2 * base_depth, 3, 2)
-        self.conv3 = conv(4 * base_depth, 3, 2)
-#         self.conv4 = conv(8 * base_depth, 3, 2)
-        self.conv5 = conv(8 * base_depth, 4, padding="VALID")
-
-    def __call__(self, image):
-        image_shape = tf.shape(image)[-3:]
-        collapsed_shape = tf.concat(([-1], image_shape), axis=0)
-        out = tf.reshape(image, collapsed_shape)  # (sample*N*T, h, w, c)
-        out = self.conv1(out)
-#         out = self.conv2(out)
-        out = self.conv3(out)
-#         out = self.conv4(out)
-        out = self.conv5(out)
-        expanded_shape = tf.concat((tf.shape(image)[:-3], [self.feature_size]), axis=0)
-        return tf.reshape(out, expanded_shape)  # (sample, N, T, feature)
-
 class SLACModel(SiameseNetwork):
     
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
@@ -1537,4 +1183,359 @@ class SLACModel(SiameseNetwork):
             print("fd load self.getStateBounds(): ", len(self.getStateBounds()[0]))
         # self._resultgetStateBounds() = np.array(hf.get('_resultgetStateBounds()'))
         hf.close()
+
+def euclidean_distance_fd2(vects):
+    x, y = vects
+    return K.sum(K.square(x - y), axis=-1, keepdims=True)
+
+def l1_distance_fd2(vects):
+    x, y = vects
+    return K.sum(K.abs(x - y), axis=-1, keepdims=True)
+
+def eucl_dist_output_shape_fd2(shapes):
+    shape1, shape2 = shapes
+    return (shape1[0], shape1[1], 1)
+
+
+def vae_loss(network_vae, network_vae_log_var):
+    def _vae_loss(y_true, y_pred):
+        reconstruction_loss_a = mse(y_true, y_pred)
+        reconstruction_loss_a *= 4096
+        kl_loss = 1 + network_vae_log_var - K.square(network_vae) - K.exp(network_vae_log_var)
+        kl_loss = K.sum(kl_loss, axis=-1)
+        kl_loss *= -0.5
+        vae_loss = K.mean(reconstruction_loss_a + kl_loss)
+        return vae_loss
+
+# reparameterization trick from Keras example
+# https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
+# instead of sampling from Q(z|X), sample epsilon = N(0,I)
+# z = z_mean + sqrt(var) * epsilon
+
+def sampling(args):
+    """Reparameterization trick by sampling from an isotropic unit Gaussian.
+    # Arguments
+        args (tensor): mean and log of variance of Q(z|X)
+    # Returns
+        z (tensor): sampled latent vector
+    """
+
+    z_mean, z_log_var = args
+    batch = K.shape(z_mean)[0]
+    dim = K.int_shape(z_mean)[1]
+    # by default, random_normal has mean = 0 and std = 1.0
+    epsilon = K.random_normal(shape=(batch, dim))
+    return z_mean + K.exp(0.5 * z_log_var) * epsilon
+
+
+def display_gif(images, logdir, fps=10, max_outputs=8, counter=0):
+    import moviepy.editor as mpy
+    images = images[:max_outputs]
+    images = np.clip(images, 0.0, 1.0)
+    images = (images * 255.0).astype(np.uint8)
+    images = np.concatenate(images, axis=-2)
+    clip = mpy.ImageSequenceClip(list(images), fps=fps)
+    # clip.write_videofile(logdir+str(global_counter)+".mp4", fps=fps)
+    
+    # import moviepy.editor as mpy
+    # clip = mpy.ImageSequenceClip(images, fps=20)
+    
+    # video_dir = video_dir_prefix + 'BCpolicy-gripper_state2'+str(reset_arg)+'/'
+    
+    # if os.path.isdir(video_dir)!=True:
+    #     os.makedirs(video_dir, exist_ok = True)
+    clip.write_gif(logdir+str(counter)+".gif", fps=20)
+
+def map_distribution_structure(func, *dist_structure):
+    def _get_params(dist):
+        return {k: v for k, v in dist.parameters.items() if isinstance(v, tf.Tensor)}
+
+    def _get_other_params(dist):
+        return {k: v for k, v in dist.parameters.items() if not isinstance(v, tf.Tensor)}
+ 
+    def _func(*dist_list):
+        # all dists should be instances of the same class
+        for dist in dist_list[1:]:
+            assert dist.__class__ == dist_list[0].__class__
+        dist_ctor = dist_list[0].__class__
+
+        dist_other_params_list = [_get_other_params(dist) for dist in dist_list]
+
+        # all dists should have the same non-tensor params
+        for dist_other_params in dist_other_params_list[1:]:
+            assert dist_other_params == dist_other_params_list[0]
+        dist_other_params = dist_other_params_list[0]
+
+        # filter out params that are not in the constructor's signature
+        sig = inspect.signature(dist_ctor)
+        dist_other_params = {k: v for k, v in dist_other_params.items() if k in sig.parameters}
+
+        dist_params_list = [_get_params(dist) for dist in dist_list]
+        values_list = [list(params.values()) for params in dist_params_list]
+        values_list = list(zip(*values_list))
+
+        structure_list = [func(*values) for values in values_list]
+
+        values_list = [nest.flatten(structure) for structure in structure_list]
+        values_list = list(zip(*values_list))
+        dist_params_list = [dict(zip(dist_params_list[0].keys(), values)) for values in values_list]
+        dist_list = [dist_ctor(**params, **dist_other_params) for params in dist_params_list]
+
+        dist_structure = nest.pack_sequence_as(structure_list[0], dist_list)
+        return dist_structure
+  return nest.map_structure(_func, *dist_structure)
+
+class StepType(object):
+  """Defines the status of a `TimeStep` within a sequence."""
+  # Denotes the first `TimeStep` in a sequence.
+  FIRST = np.asarray(0, dtype=np.int32)
+  # Denotes any `TimeStep` in a sequence that is not FIRST or LAST.
+  MID = np.asarray(1, dtype=np.int32)
+  # Denotes the last `TimeStep` in a sequence.
+  LAST = np.asarray(2, dtype=np.int32)
+
+  def __new__(cls, value):
+    """Add ability to create StepType constants from a value."""
+    if value == cls.FIRST:
+      return cls.FIRST
+    if value == cls.MID:
+      return cls.MID
+    if value == cls.LAST:
+      return cls.LAST
+
+    raise ValueError('No known conversion for `%r` into a StepType' % value)
+
+class Bernoulli(tf.Module):
+    def __init__(self, base_depth, name=None):
+        super(Bernoulli, self).__init__(name=name)
+        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.output_layer = tf.keras.layers.Dense(1)
+
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            inputs = tf.concat(inputs, axis=-1)
+        else:
+            (inputs,) = inputs
+        out = self.dense1(inputs)
+        out = self.dense2(out)
+        out = self.output_layer(out)
+        logits = tf.squeeze(out, axis=-1)
+        return tfd.Bernoulli(logits=logits)
+
+class Normal(tf.Module):
+    def __init__(self, base_depth, scale=None, name=None):
+        super(Normal, self).__init__(name=name)
+        self.scale = scale
+        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.output_layer = tf.keras.layers.Dense(2 if self.scale is None else 1)
+
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            inputs = tf.concat(inputs, axis=-1)
+        else:
+            (inputs,) = inputs
+        out = self.dense1(inputs)
+        out = self.dense2(out)
+        out = self.output_layer(out)
+        loc = out[..., 0]
+        if self.scale is None:
+            assert out.shape[-1].value == 2
+            scale = tf.nn.softplus(out[..., 1]) + 1e-5
+        else:
+            assert out.shape[-1].value == 1
+            scale = self.scale
+        return tfd.Normal(loc=loc, scale=scale)
+
+class MultivariateNormalDiag(tf.Module):
+    def __init__(self, base_depth, latent_size, scale=None, name=None):
+        super(MultivariateNormalDiag, self).__init__(name=name)
+        self.latent_size = latent_size
+        self.scale = scale
+        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.output_layer = tf.keras.layers.Dense(
+            2 * latent_size if self.scale is None else latent_size
+        )
+
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            inputs = tf.concat(inputs, axis=-1)
+        else:
+            (inputs,) = inputs
+        out = self.dense1(inputs)
+        out = self.dense2(out)
+        out = self.output_layer(out)
+        loc = out[..., : self.latent_size]
+        if self.scale is None:
+            assert out.shape[-1].value == 2 * self.latent_size
+            scale_diag = tf.nn.softplus(out[..., self.latent_size :]) + 1e-5
+        else:
+            assert out.shape[-1].value == self.latent_size
+            scale_diag = tf.ones_like(loc) * self.scale
+        return tfd.MultivariateNormalDiag(loc=loc, scale_diag=scale_diag)
+
+class Deterministic(tf.Module):
+    def __init__(self, base_depth, latent_size, name=None):
+        super(Deterministic, self).__init__(name=name)
+        self.latent_size = latent_size
+        self.dense1 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.dense2 = tf.keras.layers.Dense(base_depth, activation=tf.nn.leaky_relu)
+        self.output_layer = tf.keras.layers.Dense(latent_size)
+
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            inputs = tf.concat(inputs, axis=-1)
+        else:
+            (inputs,) = inputs
+        out = self.dense1(inputs)
+        out = self.dense2(out)
+        loc = self.output_layer(out)
+        return tfd.VectorDeterministic(loc=loc)
+
+class ConstantMultivariateNormalDiag(tf.Module):
+    def __init__(self, latent_size, scale=None, name=None):
+        super(ConstantMultivariateNormalDiag, self).__init__(name=name)
+        self.latent_size = latent_size
+        self.scale = scale
+
+    def __call__(self, *inputs):
+        # first input should not have any dimensions after the batch_shape, step_type
+        batch_shape = tf.shape(inputs[0])  # input is only used to infer batch_shape
+        shape = tf.concat([batch_shape, [self.latent_size]], axis=0)
+        loc = tf.zeros(shape)
+        if self.scale is None:
+            scale_diag = tf.ones(shape)
+        else:
+            scale_diag = tf.ones(shape) * self.scale
+        return tfd.MultivariateNormalDiag(loc=loc, scale_diag=scale_diag)
+
+
+class Decoder(tf.Module):
+    """Probabilistic decoder for `p(x_t | z_t)`."""
+
+    def __init__(self, base_depth, channels=3, scale=1.0, name=None):
+        super(Decoder, self).__init__(name=name)
+        self.scale = scale
+        conv_transpose = functools.partial(
+            tf.keras.layers.Conv2DTranspose, padding="SAME", activation=tf.nn.leaky_relu
+        )
+        self.conv_transpose1 = conv_transpose(8 * base_depth, 4, padding="VALID")
+        self.conv_transpose2 = conv_transpose(4 * base_depth, 3, 2)
+        self.conv_transpose3 = conv_transpose(2 * base_depth, 3, 2)
+        self.conv_transpose4 = conv_transpose(base_depth, 3, 2)
+        self.conv_transpose5 = conv_transpose(channels, 5, 2)
+
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            latent = tf.concat(inputs, axis=-1)
+        else:
+            (latent,) = inputs
+        # (sample, N, T, latent)
+        collapsed_shape = tf.stack([-1, 1, 1, tf.shape(latent)[-1]], axis=0)
+        out = tf.reshape(latent, collapsed_shape)
+        out = self.conv_transpose1(out)
+        out = self.conv_transpose2(out)
+        out = self.conv_transpose3(out)
+        out = self.conv_transpose4(out)
+        out = self.conv_transpose5(out)  # (sample*N*T, h, w, c)
+
+        expanded_shape = tf.concat([tf.shape(latent)[:-1], tf.shape(out)[1:]], axis=0)
+        out = tf.reshape(out, expanded_shape)  # (sample, N, T, h, w, c)
+        return tfd.Independent(
+            distribution=tfd.Normal(loc=out, scale=self.scale),
+            reinterpreted_batch_ndims=3,
+        )  # wrap (h, w, c)
+
+class Compressor(tf.Module):
+    """Feature extractor."""
+
+    def __init__(self, base_depth, feature_size, name=None):
+        super(Compressor, self).__init__(name=name)
+        self.feature_size = feature_size
+        conv = functools.partial(
+            tf.keras.layers.Conv2D, padding="SAME", activation=tf.nn.leaky_relu
+        )
+        self.conv1 = conv(base_depth, 5, 2)
+        self.conv2 = conv(2 * base_depth, 3, 2)
+        self.conv3 = conv(4 * base_depth, 3, 2)
+        self.conv4 = conv(8 * base_depth, 3, 2)
+        self.conv5 = conv(8 * base_depth, 4, padding="VALID")
+
+    def __call__(self, image):
+        image_shape = tf.shape(image)[-3:]
+        collapsed_shape = tf.concat(([-1], image_shape), axis=0)
+        out = tf.reshape(image, collapsed_shape)  # (sample*N*T, h, w, c)
+        out = self.conv1(out)
+        out = self.conv2(out)
+        out = self.conv3(out)
+        out = self.conv4(out)
+        out = self.conv5(out)
+        expanded_shape = tf.concat((tf.shape(image)[:-3], [self.feature_size]), axis=0)
+        return tf.reshape(out, expanded_shape)  # (sample, N, T, feature)
+
+class DecoderSmall(tf.Module):
+    """Probabilistic decoder for `p(x_t | z_t)`."""
+
+    def __init__(self, base_depth, channels=3, scale=1.0, name=None):
+        super(DecoderSmall, self).__init__(name=name)
+        self.scale = scale
+        conv_transpose = functools.partial(
+            tf.keras.layers.Conv2DTranspose, padding="SAME", activation=tf.nn.leaky_relu
+        )
+        self.conv_transpose1 = conv_transpose(8 * base_depth, 4, padding="VALID")
+#         self.conv_transpose2 = conv_transpose(4 * base_depth, 3, 2)
+        self.conv_transpose3 = conv_transpose(2 * base_depth, 3, 2)
+#         self.conv_transpose4 = conv_transpose(base_depth, 3, 2)
+        self.conv_transpose5 = conv_transpose(channels, 5, 2)
+
+    def __call__(self, *inputs):
+        if len(inputs) > 1:
+            latent = tf.concat(inputs, axis=-1)
+        else:
+            (latent,) = inputs
+        # (sample, N, T, latent)
+        collapsed_shape = tf.stack([-1, 1, 1, tf.shape(latent)[-1]], axis=0)
+        out = tf.reshape(latent, collapsed_shape)
+        out = self.conv_transpose1(out)
+#         out = self.conv_transpose2(out)
+        out = self.conv_transpose3(out)
+#         out = self.conv_transpose4(out)
+        out = self.conv_transpose5(out)  # (sample*N*T, h, w, c)
+
+        expanded_shape = tf.concat([tf.shape(latent)[:-1], tf.shape(out)[1:]], axis=0)
+        out = tf.reshape(out, expanded_shape)  # (sample, N, T, h, w, c)
+        return tfd.Independent(
+            distribution=tfd.Normal(loc=out, scale=self.scale),
+            reinterpreted_batch_ndims=3,
+        )  # wrap (h, w, c)
+
+class CompressorSmall(tf.Module):
+    """Feature extractor."""
+
+    def __init__(self, base_depth, feature_size, name=None):
+        super(CompressorSmall, self).__init__(name=name)
+        self.feature_size = feature_size
+        conv = functools.partial(
+            tf.keras.layers.Conv2D, padding="SAME", activation=tf.nn.leaky_relu
+        )
+        self.conv1 = conv(base_depth, 5, 2)
+#         self.conv2 = conv(2 * base_depth, 3, 2)
+        self.conv3 = conv(4 * base_depth, 3, 2)
+#         self.conv4 = conv(8 * base_depth, 3, 2)
+        self.conv5 = conv(8 * base_depth, 4, padding="VALID")
+
+    def __call__(self, image):
+        image_shape = tf.shape(image)[-3:]
+        collapsed_shape = tf.concat(([-1], image_shape), axis=0)
+        out = tf.reshape(image, collapsed_shape)  # (sample*N*T, h, w, c)
+        out = self.conv1(out)
+#         out = self.conv2(out)
+        out = self.conv3(out)
+#         out = self.conv4(out)
+        out = self.conv5(out)
+        expanded_shape = tf.concat((tf.shape(image)[:-3], [self.feature_size]), axis=0)
+        return tf.reshape(out, expanded_shape)  # (sample, N, T, feature)
+
         
