@@ -4,9 +4,10 @@
 ### Not using nvidia/cuda for now
 docker build -f Dockerfile_smirl -t rlframe_smirl:latest .
 
-cmd='python3 trainModel.py --config=settings/MiniGrid/TagEnv/PPO/Tag_Dual_FullObserve_SLAC_mini.json  -p 2 --bootstrap_samples=10000 --max_epoch_length=32 --rollouts=32 --pretrain_fd=0 --plot=false --save_video_to_file=eval.mp4 --metaConfig=settings/hyperParamTuning/element/exploration_rate.json --experiment_logging="{\"use_comet\": true, \"project_name\": \"ic2\"}"'
-
-fullcmd="pushd /root/playground/BayesianSurpriseCode; git pull origin master; popd; pushd /root/playground/RL-Framework; git fetch --all; git checkout ic2-master; git reset --hard origin/ic2-master; ${cmd}"
+echo "arg 1 $1"
+# cmd='python3 trainModel.py --config=settings/MiniGrid/TagEnv/PPO/Tag_Dual_FullObserve_SLAC_mini.json  -p 2 --bootstrap_samples=10000 --max_epoch_length=32 --rollouts=32 --pretrain_fd=0 --plot=false --save_video_to_file=eval.mp4 --metaConfig=settings/hyperParamTuning/element/exploration_rate.json --experiment_logging="{\"use_comet\": true, \"project_name\": \"ic2\"}"'
+cmd=$1
+fullcmd="pushd /root/playground/BayesianSurpriseCode; git pull origin master; popd; pushd /root/playground/RLSimulationEnvironments; git pull origin master; popd; pushd /root/playground/RL-Framework; git fetch --all; git checkout ic2-master; git reset --hard origin/ic2-master; ${cmd}"
 echo $fullcmd
 command=(docker run --rm -it rlframe_smirl:latest /bin/bash -c "$fullcmd" )
 # arg="pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --num_rounds=${rounds} --plot=false --Multi_GPU=true --on_policy=fast --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 6 --rollouts=12 --simulation_timeout=1200 --email_log_data_periodically=true --visualize_expected_value=false ${opts}"
