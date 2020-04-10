@@ -26,9 +26,7 @@ tfd = tfp.distributions
 sys.path.append('../')
 
 class SLACModel(SiameseNetwork):
-    
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
-
         super(SiameseNetwork,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
         observation_spec = None
         action_spec = None
@@ -576,10 +574,7 @@ class SLACModel(SiameseNetwork):
     def parser(self, images, actions):
         # I think this code randomly parses out a sequence from the full sequence
         # This code now creates a sequence for every state
-        seqs = {
-                'images': [],
-                'actions': []
-            }
+        seqs = {'images': [], 'actions': []}
         for i in range(len(actions)):
             t_start = max(0, i-self._sequence_length)
             images_ = images[t_start:t_start+self._sequence_length]
@@ -589,14 +584,11 @@ class SLACModel(SiameseNetwork):
             
             seqs['images'].append(images_)
             seqs['actions'].append(actions_)
-        
         return seqs  
-        
 
     def compile(self):
-        
         config = tf.ConfigProto()
-        config.gpu_options.allow_growth=True
+        config.gpu_options.allow_growth = True
         self._sess = tf.Session(config=config)
         img_size = self.getSettings()["fd_terrain_shape"]
         action_size = 3
@@ -636,7 +628,7 @@ class SLACModel(SiameseNetwork):
         self._loss, self._outputs = self.compute_loss(self._states_placeholder, self._action_placeholder, step_types)
         # def compute_future_observation_likelihoods(self, actions, step_types, images):
         step_types = tf.fill([1,8], StepType.MID)
-        self._future_obs_likies = self.compute_future_observation_likelihoods(self._action_placeholder_1, step_types, self._states_placeholder_1)
+        self._future_obs_likelihoods = self.compute_future_observation_likelihoods(self._action_placeholder_1, step_types, self._states_placeholder_1)
         
         self._global_step = tf.train.create_global_step()
         self._adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
@@ -646,9 +638,8 @@ class SLACModel(SiameseNetwork):
         self._sess.run(tf.global_variables_initializer()) 
 #         if not args.init_params is None:
 #           load_trainable_weights(sess, args.init_params)
-        
-        
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
+
     def vae_marginal_(self, action_true, action_pred):
         
         reconstruction_loss = mse(action_true, action_pred)
@@ -710,7 +701,7 @@ class SLACModel(SiameseNetwork):
         self._fd_grad_target_shared.set_value(grad)
         
     def getGrads(self, states, actions, result_states, v_grad=None, alreadyNormed=False):
-        if ( alreadyNormed == False ):
+        if not alreadyNormed:
             states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
             actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
             result_states = np.array(norm_state(result_states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
@@ -728,7 +719,7 @@ class SLACModel(SiameseNetwork):
     def getRewardGrads(self, states, actions, alreadyNormed=False):
         # states = np.array(states, dtype=self.getSettings()['float_type'])
         # actions = np.array(actions, dtype=self.getSettings()['float_type'])
-        if ( alreadyNormed is False ):
+        if not alreadyNormed:
             states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
             actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
             # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
@@ -761,8 +752,7 @@ class SLACModel(SiameseNetwork):
             num_epochs = None
             states = states.reshape(data_array.shape[:2] + tuple(img_size))
         
-        if ('anneal_learning_rate' in self.getSettings()
-            and (self.getSettings()['anneal_learning_rate'] == True)):
+        if self.getSettings().get('anneal_learning_rate', False):
             K.set_value(self._model._forward_dynamics_net.optimizer.lr, np.float32(self.getSettings()['fd_learning_rate']) * p)
 
         for i in range(1):
@@ -787,8 +777,7 @@ class SLACModel(SiameseNetwork):
             Compute distance between two states
         """
         # state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
-        if (("train_LSTM_FD" in self._settings)
-                    and (self._settings["train_LSTM_FD"] == True)):
+        if self._settings.get("train_LSTM_FD", False):
             h_a = self._model.processed_a.predict([np.array([state])])#         self.reset()
 #         hf = h5py.File(fileName+"_bounds.h5", "w")
 #         hf.create_dataset('_state_bounds', data=self.getStateBounds())
@@ -939,9 +928,9 @@ class SLACModel(SiameseNetwork):
 #         approx_log_p_xT_value = self.compute_future_observation_likelihoods(
 #             actions=actions, step_types=step_types, images=images)
         reward_ = []
-        for i in range (len(images)):
-            approx_log_p_xT_value = self._sess.run([self._future_obs_likies], 
-                                                feed_dict={self._states_placeholder_1: [images[i]], self._action_placeholder_1: [actions[i]]})
+        for i in range(len(images)):
+            approx_log_p_xT_value = self._sess.run(
+                [self._future_obs_likelihoods], feed_dict={self._states_placeholder_1: [images[i]], self._action_placeholder_1: [actions[i]]})
             reward_.append(approx_log_p_xT_value[0])
         # critic_next_time_step = critic_next_time_step._replace(reward=approx_log_p_xT_value)
         return np.array(reward_)
@@ -951,8 +940,7 @@ class SLACModel(SiameseNetwork):
             Predict reward which is inverse of distance metric
         """
         # state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
-        if (("train_LSTM_Reward" in self._settings)
-            and (self._settings["train_LSTM_Reward"] == True)):
+        if self._settings.get("train_LSTM_Reward", False):
             h_a = self._model.processed_a_r.predict([np.array([state])])
         else:
             h_a = self._model._reward_net.predict([state])[0]
@@ -961,7 +949,7 @@ class SLACModel(SiameseNetwork):
         return h_a
     
     def predict_batch(self, states, actions):
-        ## These input should already be normalized.
+        # These input should already be normalized.
         return self.fd([states, actions, 0])[0]
     
     def predict_reward_batch(self, states, actions):
@@ -1082,7 +1070,7 @@ class SLACModel(SiameseNetwork):
 #             print (inst)
 #             
 #         if (states is not None):
-#             ## Don't use Xwindows backend for this
+#             # Don't use Xwindows backend for this
 #             import matplotlib
 #             # matplotlib.use('Agg')
 #             import matplotlib.pyplot as plt
@@ -1283,7 +1271,7 @@ def map_distribution_structure(func, *dist_structure):
 
         dist_structure = nest.pack_sequence_as(structure_list[0], dist_list)
         return dist_structure
-  return nest.map_structure(_func, *dist_structure)
+    return nest.map_structure(_func, *dist_structure)
 
 class StepType(object):
   """Defines the status of a `TimeStep` within a sequence."""
