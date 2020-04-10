@@ -554,9 +554,6 @@ class SLACModel(SiameseNetwork):
         # (B,) Likelihoods of the last image, x_T.
         approx_log_p_xT_value = approx_p_xT_pdf.log_prob(x_T)
         return approx_log_p_xT_value
-
-    # def compute_future_latent_log_prob(self, actions, step_types, images):
-        # latent1_dist.log_prob(
     
     def _parser(self, images, actions):
         num_shifts = self._all_sequence_length - self._sequence_length
@@ -729,7 +726,19 @@ class SLACModel(SiameseNetwork):
     def updateTargetModel(self):
         pass
                 
-    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True, datas=None, trainInfo=None):
+    def train(self,
+              states,
+              actions,
+              result_states,
+              rewards,
+              falls=None,
+              updates=1,
+              batch_size=None,
+              p=1,
+              lstm=True,
+              datas=None,
+              trainInfo=None,
+              n_gradient_steps=1):
         """
             states will come for the agent and
             results_states can come from the imitation agent
@@ -755,9 +764,9 @@ class SLACModel(SiameseNetwork):
         if self.getSettings().get('anneal_learning_rate', False):
             K.set_value(self._model._forward_dynamics_net.optimizer.lr, np.float32(self.getSettings()['fd_learning_rate']) * p)
 
-        for i in range(1):
-            out, loss_val, global_step_val = self._sess.run([self._train_op,self._loss, self._global_step], 
-                                                        feed_dict={self._states_placeholder: states, self._action_placeholder: actions})
+        for i in range(n_gradient_steps):
+            out, loss_val, global_step_val = self._sess.run([self._train_op, self._loss, self._global_step], 
+                                                            feed_dict={self._states_placeholder: states, self._action_placeholder: actions})
           
 #         print('step = %d, loss = %f' % (global_step_val, loss_val))
 #         print ("trainInfo: ", trainInfo)
