@@ -106,7 +106,7 @@ class LearningAgent(AgentInterface):
             
             if ("use_dual_state_representations" in self._settings
                         and (self._settings["use_dual_state_representations"] == True)):
-                state___ = [s[0] for s in state__]
+                state___ = [s[1] for s in state__]
                 next_state___ = [ns[1] for ns in next_state__]
             ### Validate data
             if (checkValidData(state___, action__, next_state___, reward__, verbose=True) and 
@@ -121,7 +121,7 @@ class LearningAgent(AgentInterface):
                     # print ("previous reward__: ", reward__)
                     if ("use_learned_reward_function" in self._settings
                         and (self._settings["use_learned_reward_function"] == "ic2")):
-                        reward__ = self.getForwardDynamics().predict_reward(state__, action__)
+                        reward__ = self.getForwardDynamics().predict_reward(state___, action__)
                     else:
                         agent_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
                         # print ("agent_traj shape: ", agent_traj.shape)
