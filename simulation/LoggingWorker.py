@@ -76,7 +76,7 @@ class LoggingWorker(Process):
                         settings_copy = copy.deepcopy(self._settings)
                         filename = settings_copy['save_video_to_file']
                         settings_copy['save_video_to_file'] = filename[:filename.rindex('.')] + '_round' + str(roundNum) + '_' + str(episodes) + 'eps' + filename[filename.rindex('.'):]
-                        settings_copy['visualize_expected_value'] = False
+                        # If this errors over ssh, set --visualize_expected_value=false and disable other plotting
                         try:
                             modelEvaluation("", settings=settings_copy, exp=exp) # Save a video for this checkpoint
                         except Exception as e:
@@ -84,7 +84,6 @@ class LoggingWorker(Process):
                             print(e)
                             import traceback
                             print(traceback.format_exc())
-                            raise e
                         print('Finished creating video for checkpoint round', roundNum)
                 else:
                     running = running and data_
@@ -100,16 +99,13 @@ class LoggingWorker(Process):
                  ):
                 print("Sending log email after ", timeout_, " seconds")
                 
-                if ("save_video_to_file" in self._settings
-                    and (exp is not None)):
-                    print("Saving video email function calling: ", exp)
-                    settings_copy = copy.deepcopy(self._settings)
-                    settings_copy['visualize_expected_value'] = False
-                    self._emailFunction(settings_copy, self._metaSettings, sim_time_=timesteps, simData=self._simData, exp=exp)
-                else:
-                    settings_copy = copy.deepcopy(self._settings)
-                    settings_copy['visualize_expected_value'] = False
-                    self._emailFunction(settings_copy, self._metaSettings, sim_time_=timesteps, simData=self._simData)
+                if ('checkpoint_vid_rounds' in self._settings and settings['checkpoint_vid_rounds'] is not None):
+                    if ("save_video_to_file" in self._settings
+                        and (exp is not None)):
+                        print("Saving video email function calling: ", exp)
+                        self._emailFunction(settings_copy, self._metaSettings, sim_time_=timesteps, simData=self._simData, exp=exp)
+                    else:
+                        self._emailFunction(settings_copy, self._metaSettings, sim_time_=timesteps, simData=self._simData)
                     
                 steps__ = 0
                 
