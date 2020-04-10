@@ -55,7 +55,7 @@ class LoggingWorker(Process):
             exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, render=True, index=0)
             vizData = exp.getEnvironment().render()
             # movie_writer.append_data(np.transpose(vizData))
-            print ("**********************************************sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
+#             print ("**********************************************sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
             if ("test_movie_rendering" in self._settings
                 and (self._settings["test_movie_rendering"] == True)):
                 return
