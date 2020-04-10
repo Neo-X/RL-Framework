@@ -21,7 +21,6 @@ from model.LearningUtil import kl_D_keras, setFromFlat
 import keras.backend as K
 from algorithm.SiameseNetwork import *
 
-
 tfd = tfp.distributions
 
 sys.path.append('../')
@@ -33,19 +32,19 @@ class SLACModel(SiameseNetwork):
         super(SiameseNetwork,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
         observation_spec = None
         action_spec = None
-        base_depth=32
-        latent1_size=32
-        latent2_size=256
-        kl_analytic=True
-        latent1_deterministic=False
-        latent2_deterministic=False
-        model_reward=False
-        model_discount=False
-        fps=None
-        decoder_stddev=np.sqrt(0.1, dtype=np.float32)
-        reward_stddev=None
-        name='SlacModelDistributionNetwork'
-        compressor=None
+        base_depth = 32
+        latent1_size = 32
+        latent2_size = 256
+        kl_analytic = True
+        latent1_deterministic = False
+        latent2_deterministic = False
+        model_reward = False
+        model_discount = False
+        fps = None
+        decoder_stddev = np.sqrt(0.1, dtype=np.float32)
+        reward_stddev = None
+        name = 'SlacModelDistributionNetwork'
+        compressor = None
         self.observation_spec = observation_spec
         self.action_spec = action_spec
         self.base_depth = base_depth
@@ -229,7 +228,8 @@ class SLACModel(SiameseNetwork):
         likelihood_log_probs = tf.reduce_sum(likelihood_log_probs, axis=1)
 
         image_mean_diffs = images - likelihood_dists.distribution.loc
-        render_mean_diffs = image_mean_diffs #tf.minimum(tf.maximum(tf.abs(image_mean_diffs), 0), 255)
+        #tf.minimum(tf.maximum(tf.abs(image_mean_diffs), 0), 255)        
+        render_mean_diffs = image_mean_diffs 
         reconstruction_error = tf.reduce_sum(
             tf.square(image_mean_diffs),
             axis=list(range(-len(likelihood_dists.event_shape), 0)),
@@ -276,8 +276,8 @@ class SLACModel(SiameseNetwork):
 
         if self.model_discount:
             discount_dists = self.discount_predictor(
-                latent1_posterior_samples[:, 1 : sequence_length + 1],
-                latent2_posterior_samples[:, 1 : sequence_length + 1],
+                latent1_posterior_samples[:, 1:sequence_length + 1],
+                latent2_posterior_samples[:, 1:sequence_length + 1],
             )
             discount_log_probs = discount_dists.log_prob(discounts[:, :sequence_length])
             discount_log_probs = tf.reduce_sum(discount_log_probs, axis=1)
@@ -574,8 +574,8 @@ class SLACModel(SiameseNetwork):
         return seqs  
     
     def parser(self, images, actions):
-        ### I think this code randomly parses out a sequence from the full sequence
-        ### This code now creates a sequence for every state
+        # I think this code randomly parses out a sequence from the full sequence
+        # This code now creates a sequence for every state
         seqs = {
                 'images': [],
                 'actions': []
@@ -628,9 +628,9 @@ class SLACModel(SiameseNetwork):
         data = iterator.get_next()
 # #         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
 #         data = {}
-#         ### 100 trajectories of length 100 for 64x64x3 images
+#         # 100 trajectories of length 100 for 64x64x3 images
 #         data["images"] = np.zeros((10,8,64,64,3))
-#         ### 100 trajectories of length 100 for 3 actions
+#         # 100 trajectories of length 100 for 3 actions
 #         data["actions"] = np.zeros((10,8,3))
         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
         self._loss, self._outputs = self.compute_loss(self._states_placeholder, self._action_placeholder, step_types)
@@ -654,7 +654,7 @@ class SLACModel(SiameseNetwork):
         reconstruction_loss = mse(action_true, action_pred)
         # reconstruction_loss *= 4096
         kl_loss = 1 + self._network_vae_log_var - K.square(self._network_vae) - K.exp(self._network_vae_log_var)
-        ### Using mean 
+        # Using mean 
         kl_loss = K.mean(kl_loss, axis=-1)
         kl_loss *= -0.5
         vae_loss_a = K.mean(reconstruction_loss + kl_loss)
@@ -664,9 +664,9 @@ class SLACModel(SiameseNetwork):
         
         reconstruction_loss = mse(action_true, action_pred)
         # reconstruction_loss *= 4096
-        ### log p(x_t|z_t) loss
+        # log p(x_t|z_t) loss
         kl_loss = 1 + self._seq_log_var - K.square(self._seq_z_seq) - K.exp(self._seq_log_var)
-        ### Using mean 
+        # Using mean 
         kl_loss = K.mean(kl_loss, axis=-1)
         kl_loss *= -0.5
         vae_loss_a = K.mean(reconstruction_loss + kl_loss)
@@ -801,7 +801,7 @@ class SLACModel(SiameseNetwork):
 #         hf.flush()
 #         hf.close()
 #         suffix = ".h5"
-#         ### Save models
+#         # Save models
 #         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
 #         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
 #         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
@@ -813,12 +813,12 @@ class SLACModel(SiameseNetwork):
 #         # print ("self._model._actor_train: ", self._model._actor_train)
 #         try:
 #             from keras.utils import plot_model
-#             ### Save model design as image
+#             # Save model design as image
 #             plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
 #             plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
 #             plot_model(self._modelTarget._forward_dynamics_net, to_file=fileName+"_FD_decode"+'.svg', show_shapes=True)
 #         except Exception as inst:
-#             ### Maybe the needed libraries are not available
+#             # Maybe the needed libraries are not available
 #             print ("Error saving diagrams for rl models.")
 #             print (inst)
 #             
@@ -828,12 +828,12 @@ class SLACModel(SiameseNetwork):
 #             # matplotlib.use('Agg')
 #             import matplotlib.pyplot as plt
 #             # img_ = np.reshape(viewData, (150,158,3))
-#             ### get the sequence prediction
+#             # get the sequence prediction
 #             predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
 #             
 #             img_ = predicted_y[0]
 #             img_z = predicted_y[1]
-#             ### Get first sequence in batch
+#             # Get first sequence in batch
 #             img_ = img_[0]
 #             img_x = states[0]
 #             import imageio
@@ -844,16 +844,16 @@ class SLACModel(SiameseNetwork):
 #             images_z = []
 #             for i in range(len(img_)):
 #                 img__y = np.reshape(img_[i], self._settings["fd_terrain_shape"])
-#                 images_y.append(Image.fromarray(img__y).resize((256,256))) ### upsampling
+#                 images_y.append(Image.fromarray(img__y).resize((256,256))) # upsampling
 #                 print("img_ shape", img__y.shape, " sum: ", np.sum(img__y))
 #                 # fig1 = plt.figure(2)
-#                 ### Save generated image
+#                 # Save generated image
 #                 # plt.imshow(img__y, origin='lower')
 #                 # plt.title("agent visual Data: ")
 #                 # fig1.savefig(fileName+"viz_state_"+str(i)+".png")
-#                 ### Save input image
+#                 # Save input image
 #                 img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
-#                 images_x.append(Image.fromarray(img__x).resize((256,256))) ### upsampling
+#                 images_x.append(Image.fromarray(img__x).resize((256,256))) # upsampling
 # #                 plt.imshow(img__x, origin='lower')
 # #                 plt.title("agent visual Data: ")
 # #                 fig1.savefig(fileName+"viz_state_input_"+str(i)+".png")
@@ -879,7 +879,7 @@ class SLACModel(SiameseNetwork):
                     # or
                     # settings["use_learned_reward_function"] == "dual"
                     ):
-            ### Used because we need to keep two separate RNN networks and not mix the hidden states
+            # Used because we need to keep two separate RNN networks and not mix the hidden states
             h_a = self._model.processed_a.predict([np.array([state])])
             h_b = self._model.processed_b.predict([np.array([state2])])
             state_ = self._distance_func_np((h_a, h_b))[0]
@@ -1060,7 +1060,7 @@ class SLACModel(SiameseNetwork):
 #         hf.flush()
 #         hf.close()
 #         suffix = ".h5"
-#         ### Save models
+#         # Save models
 #         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
 #         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
 #         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
@@ -1072,12 +1072,12 @@ class SLACModel(SiameseNetwork):
 #         # print ("self._model._actor_train: ", self._model._actor_train)
 #         try:
 #             from keras.utils import plot_model
-#             ### Save model design as image
+#             # Save model design as image
 #             plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
 #             plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
 #             plot_model(self._modelTarget._forward_dynamics_net, to_file=fileName+"_FD_decode"+'.svg', show_shapes=True)
 #         except Exception as inst:
-#             ### Maybe the needed libraries are not available
+#             # Maybe the needed libraries are not available
 #             print ("Error saving diagrams for rl models.")
 #             print (inst)
 #             
@@ -1087,12 +1087,12 @@ class SLACModel(SiameseNetwork):
 #             # matplotlib.use('Agg')
 #             import matplotlib.pyplot as plt
 #             # img_ = np.reshape(viewData, (150,158,3))
-#             ### get the sequence prediction
+#             # get the sequence prediction
 #             predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
 #             
 #             img_ = predicted_y[0]
 #             img_z = predicted_y[1]
-#             ### Get first sequence in batch
+#             # Get first sequence in batch
 #             img_ = img_[0]
 #             img_x = states[0]
 #             import imageio
@@ -1103,16 +1103,16 @@ class SLACModel(SiameseNetwork):
 #             images_z = []
 #             for i in range(len(img_)):
 #                 img__y = np.reshape(img_[i], self._settings["fd_terrain_shape"])
-#                 images_y.append(Image.fromarray(img__y).resize((256,256))) ### upsampling
+#                 images_y.append(Image.fromarray(img__y).resize((256,256))) # upsampling
 #                 print("img_ shape", img__y.shape, " sum: ", np.sum(img__y))
 #                 # fig1 = plt.figure(2)
-#                 ### Save generated image
+#                 # Save generated image
 #                 # plt.imshow(img__y, origin='lower')
 #                 # plt.title("agent visual Data: ")
 #                 # fig1.savefig(fileName+"viz_state_"+str(i)+".png")
-#                 ### Save input image
+#                 # Save input image
 #                 img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
-#                 images_x.append(Image.fromarray(img__x).resize((256,256))) ### upsampling
+#                 images_x.append(Image.fromarray(img__x).resize((256,256))) # upsampling
 # #                 plt.imshow(img__x, origin='lower')
 # #                 plt.title("agent visual Data: ")
 # #                 fig1.savefig(fileName+"viz_state_input_"+str(i)+".png")
@@ -1147,14 +1147,14 @@ class SLACModel(SiameseNetwork):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Loading agent: ", fileName)
         # with K.get_session().graph.as_default() as g:
-        ### Need to lead the model this way because the learning model's State expects batches...
+        # Need to lead the model this way because the learning model's State expects batches...
         forward_dynamics_net = load_keras_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
         #reward_net = load_keras_model(fileName+"_reward"+suffix, custom_objects={'contrastive_loss': contrastive_loss,
         #                                                                         "vae_loss_a": self.vae_loss_a,
         #                                                                         "vae_loss_b": self.vae_loss_b})
         # if ("simulation_model" in self.getSettings() and
         #     (self.getSettings()["simulation_model"] == True)):
-        if (True): ### Because the simulation and learning use different model types (statefull vs stateless lstms...)
+        if (True): # Because the simulation and learning use different model types (statefull vs stateless lstms...)
             self._model._forward_dynamics_net.set_weights(forward_dynamics_net.get_weights())
             self._model._forward_dynamics_net.optimizer = forward_dynamics_net.optimizer
             # self._model._reward_net.set_weights(reward_net.get_weights())
@@ -1167,7 +1167,7 @@ class SLACModel(SiameseNetwork):
         self._forward_dynamics_net = self._model._forward_dynamics_net
         self._reward_net = self._model._reward_net
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
+            print("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
         if (self._modelTarget is not None):
             self._modelTarget._forward_dynamics_net = load_keras_model(fileName+"_FD_T"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
             # self._modelTarget._reward_net = load_keras_model(fileName+"_reward_net_T"+suffix)
