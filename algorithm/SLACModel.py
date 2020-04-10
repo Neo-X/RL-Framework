@@ -1,35 +1,30 @@
-###
+
+__doc__ = """
 # python3 trainModel.py --config=settings/terrainRLImitate/PPO/SLACModel_mini.json -p 4 --bootstrap_samples=1000 --max_epoch_length=16 --rollouts=4 --skip_rollouts=true --train_actor=false --train_critic=false --epochs=32 --fd_updates_per_actor_update=64 --on_policy=fast
 ### Easy example to use with less requirements:
 # python3 -m pdb -c c trainModel.py --config=settings/MiniGrid/TagEnv/PPO/Tag_SLAC_mini.json -p 2 --bootstrap_samples=1000 --max_epoch_length=16 --rollouts=4 --skip_rollouts=true --train_actor=false --train_critic=false --epochs=32 --fd_updates_per_actor_update=64 --on_policy=fast --print_level=debug
-
-import numpy as np
-# import lasagne
-import sys
-from dill.settings import settings
-sys.path.append('../')
-from model.ModelUtil import *
-from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl_D_keras, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
-from keras.optimizers import SGD
-# from keras.utils.np_utils import to_categoricalnetwork
-import keras.backend as K
-import keras
-from keras.layers import RepeatVector
-from keras.models import Sequential, Model
-from algorithm.SiameseNetwork import *
-from util.SimulationUtil import createForwardDynamicsNetwork
-from keras.losses import mse, binary_crossentropy
+"""
 
 import functools
 import inspect
+import sys
 
+from keras.losses import mse
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 from tensorflow.python.util import nest
 
+from model.ModelUtil import *
+from model.LearningUtil import kl_D_keras, setFromFlat
+# from keras.utils.np_utils import to_categoricalnetwork
+import keras.backend as K
+from algorithm.SiameseNetwork import *
+
+
 tfd = tfp.distributions
 
+sys.path.append('../')
 
 def euclidean_distance_fd2(vects):
     x, y = vects
@@ -58,6 +53,7 @@ def vae_loss(network_vae, network_vae_log_var):
 # https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
 # instead of sampling from Q(z|X), sample epsilon = N(0,I)
 # z = z_mean + sqrt(var) * epsilon
+
 def sampling(args):
     """Reparameterization trick by sampling from an isotropic unit Gaussian.
     # Arguments
@@ -72,6 +68,7 @@ def sampling(args):
     # by default, random_normal has mean = 0 and std = 1.0
     epsilon = K.random_normal(shape=(batch, dim))
     return z_mean + K.exp(0.5 * z_log_var) * epsilon
+
 
 def display_gif(images, logdir, fps=10, max_outputs=8, counter=0):
     import moviepy.editor as mpy
@@ -92,45 +89,43 @@ def display_gif(images, logdir, fps=10, max_outputs=8, counter=0):
     clip.write_gif(logdir+str(counter)+".gif", fps=20)
 
 def map_distribution_structure(func, *dist_structure):
-  def _get_params(dist):
-    return {k: v for k, v in dist.parameters.items() if isinstance(v, tf.Tensor)}
+    def _get_params(dist):
+        return {k: v for k, v in dist.parameters.items() if isinstance(v, tf.Tensor)}
 
-  def _get_other_params(dist):
-    return {k: v for k, v in dist.parameters.items() if not isinstance(v, tf.Tensor)}
+    def _get_other_params(dist):
+        return {k: v for k, v in dist.parameters.items() if not isinstance(v, tf.Tensor)}
+ 
+    def _func(*dist_list):
+        # all dists should be instances of the same class
+        for dist in dist_list[1:]:
+            assert dist.__class__ == dist_list[0].__class__
+        dist_ctor = dist_list[0].__class__
 
-  def _func(*dist_list):
-    # all dists should be instances of the same class
-    for dist in dist_list[1:]:
-      assert dist.__class__ == dist_list[0].__class__
-    dist_ctor = dist_list[0].__class__
+        dist_other_params_list = [_get_other_params(dist) for dist in dist_list]
 
-    dist_other_params_list = [_get_other_params(dist) for dist in dist_list]
+        # all dists should have the same non-tensor params
+        for dist_other_params in dist_other_params_list[1:]:
+            assert dist_other_params == dist_other_params_list[0]
+        dist_other_params = dist_other_params_list[0]
 
-    # all dists should have the same non-tensor params
-    for dist_other_params in dist_other_params_list[1:]:
-      assert dist_other_params == dist_other_params_list[0]
-    dist_other_params = dist_other_params_list[0]
+        # filter out params that are not in the constructor's signature
+        sig = inspect.signature(dist_ctor)
+        dist_other_params = {k: v for k, v in dist_other_params.items() if k in sig.parameters}
 
-    # filter out params that are not in the constructor's signature
-    sig = inspect.signature(dist_ctor)
-    dist_other_params = {k: v for k, v in dist_other_params.items() if k in sig.parameters}
+        dist_params_list = [_get_params(dist) for dist in dist_list]
+        values_list = [list(params.values()) for params in dist_params_list]
+        values_list = list(zip(*values_list))
 
-    dist_params_list = [_get_params(dist) for dist in dist_list]
-    values_list = [list(params.values()) for params in dist_params_list]
-    values_list = list(zip(*values_list))
+        structure_list = [func(*values) for values in values_list]
 
-    structure_list = [func(*values) for values in values_list]
+        values_list = [nest.flatten(structure) for structure in structure_list]
+        values_list = list(zip(*values_list))
+        dist_params_list = [dict(zip(dist_params_list[0].keys(), values)) for values in values_list]
+        dist_list = [dist_ctor(**params, **dist_other_params) for params in dist_params_list]
 
-    values_list = [nest.flatten(structure) for structure in structure_list]
-    values_list = list(zip(*values_list))
-    dist_params_list = [dict(zip(dist_params_list[0].keys(), values)) for values in values_list]
-    dist_list = [dist_ctor(**params, **dist_other_params) for params in dist_params_list]
-
-    dist_structure = nest.pack_sequence_as(structure_list[0], dist_list)
-    return dist_structure
-
+        dist_structure = nest.pack_sequence_as(structure_list[0], dist_list)
+        return dist_structure
   return nest.map_structure(_func, *dist_structure)
-
 
 class StepType(object):
   """Defines the status of a `TimeStep` within a sequence."""
@@ -1228,7 +1223,7 @@ class SLACModel(SiameseNetwork):
     
     def predict(self, state, state2):
         """
-            Compute distance between two states
+        Compute distance between two states
         """
         # print("state shape: ", np.array(state).shape)
         state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
