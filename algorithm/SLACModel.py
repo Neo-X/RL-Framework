@@ -1077,6 +1077,130 @@ class SLACModel(SiameseNetwork):
 #           display_gif(all_images, "data/", counter=trainInfo["round"])
         return loss_val
     
+    def predict_encoding(self, state):
+        """
+            Compute distance between two states
+        """
+        # state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        if (("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True)):
+            h_a = self._model.processed_a.predict([np.array([state])])#         self.reset()
+#         hf = h5py.File(fileName+"_bounds.h5", "w")
+#         hf.create_dataset('_state_bounds', data=self.getStateBounds())
+#         hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
+#         hf.create_dataset('_action_bounds', data=self.getActionBounds())
+#         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+#             print("fd save self.getStateBounds(): ", len(self.getStateBounds()[0]))
+#         # hf.create_dataset('_resultgetStateBounds()', data=self.getResultStateBounds())
+#         # print ("fd: ", self)
+#         hf.flush()
+#         hf.close()
+#         suffix = ".h5"
+#         ### Save models
+#         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
+#         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
+#         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+#         self._model._reward_net.save_weights(fileName+"_reward"+suffix, overwrite=True)
+#         self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
+#         # self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
+#         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+#         # self._modelTarget._reward_net.save_weights(fileName+"_reward_T"+suffix, overwrite=True)
+#         # print ("self._model._actor_train: ", self._model._actor_train)
+#         try:
+#             from keras.utils import plot_model
+#             ### Save model design as image
+#             plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
+#             plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
+#             plot_model(self._modelTarget._forward_dynamics_net, to_file=fileName+"_FD_decode"+'.svg', show_shapes=True)
+#         except Exception as inst:
+#             ### Maybe the needed libraries are not available
+#             print ("Error saving diagrams for rl models.")
+#             print (inst)
+#             
+#         if (states is not None):
+#             ## Don't use Xwindows backend for this
+#             import matplotlib
+#             # matplotlib.use('Agg')
+#             import matplotlib.pyplot as plt
+#             # img_ = np.reshape(viewData, (150,158,3))
+#             ### get the sequence prediction
+#             predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
+#             
+#             img_ = predicted_y[0]
+#             img_z = predicted_y[1]
+#             ### Get first sequence in batch
+#             img_ = img_[0]
+#             img_x = states[0]
+#             import imageio
+#             import PIL
+#             from PIL import Image
+#             images_x = []
+#             images_y = []
+#             images_z = []
+#             for i in range(len(img_)):
+#                 img__y = np.reshape(img_[i], self._settings["fd_terrain_shape"])
+#                 images_y.append(Image.fromarray(img__y).resize((256,256))) ### upsampling
+#                 print("img_ shape", img__y.shape, " sum: ", np.sum(img__y))
+#                 # fig1 = plt.figure(2)
+#                 ### Save generated image
+#                 # plt.imshow(img__y, origin='lower')
+#                 # plt.title("agent visual Data: ")
+#                 # fig1.savefig(fileName+"viz_state_"+str(i)+".png")
+#                 ### Save input image
+#                 img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
+#                 images_x.append(Image.fromarray(img__x).resize((256,256))) ### upsampling
+# #                 plt.imshow(img__x, origin='lower')
+# #                 plt.title("agent visual Data: ")
+# #                 fig1.savefig(fileName+"viz_state_input_"+str(i)+".png")
+# #                 img__z = np.reshape(img_z[i], self._settings["fd_terrain_shape"])
+# #                 images_z.append(img__z)
+#                 
+#             imageio.mimsave(fileName+"viz_state_input_"+'.gif', images_x, duration=0.5,)
+#             imageio.mimsave(fileName+"viz_conditional_"+'.gif', images_y, duration=0.5,)
+# #             imageio.mimsave(fileName+"viz_marginal_"+'.gif', images_z, duration=0.5,)
+        else:
+            h_a = self._model._forward_dynamics_net.predict([state])[0]
+        return h_a
+    
+    def predict(self, state, state2):
+        """
+            Compute distance between two states
+        """
+        # print("state shape: ", np.array(state).shape)
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        state2 = np.array(norm_state(state2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        if ((("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True))
+                    # or
+                    # settings["use_learned_reward_function"] == "dual"
+                    ):
+            ### Used because we need to keep two separate RNN networks and not mix the hidden states
+            h_a = self._model.processed_a.predict([np.array([state])])
+            h_b = self._model.processed_b.predict([np.array([state2])])
+            state_ = self._distance_func_np((h_a, h_b))[0]
+            # print ("siamese dist: ", state_)
+            # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
+        else:
+            state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
+        # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
+        # print("state_ shape: ", np.array(state_).shape)
+        return state_
+    
+    def predictWithDropout(self, state, action):
+        # "dropout"
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        self._model.setStates(state)
+        self._model.setActions(action)
+        state_ = scale_state(self._forwardDynamics_drop()[0], self.getStateBounds())
+        return state_
+    
+    def predict_std(self, state, action, p=1.0):
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        state_ = self._forwardDynamics_std() * (action_bound_std(self.getStateBounds()))
+        return state_
+    
     def predict_encoding(self, state, action, marginal=None):
         """
             Compute distance between two states
@@ -1113,7 +1237,6 @@ class SLACModel(SiameseNetwork):
         # critic_next_time_step = critic_next_time_step._replace(reward=approx_log_p_xT_value)
         return np.array(reward_)
     
-    
     def predict_reward(self, state, action):
         """
             Predict reward which is inverse of distance metric
@@ -1131,6 +1254,14 @@ class SLACModel(SiameseNetwork):
         data = self.parser(images, actions)
         images = data["images"]
         actions = data["actions"]
+        
+#         images = np.reshape(images, tuple([1]) + images.shape[:1] + tuple(img_size))
+#         actions = np.reshape(actions, tuple([1]) + actions.shape)
+#         latent_samples_and_dists = self._model_network.sample_posterior(
+#                         images, actions, experience.step_type
+#                     )
+#         latents, dists = latent_samples_and_dists
+#         l1dist, l2dist = dists
         
         # Approximate log p(x_T | x_{1:T-1}, a_{1:T-1})
 #         step_types = tf.fill([batch_size, sequence_length + 1], StepType.MID)
@@ -1160,16 +1291,79 @@ class SLACModel(SiameseNetwork):
             
         return h_a
     
+    def predict_batch(self, states, actions):
+        ## These input should already be normalized.
+        return self.fd([states, actions, 0])[0]
+    
+    def predict_reward_batch(self, states, actions):
+        """
+            This data should already be normalized
+        """
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        predicted_reward = self.reward([states, actions, 0])[0]
+        return predicted_reward
+    
+    def predict_reward_(self, states, states2):
+        """
+            This data should already be normalized
+        """
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        actions = np.array(norm_state(states2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        h_a = self._model.processed_a_r_seq.predict([states])
+        h_b = self._model.processed_b_r_seq.predict([states2])
+        # print ("h_b shape: ", h_b.shape) 
+        predicted_reward = np.array([self._distance_func_np((np.array([h_a_]), np.array([h_b_])))[0] for h_a_, h_b_ in zip(h_a[0], h_b[0])])
+        # print ("predicted_reward_: ", predicted_reward)
+        # predicted_reward = self._model._reward_net_seq.predict([states, actions], batch_size=1)[0]
+        return predicted_reward
+
     def bellman_error(self, states, actions, result_states, rewards):
         self.reset()
-
-        errors=[]
-        predicted_y = self._model._forward_dynamics_net.predict([states], batch_size=sequences0.shape[0])
-        targets__ = np.mean(targets_, axis=1)
-        errors.append( compute_accuracy(predicted_y, targets__) )
-        # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
-        # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
-        te_acc = np.mean(errors)
+        if (("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True)):
+            errors=[]
+       
+            predicted_y = self._model._forward_dynamics_net.predict([states], batch_size=sequences0.shape[0])
+            # print ("fd error, predicted_y: ", predicted_y)
+            targets__ = np.mean(targets_, axis=1)
+            # print ("fd error, targets_ : ", targets_)
+            # print ("fd error, targets__: ", targets__)
+            errors.append( compute_accuracy(predicted_y, targets__) )
+            # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
+            # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
+            te_acc = np.mean(errors)
+        else:
+            states = np.concatenate((states, result_states), axis=0)
+            te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
+        
+            # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
+#             predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
+            te_acc = 0
+            
+        # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
+        return te_acc
+    
+    def reward_error(self, states, actions, result_states, rewards):
+        # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
+        self.reset()
+        if (("train_LSTM_Reward" in self._settings)
+                    and (self._settings["train_LSTM_Reward"] == True)):
+            errors=[0]
+#             predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
+#             errors.append( np.mean(predicted_y[0] - states ))
+            # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
+            # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
+            te_acc = np.mean(errors)
+        else:
+            states = np.concatenate((states, result_states), axis=0)
+            te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
+        
+            # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
+            predicted_y = self._model._reward_net.predict([te_pair1, te_pair2])
+            te_acc = compute_accuracy(predicted_y, te_y)
             
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
         return te_acc
