@@ -628,7 +628,7 @@ class SLACModel(SiameseNetwork):
         step_types = tf.fill([1,8], StepType.MID)
         self._future_obs_likelihoods = self.compute_future_observation_likelihoods(self._action_placeholder_1, step_types, self._states_placeholder_1)
         
-        self._global_step = tf.train.create_global_step()
+        self._global_step = tf.compat.v1.train.get_or_create_global_step()
         self._adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
         self._train_op = self._adam_optimizer.minimize(self._loss, global_step=self._global_step)
         
