@@ -75,10 +75,6 @@ class OpenAIGymEnv(SimInterface):
     def getEvaluationData(self):
         return self.getEnvironment().getEvaluationData()
     
-    def finish(self):
-        # self._exp.finish()
-        pass
-        
     def step(self, action):
         action_ = np.array(action)
         if (self.getSettings()['render']):
