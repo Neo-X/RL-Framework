@@ -7,6 +7,7 @@ __doc__ = """
 
 import functools
 import inspect
+import pdb
 import sys
 
 from keras.losses import mse
@@ -664,9 +665,8 @@ class SLACModel(SiameseNetwork):
 
     def reset(self):
         """
-            Reset any state for the agent model
+        Reset any state for the agent model
         """
-        pass
 #         self._model.reset()
 #         self._model._reward_net.reset_states()
 #         self._model._forward_dynamics_net.reset_states()
@@ -745,21 +745,14 @@ class SLACModel(SiameseNetwork):
         """
         # print ("fd: ", self)
         # print ("state length: ", len(self.getStateBounds()[0]))
-        update_data = True
-        if (update_data):
-            img_size = self.getSettings()["fd_terrain_shape"]
-            action_size = 3
-            reward_size = 1
-            # data_array = np.zeros((32,16,np.prod(img_size) + action_size + reward_size))
-            # data_array = np.concatenate([data1, data2, data4, data5,data6,data7])
-            data_array = states
-            
-            self._batch_size = 32
-            self._sequence_length = 8
-            self.reset()
-            shuffle = True
-            num_epochs = None
-            states = states.reshape(data_array.shape[:2] + tuple(img_size))
+        
+        img_size = self.getSettings()["fd_terrain_shape"]
+        data_array = states
+
+        self._batch_size = 32
+        self._sequence_length = 8
+        self.reset()
+        states = states.reshape(data_array.shape[:2] + tuple(img_size))
         
         if self.getSettings().get('anneal_learning_rate', False):
             K.set_value(self._model._forward_dynamics_net.optimizer.lr, np.float32(self.getSettings()['fd_learning_rate']) * p)
@@ -914,6 +907,7 @@ class SLACModel(SiameseNetwork):
         action_size = 3
         state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         action = np.array(norm_state(action, self.getActionBounds()), dtype=self.getSettings()['float_type'])
+        # pdb.set_trace()
         
         images = np.reshape(state, state.shape[:1] + tuple(img_size))
         actions = np.reshape(action, action.shape)

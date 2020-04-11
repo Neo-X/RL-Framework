@@ -469,12 +469,7 @@ class LearningAgent(AgentInterface):
                                 print("Policy Loss: ", loss_)
                     print ("Done lstm policy training")
                 
-                if ((("train_LSTM_FD" in self._settings)
-                     and (self._settings["train_LSTM_FD"] == True))
-                    or
-                    (("train_LSTM_Reward" in self._settings)
-                    and (self._settings["train_LSTM_Reward"] == True))
-                    ):
+                if self._settings.get("train_LSTM_FD", False) or self._settings.get("train_LSTM_Reward", False):
                     use_random_sequence_length_for_lstm = False
                     if ("use_random_sequence_length_for_lstm" in self._settings
                         and (self._settings["use_random_sequence_length_for_lstm"] == True)):
@@ -490,8 +485,8 @@ class LearningAgent(AgentInterface):
                     updates___ = max(1, int((len(_states)/batch_size_lstm_fd) * self._settings["fd_updates_per_actor_update"]))
                     if ( "rnn_updates" in self._settings ):
                         updates___ = int(self._settings["rnn_updates"])
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print ("num trajectories: ", len(_states), " num updates: ", updates___)
+                    # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    log.info("num trajectories: {}, num updates: {}".format(len(_states), updates___))
                 
                     batch_size_lstm_fd = 4
                     if ("lstm_batch_size" in self._settings):
@@ -526,8 +521,7 @@ class LearningAgent(AgentInterface):
                                 
                         # Updates over Multi-task data
                         if type(self._settings["sim_config_file"]) == list:
-                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                    print("Additional Multi-task training fd: ")
+                            log.info("Additional Multi-task training fd: ")
                             for e in range(updates___):   
                                 (state_,
                                  action_,
@@ -578,9 +572,7 @@ class LearningAgent(AgentInterface):
                             log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                                 
                         # Updates over Multi-task data
-                        if (type(self._settings["sim_config_file"]) == list
-                            # and False
-                            ):
+                        if type(self._settings["sim_config_file"]) == list:
                             log.info("Additional Multi-task reward training : ")
                             for e in range(updates___):   
                                 (state_,
@@ -609,25 +601,23 @@ class LearningAgent(AgentInterface):
                 # print("Not Falls: ", _falls)
                 # print("Rewards: ", _rewards)
                 # print("Actions after: ", _actions)
-            if ( "refresh_rewards" in self._settings
-                 and (self._settings["refresh_rewards"] == "lstm_fd")):
+            if self._settings.get("refresh_rewards", None) == "lstm_fd":
                 rlPrint(self._settings, "train", "Refreshing rewards.")
                 self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
                                       __exp_actions, __G_t, __datas)
             loss = 0
-            additional_on_poli_trianing_updates = 1
-            if ( "additional_on_policy_training_updates" in self._settings
-                 and (self._settings["additional_on_policy_training_updates"] != False)):
-                additional_on_poli_trianing_updates = self._settings["additional_on_policy_training_updates"]
+            additional_on_poli_training_updates = 1
+            if self._settings.get("additional_on_policy_training_updates", False) != False:
+                additional_on_poli_training_updates = self._settings["additional_on_policy_training_updates"]
             # if ("perform_multiagent_training" in self._settings): # Reduce number of updates by agent count
-            #     additional_on_poli_trianing_updates = additional_on_poli_trianing_updates / self._settings["perform_multiagent_training"]
+            #     additional_on_poli_training_updates = additional_on_poli_training_updates / self._settings["perform_multiagent_training"]
             # The data should be seen ~ 4 times
-            additional_on_poli_trianing_updates = int(np.ceil(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / batch_size_) * additional_on_poli_trianing_updates))
+            additional_on_poli_training_updates = int(np.ceil(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / batch_size_) * additional_on_poli_training_updates))
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                print("additional_on_poli_trianing_updates: ", additional_on_poli_trianing_updates)
+                print("additional_on_poli_training_updates: ", additional_on_poli_training_updates)
             
-            if ( additional_on_poli_trianing_updates < 1 ): ## should have at least one training update
-                additional_on_poli_trianing_updates = 1  
+            if ( additional_on_poli_training_updates < 1 ): ## should have at least one training update
+                additional_on_poli_training_updates = 1  
                     
             ## This lets the model do most of the training and batching. more efficient
             if ("model_perform_batch_training" in self._settings 
@@ -640,12 +630,12 @@ class LearningAgent(AgentInterface):
                 batch_ratio = batch_ratio * data_ratio
                 
                 
-                additional_on_poli_trianing_updates_ = self._settings["additional_on_policy_training_updates"]
-                if ( additional_on_poli_trianing_updates_ < 1 ): ## should have at least one training update
-                    additional_on_poli_trianing_updates_ = 1
+                additional_on_poli_training_updates_ = self._settings["additional_on_policy_training_updates"]
+                if ( additional_on_poli_training_updates_ < 1 ): ## should have at least one training update
+                    additional_on_poli_training_updates_ = 1
                 if (self._settings['train_critic']):
                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self._expBuff.getNonMBAEBatch(min(self._expBuff.samples(), self._settings["experience_length"]))
-                    vf_updates = int(additional_on_poli_trianing_updates_ * batch_ratio)
+                    vf_updates = int(additional_on_poli_training_updates_ * batch_ratio)
                     if ("critic_updates_per_actor_update" in self._settings 
                         and (self._settings['critic_updates_per_actor_update'] > 1)):
                         vf_updates = int(vf_updates * self._settings['critic_updates_per_actor_update'])
@@ -664,7 +654,7 @@ class LearningAgent(AgentInterface):
                         states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self.getFDExperience().get_batch(min(self._expBuff.samples(), self._settings["experience_length"]))
                     else:
                         states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self.getExperience().get_batch(min(self._expBuff.samples(), self._settings["experience_length"]))
-                    fd_updates = int(additional_on_poli_trianing_updates_ * batch_ratio)
+                    fd_updates = int(additional_on_poli_training_updates_ * batch_ratio)
                     if ("fd_updates_per_actor_update" in self._settings 
                         and (self._settings['fd_updates_per_actor_update'] > 1)):
                         fd_updates = int(max(fd_updates * self._settings['fd_updates_per_actor_update'], 1))
@@ -680,12 +670,31 @@ class LearningAgent(AgentInterface):
                 
                 if (self._settings['train_actor']):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print("Performing ", int(additional_on_poli_trianing_updates_), " policy epoch(s)")
+                        print("Performing ", int(additional_on_poli_training_updates_), " policy epoch(s)")
                         
-                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self._expBuff.get_batch(min(self._expBuff.samples(), self._settings["experience_length"]))
-                    loss_ = self.getPolicy().trainActor(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__, 
-                                                     advantage=advantage__, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
-                                                     p=p, updates=int(additional_on_poli_trianing_updates_), batch_size=batch_size_)
+                    (states__,
+                     actions__,
+                     result_states__,
+                     rewards__,
+                     falls__,
+                     G_ts__,
+                     exp_actions__,
+                     advantage__,
+                     datas__) = self._expBuff.get_batch(min(self._expBuff.samples(), self._settings["experience_length"]))
+                    
+                    loss_ = self.getPolicy().trainActor(
+                        states=states__,
+                        actions=actions__,
+                        rewards=rewards__,
+                        result_states=result_states__,
+                        falls=falls__,
+                        advantage=advantage__,
+                        exp_actions=exp_actions__,
+                        G_t=G_ts__,
+                        forwardDynamicsModel=self._fd,
+                        p=p,
+                        updates=int(additional_on_poli_training_updates_),
+                        batch_size=batch_size_)
                 dynamicsLoss = 0
                 
                 if ('state_normalization' in self._settings and 
@@ -701,8 +710,7 @@ class LearningAgent(AgentInterface):
                     
                 return (loss, dynamicsLoss)
                         
-                                
-            for ii__ in range(additional_on_poli_trianing_updates):
+            for ii__ in range(additional_on_poli_training_updates):
                 trainInfo["iteration"] = ii__
                 if (self._settings['train_forward_dynamics']
                     and not ((("train_LSTM_FD" in self._settings)

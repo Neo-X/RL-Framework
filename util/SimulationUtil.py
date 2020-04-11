@@ -1,4 +1,6 @@
+
 import copy
+import logging
 import sys
 from builtins import isinstance
 sys.setrecursionlimit(50000)
@@ -16,6 +18,8 @@ import dill as cPickle
 import gc
 # from guppy import hpy; h=hpy()
 # from memprof import memprof
+
+log = logging.getLogger(os.path.basename(__file__))
 
 def updateSettings(settings1, newSettings):
     """
@@ -1104,7 +1108,7 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                                   action_bounds=action_bounds, settings_=settings,
                                   reward_bounds=reward_bounds, 
                                   print_info=print_info)
-                    print("Loaded FD algorithm: ", forwardDynamicsModel)
+                    log.info("Loaded FD algorithm: {}".format(forwardDynamicsModel))
                     # return model
                 else:
                     print ("Unknown learning algorithm type: " + str(algorihtm_type))

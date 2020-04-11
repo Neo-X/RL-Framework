@@ -1005,9 +1005,9 @@ def trainModelParallel(inputData):
                         dynamicsRewardLosses.append(dynamicsRewardLoss)
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                         if (settings['train_forward_dynamics']):
-                            print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
+                            log.info(''.join(map(str, ["Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss)])))
                         else:
-                            print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
+                            log.info(''.join(map(str, ["Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error)])))
                     # discounted_values.append(discounted_sum)
                     
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
@@ -1606,9 +1606,11 @@ def main():
     # TODO set log path more intelligently, including date/time
     if not os.path.isdir('training_logs'): os.mkdir('training_logs')
     log_fn = "training_logs/trainModel_log_{}.log".format(random_string(8))
+
+    # You could change the logging level by setting the level= argument here, e.g. via the settings file
     logging.basicConfig(
         level=logging.INFO,
-        format="[%(filename)s:%(lineno)s:%(thread)d:%(process)d - %(funcName)15s() ] %(message)s",
+        format="[%(filename)s:%(lineno)s:%(thread)d:%(process)d - %(funcName)10s() ] %(message)s",
         handlers=[
             logging.FileHandler(log_fn),
             logging.StreamHandler()
