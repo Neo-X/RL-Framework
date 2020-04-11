@@ -581,16 +581,29 @@ class LearningAgent(AgentInterface):
                         if (type(self._settings["sim_config_file"]) == list
                             # and False
                             ):
-                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                print("Additional Multi-task reward training : ")
+                            log.info("Additional Multi-task reward training : ")
                             for e in range(updates___):   
-                                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm_fd*2, self.getFDExperience().samplesTrajectory()), 
-                                                                                                                                                                  randomLength=use_random_sequence_length_for_lstm,
-                                                                                                                                                                  randomStart=use_random_sequence_length_for_lstm)
+                                (state_,
+                                 action_,
+                                 resultState_,
+                                 reward_,
+                                 fall_,
+                                 G_ts_,
+                                 exp_actions,
+                                 advantage_,
+                                 datas_) = self.getFDExperience().get_multitask_trajectory_batch(
+                                     batch_size=min(batch_size_lstm_fd*2, self.getFDExperience().samplesTrajectory()),
+                                     randomLength=use_random_sequence_length_for_lstm,
+                                     randomStart=use_random_sequence_length_for_lstm)
                                 trainInfo["iteration"] = e
-                                dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_, falls=fall_, datas=datas_, trainInfo=trainInfo)
-                                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                    print("Forward Dynamics Loss: ", dynamicsLoss)
+                                dynamicsLoss = self._fd.train(states=state_,
+                                                              actions=action_,
+                                                              result_states=resultState_,
+                                                              rewards=reward_,
+                                                              falls=fall_,
+                                                              datas=datas_,
+                                                              trainInfo=trainInfo)
+                                log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                     
                 # pass
                 # print("Not Falls: ", _falls)
@@ -663,8 +676,7 @@ class LearningAgent(AgentInterface):
                                                   result_states=result_states__, rewards=rewards__, 
                                                   updates=fd_updates, batch_size=value_function_batch_size,
                                                   datas=datas_, trainInfo=trainInfo)
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print("Forward Dynamics Loss: ", dynamicsLoss)
+                    log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                 
                 if (self._settings['train_actor']):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -721,8 +733,7 @@ class LearningAgent(AgentInterface):
                                 and (self._settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")):
                                 rewards__ = (rewards__ * 0) + 1
                             dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__, lstm=False, datas=datas__, trainInfo=trainInfo)
-                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                print("Forward Dynamics Loss: ", dynamicsLoss)
+                            log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                             
                                 # loss = self.getPolicy().trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                             if (self._settings['train_critic_on_fd_output'] and 
@@ -737,16 +748,43 @@ class LearningAgent(AgentInterface):
                                     print("Performing Dyna Update, loss: ", loss)
                                 # print("Updated params: ", self.getPolicy().getNetworkParameters()[0][0][0])
                     else:
-                        if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
+                        if self._settings.get('keep_seperate_fd_exp_buffer', False):
                             # print("Using seperate (off-policy) exp mem for FD model")
-                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self.getFDExperience().get_batch(value_function_batch_size)
-                            dynamicsLoss = self._fd.train(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, lstm=False, datas=datas__, trainInfo=trainInfo)
+                            (states__,
+                             actions__,
+                             result_states__,
+                             rewards__,
+                             falls__,
+                             G_ts__,
+                             exp_actions__,
+                             advantage__,
+                             datas__) = self.getFDExperience().get_batch(value_function_batch_size)
+                            dynamicsLoss = self._fd.train(states=states__,
+                                                          actions=actions__,
+                                                          rewards=rewards__,
+                                                          result_states=result_states__,
+                                                          lstm=False,
+                                                          datas=datas__,
+                                                          trainInfo=trainInfo)
                         else:
                             print("tmp_states:", np.array(tmp_states).shape)
-                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self.getExperience().get_batch(value_function_batch_size)
-                            dynamicsLoss = self._fd.train(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, lstm=False, datas=datas__, trainInfo=trainInfo)
-                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                print("Forward Dynamics Loss: ", dynamicsLoss)
+                            (states__,
+                             actions__,
+                             result_states__,
+                             rewards__,
+                             falls__,
+                             G_ts__,
+                             exp_actions__,
+                             advantage__,
+                             datas__) = self.getExperience().get_batch(value_function_batch_size)
+                            dynamicsLoss = self._fd.train(states=states__,
+                                                          actions=actions__,
+                                                          rewards=rewards__,
+                                                          result_states=result_states__,
+                                                          lstm=False,
+                                                          datas=datas__,
+                                                          trainInfo=trainInfo)
+                        log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                                 
                         if (self._settings['train_critic_on_fd_output'] and 
                             (( self.getPolicy().numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
@@ -916,7 +954,6 @@ class LearningAgent(AgentInterface):
                 logExperimentData({}, "loss_actor", loss_actor, self._settings)
                                
         else: ## Off-policy
-            
             for update in range(self._settings['training_updates_per_sim_action']): ## Even more training options...
                 t0 = time.time()
                 for i in range(self._settings['critic_updates_per_actor_update']):
@@ -967,9 +1004,13 @@ class LearningAgent(AgentInterface):
                         # print("Using seperate (off-policy) exp mem for FD model")
                         _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage, _datas = self.getFDExperience().get_batch(value_function_batch_size)
                         
-                    dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards, datas=_datas, trainInfo=trainInfo)
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print("Forward Dynamics Loss: ", dynamicsLoss)
+                    dynamicsLoss = self._fd.train(states=_states,
+                                                  actions=_actions,
+                                                  result_states=_result_states,
+                                                  rewards=_rewards,
+                                                  datas=_datas,
+                                                  trainInfo=trainInfo)
+                    log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                     
                     if ( 'give_mbae_actions_to_critic' in self._settings and 
                          (self._settings['give_mbae_actions_to_critic'] == False)):
@@ -1641,7 +1682,13 @@ class LearningWorker(Process):
             if self._agent._expBuff.samples() > self._agent._settings["batch_size"] and ((step_ >= self._agent._settings['sim_action_per_training_update']) ):
                 __states, __actions, __result_states, __rewards, __falls, __G_ts, __exp_actions, __advantage = self._agent._expBuff.get_batch(self._agent._settings["batch_size"])
                 # print("States: " + str(__states) + " ResultsStates: " + str(__result_states) + " Rewards: " + str(__rewards) + " Actions: " + str(__actions))
-                (loss, dynamicsLoss) = self._agent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls, trainInfo=trainInfo)
+                (loss, dynamicsLoss) = self._agent.train(_states=__states,
+                                                         _actions=__actions,
+                                                         _rewards=__rewards,
+                                                         _result_states=__result_states,
+                                                         _falls=__falls,
+                                                         trainInfo=trainInfo)
+                
                 # print("Master Agent Running training step, loss: " + str(loss) + " PID " + str(os.getpid()))
                 # print("Updated parameters: " + str(self._agent._pol.getNetworkParameters()[3]))
                 if not np.isfinite(loss):

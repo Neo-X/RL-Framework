@@ -1608,7 +1608,7 @@ def main():
     log_fn = "training_logs/trainModel_log_{}.log".format(random_string(8))
     logging.basicConfig(
         level=logging.INFO,
-        format="[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
+        format="[%(filename)s:%(lineno)s:%(thread)d:%(process)d - %(funcName)15s() ] %(message)s",
         handlers=[
             logging.FileHandler(log_fn),
             logging.StreamHandler()
