@@ -122,6 +122,9 @@ class LearningAgent(AgentInterface):
                     if ("use_learned_reward_function" in self._settings
                         and (self._settings["use_learned_reward_function"] == "ic2")):
                         reward__ = self.getForwardDynamics().predict_reward(state___, action__)
+                    elif ("use_learned_reward_function" in self._settings
+                        and (self._settings["use_learned_reward_function"] == "ic2_marginal")):
+                        reward__ = self.getForwardDynamics().predict_encoding(state___, action__)
                     else:
                         agent_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
                         # print ("agent_traj shape: ", agent_traj.shape)
