@@ -915,6 +915,32 @@ class SLACModel(SiameseNetwork):
         # (B,) Likelihoods of the last image, x_T.
         approx_log_p_xT_value = approx_p_xT_pdf.log_prob(x_T)
         return approx_log_p_xT_value
+    
+    def compute_latent_dists(self, actions, step_types, images):
+        """ Estimate:
+              p(x_T=future_image | a_{1:T-1}=actions, x_{1:T-1}=past_images) 
+                =E_{z_{T} ~ p(z_{T} | x_{1:T-1}, a_{1:T-1})} p(x_{T} | z_{T} )
+
+        :param actions: (B, T-1, A) action sequence
+        :param step_types: (B, T) step-type sequence
+        :param images: (B, T, ...) observed images sequence
+        :returns: 
+        :rtype: 
+        """
+
+        x_1toTm1 = images[:, :-1]
+        x_T = images[:, -1]
+        del images
+
+        # Sample z_{t+1} ~ p(z_{t+1} | x_{1:t}, a_{1:t})
+        # TODO compute a bunch of z_{t+1}! Not just one. This will better-estimate the expectation. 
+        ((l1_samples, l2_samples), (l1_dist, l2_dist)) = (self.sample_prior_or_posterior(actions=actions, step_types=step_types, images=x_1toTm1))
+#         ((l1_samples, l2_samples), _) = (self.sample_prior_or_posterior(actions=actions, step_types=step_types, images=x_1toTm1))
+        # (z^1_T, z^2_T)
+        last_latents = (l1_samples[:, -1], l2_samples[:, -1])
+        last_dists = (l1_dist[:, -1], l2_dist[:, -1])
+
+        return last_latents, last_dists
 
     # def compute_future_latent_log_prob(self, actions, step_types, images):
         # latent1_dist.log_prob(
@@ -996,7 +1022,7 @@ class SLACModel(SiameseNetwork):
         # def compute_future_observation_likelihoods(self, actions, step_types, images):
         step_types = tf.fill([1,8], StepType.MID)
         self._future_obs_likies = self.compute_future_observation_likelihoods(self._action_placeholder_1, step_types, self._states_placeholder_1)
-        self._sample_prior_or_posterior = self.sample_prior_or_posterior(self._action_placeholder_1, step_types, self._states_placeholder_1)
+        self._compute_latent_dists = self.compute_latent_dists(self._action_placeholder_1, step_types, self._states_placeholder_1)
         
         self._global_step = tf.train.create_global_step()
         self._adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
@@ -1231,7 +1257,7 @@ class SLACModel(SiameseNetwork):
 #             actions=actions, step_types=step_types, images=images)
         reward_ = []
         for i in range (len(images)):
-            (latent1_samples, latent2_samples), (latent1_dists, latent2_dists) = self._sess.run([self._sample_prior_or_posterior], 
+            (latent1_sample, latent2_sample), (latent1_dist, latent2_dist) = self._sess.run([self._compute_latent_dists], 
                                                 feed_dict={self._states_placeholder_1: [images[i]], self._action_placeholder_1: [actions[i]]})
             reward_.append([0])
         # critic_next_time_step = critic_next_time_step._replace(reward=approx_log_p_xT_value)
