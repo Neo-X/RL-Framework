@@ -28,6 +28,10 @@ class LearningAgent(AgentInterface):
         self._sampler = None
         self._expBuff = None
         self._expBuff_FD = None
+        if ("use_learned_reward_function" in self._settings
+            and (self._settings["use_learned_reward_function"] == "ic2_marginal")):
+            from model.buffers import GaussianCircularBuffer
+            self._marginal = GaussianCircularBuffer(8, self._settings["ic2_marginal_window_size"])
         
     def reset(self):
         self.getPolicy().reset()
@@ -124,7 +128,11 @@ class LearningAgent(AgentInterface):
                         reward__ = self.getForwardDynamics().predict_reward(state___, action__)
                     elif ("use_learned_reward_function" in self._settings
                         and (self._settings["use_learned_reward_function"] == "ic2_marginal")):
-                        reward__ = self.getForwardDynamics().predict_encoding(state___, action__)
+                        latent_sample = self.getForwardDynamics().predict_encoding(state___, action__)
+                        reward__ = np.zeros((latent_sample.shape[0], 1))
+                        for k in range(latent_sample.shape[0]):
+                            reward__[k] = self._marginal.logprob(latent_sample[k])
+                            self._marginal.add(latent_sample[k])
                     else:
                         agent_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
                         # print ("agent_traj shape: ", agent_traj.shape)

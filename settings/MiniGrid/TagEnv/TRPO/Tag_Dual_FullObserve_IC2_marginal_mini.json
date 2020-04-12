@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "TagEnvFullyObserved-1particle-flatobs-dualstate-16x16-v0/SLAC_mini_14",
+"data_folder": "TagEnvFullyObserved-1particle-flatobs-dualstate-16x16-v0/IC2_marginal_mini_14",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -342,6 +342,7 @@
 	"comment__": "Recompute the rewards using the learning reward model.",
 "refresh_rewards": true,
 "return_rnn_sequence": true,
+"ic2_marginal_window_size": 50000,
 "experiment_logging": {
 	"use_comet": true, 
 	"project_name": "ic2"

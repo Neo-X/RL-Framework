@@ -934,13 +934,13 @@ class SLACModel(SiameseNetwork):
 
         # Sample z_{t+1} ~ p(z_{t+1} | x_{1:t}, a_{1:t})
         # TODO compute a bunch of z_{t+1}! Not just one. This will better-estimate the expectation. 
-        ((l1_samples, l2_samples), (l1_dist, l2_dist)) = (self.sample_prior_or_posterior(actions=actions, step_types=step_types, images=x_1toTm1))
+        ((l1_samples, l2_samples), _) = (self.sample_prior_or_posterior(actions=actions, step_types=step_types, images=x_1toTm1))
 #         ((l1_samples, l2_samples), _) = (self.sample_prior_or_posterior(actions=actions, step_types=step_types, images=x_1toTm1))
         # (z^1_T, z^2_T)
         last_latents = (l1_samples[:, -1], l2_samples[:, -1])
-        last_dists = (l1_dist[:, -1], l2_dist[:, -1])
+#         last_dists = (l1_dist[:, -1], l2_dist[:, -1])
 
-        return last_latents, last_dists
+        return last_latents
 
     # def compute_future_latent_log_prob(self, actions, step_types, images):
         # latent1_dist.log_prob(
@@ -1257,9 +1257,11 @@ class SLACModel(SiameseNetwork):
 #             actions=actions, step_types=step_types, images=images)
         reward_ = []
         for i in range (len(images)):
-            (latent1_sample, latent2_sample), (latent1_dist, latent2_dist) = self._sess.run([self._compute_latent_dists], 
+#             (latent1_sample, latent2_sample), (latent1_dist, latent2_dist) = self._sess.run([self._compute_latent_dists], 
+#                                                 feed_dict={self._states_placeholder_1: [images[i]], self._action_placeholder_1: [actions[i]]})
+            latent_samples = self._sess.run([self._compute_latent_dists], 
                                                 feed_dict={self._states_placeholder_1: [images[i]], self._action_placeholder_1: [actions[i]]})
-            reward_.append([0])
+            reward_.append(latent_samples[0][0])
         # critic_next_time_step = critic_next_time_step._replace(reward=approx_log_p_xT_value)
         return np.array(reward_)
     
