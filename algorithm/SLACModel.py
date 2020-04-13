@@ -325,15 +325,15 @@ class Compressor(tf.Module):
 class DecoderSmall(tf.Module):
     """Probabilistic decoder for `p(x_t | z_t)`."""
 
-    def __init__(self, base_depth, channels=3, scale=1.0, name=None):
+    def __init__(self, base_depth, channels=3, scale=1.0, name=None, sequence_length=8):
         super(DecoderSmall, self).__init__(name=name)
         self.scale = scale
         conv_transpose = functools.partial(
             tf.keras.layers.Conv2DTranspose, padding="SAME", activation=tf.nn.leaky_relu
         )
-        self.conv_transpose1 = conv_transpose(8 * base_depth, 4, padding="VALID")
+        self.conv_transpose1 = conv_transpose(sequence_length * base_depth, 4, padding="VALID")
 #         self.conv_transpose2 = conv_transpose(4 * base_depth, 3, 2)
-        self.conv_transpose3 = conv_transpose(2 * base_depth, 3, 2)
+        self.conv_transpose3 = conv_transpose(int(sequence_length/2) * base_depth, 3, 2)
 #         self.conv_transpose4 = conv_transpose(base_depth, 3, 2)
         self.conv_transpose5 = conv_transpose(channels, 5, 2)
 
@@ -361,7 +361,7 @@ class DecoderSmall(tf.Module):
 class CompressorSmall(tf.Module):
     """Feature extractor."""
 
-    def __init__(self, base_depth, feature_size, name=None):
+    def __init__(self, base_depth, feature_size, name=None, sequence_length=8):
         super(CompressorSmall, self).__init__(name=name)
         self.feature_size = feature_size
         conv = functools.partial(
@@ -369,9 +369,9 @@ class CompressorSmall(tf.Module):
         )
         self.conv1 = conv(base_depth, 5, 2)
 #         self.conv2 = conv(2 * base_depth, 3, 2)
-        self.conv3 = conv(4 * base_depth, 3, 2)
+        self.conv3 = conv( int(sequence_length/2) * base_depth, 3, 2)
 #         self.conv4 = conv(8 * base_depth, 3, 2)
-        self.conv5 = conv(8 * base_depth, 4, padding="VALID")
+        self.conv5 = conv(sequence_length * base_depth, 4, padding="VALID")
 
     def __call__(self, image):
         image_shape = tf.shape(image)[-3:]
@@ -415,6 +415,12 @@ class SLACModel(SiameseNetwork):
         else:
             self.latent1_size = latent1_size
             self.latent2_size = latent2_size
+        
+        ### Not a great name but this will control the length of the sequences used for training
+        self._sequence_length = 8
+        if ("shorter_smaller_rnn_batches" in self.getSettings()
+            and (self.getSettings()["shorter_smaller_rnn_batches"])):
+            self._sequence_length = self.getSettings()["shorter_smaller_rnn_batches"]
         self.kl_analytic = kl_analytic
         self.latent1_deterministic = latent1_deterministic
         self.latent2_deterministic = latent2_deterministic
@@ -430,16 +436,16 @@ class SLACModel(SiameseNetwork):
         self.latent1_first_prior = latent1_first_prior_distribution_ctor(self.latent1_size, name='Latent1FirstPrior')
         # p(z_1^2 | z_1^1)
         self.latent2_first_prior = latent2_distribution_ctor(
-            8 * base_depth, self.latent2_size, name='Latent2FirstPrior'
+            self._sequence_length * base_depth, self.latent2_size, name='Latent2FirstPrior'
         )
         # p(z_{t+1}^1 | z_t^2, a_t)
-        self.latent1_prior = latent1_distribution_ctor(8 * base_depth, self.latent1_size, name='Latent1Prior')
+        self.latent1_prior = latent1_distribution_ctor(self._sequence_length * base_depth, self.latent1_size, name='Latent1Prior')
         # p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t) (? Conceptually similar to p(z_{t+1} | z_t, a_t) ?)
-        self.latent2_prior = latent2_distribution_ctor(8 * base_depth, self.latent2_size, name='Latent2Prior')
+        self.latent2_prior = latent2_distribution_ctor(self._sequence_length * base_depth, self.latent2_size, name='Latent2Prior')
 
         # q(z_1^1 | x_1)
         self.latent1_first_posterior = latent1_distribution_ctor(
-            8 * base_depth, self.latent1_size, name='Latent1_FirstPosterior'
+            self._sequence_length * base_depth, self.latent1_size, name='Latent1_FirstPosterior'
         )
         # TODO ?????????????????????????????????????????????????????????????????????????????????????????????????????
         # This next line seems extremely broken? WHY?
@@ -447,7 +453,7 @@ class SLACModel(SiameseNetwork):
         self.latent2_first_posterior = self.latent2_first_prior
         
         # q(z_{t+1}^1 | x_{t+1}, z_t^2, a_t)
-        self.latent1_posterior = latent1_distribution_ctor(8 * base_depth, self.latent1_size, name='Latent1Posterior')
+        self.latent1_posterior = latent1_distribution_ctor(self._sequence_length * base_depth, self.latent1_size, name='Latent1Posterior')
 
         # TODO ?????????????????????????????????????????????????????????????????????????????????????????????????????
         # This next line seems extremely broken? WHY?
@@ -458,12 +464,12 @@ class SLACModel(SiameseNetwork):
         if compressor is None:
             if ("slac_use_small_imgs" in self.getSettings()
                 and (self.getSettings()["slac_use_small_imgs"])):
-                self.compressor = CompressorSmall(base_depth, 8 * base_depth)
+                self.compressor = CompressorSmall(base_depth, self._sequence_length * base_depth, sequence_length=self._sequence_length)
                 # p(x_t | z_t^1, z_t^2)
-                self.observation_decoder = DecoderSmall(base_depth, scale=decoder_stddev)
+                self.observation_decoder = DecoderSmall(base_depth, scale=decoder_stddev, sequence_length=self._sequence_length)
             
             else:
-                self.compressor = Compressor(base_depth, 8 * base_depth)
+                self.compressor = Compressor(base_depth, self._sequence_length * base_depth)
                 # p(x_t | z_t^1, z_t^2)
                 self.observation_decoder = Decoder(base_depth, scale=decoder_stddev)
         else:
@@ -475,12 +481,12 @@ class SLACModel(SiameseNetwork):
             self.observation_decoder = MultivariateNormalDiag(base_depth, observation_dimension)
         if self.model_reward:
             # p(r_t | z_t^1, z_t^2, a_t, z_{t+1}^1, z_{t+1}^2)
-            self.reward_predictor = Normal(8 * base_depth, scale=reward_stddev)
+            self.reward_predictor = Normal(self._sequence_length * base_depth, scale=reward_stddev)
         else:
             self.reward_predictor = None
         if self.model_discount:
             # p(d_t | z_{t+1}^1, z_{t+1}^2)
-            self.discount_predictor = Bernoulli(8 * base_depth)
+            self.discount_predictor = Bernoulli(self._sequence_length * base_depth)
         else:
             self.discount_predictor = None
             
@@ -986,41 +992,40 @@ class SLACModel(SiameseNetwork):
         img_size = self.getSettings()["fd_terrain_shape"]
         action_size = 3
         reward_size = 1
-        data_array = np.zeros((64,16,np.prod(img_size) + action_size + reward_size))
+        data_array = np.zeros((64,self._sequence_length*4,np.prod(img_size) + action_size + reward_size))
         # data_array = np.concatenate([data1, data2, data4, data5,data6,data7])
         
         data_array = data_array.astype(np.float32)
         self._all_batch_size, self._all_sequence_length = data_array.shape[:2]
         self._batch_size = self.getSettings()["lstm_batch_size"][0]
-        self._sequence_length = 8
         self._states_placeholder = tf.placeholder(shape=[self.getSettings()["lstm_batch_size"][0], self._sequence_length] + self.getSettings()["fd_terrain_shape"], dtype=tf.float32)
         self._action_placeholder = tf.placeholder(shape=[self.getSettings()["lstm_batch_size"][0], self._sequence_length, action_size], dtype=tf.float32)
         self._states_placeholder_1 = tf.placeholder(shape=[1, self._sequence_length] + self.getSettings()["fd_terrain_shape"], dtype=tf.float32)
         self._action_placeholder_1 = tf.placeholder(shape=[1, self._sequence_length-1, action_size], dtype=tf.float32)
         shuffle = True
         num_epochs = None
-        dataset = tf.data.Dataset.from_tensor_slices((data_array[..., :np.prod(img_size)].reshape(data_array.shape[:2] + tuple(img_size)), data_array[..., np.prod(img_size):np.prod(img_size)+action_size]))
-        
-        if shuffle:
-            dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=1024, count=num_epochs))
-        else:
-            dataset = dataset.repeat(num_epochs)
-        
-        dataset = dataset.apply(tf.data.experimental.map_and_batch(self._parser, self._batch_size, drop_remainder=True))
-        dataset = dataset.prefetch(self._batch_size)
-        
-        iterator = dataset.make_one_shot_iterator()
-        data = iterator.get_next()
+#         dataset = tf.data.Dataset.from_tensor_slices((data_array[..., :np.prod(img_size)].reshape(data_array.shape[:2] + tuple(img_size)), data_array[..., np.prod(img_size):np.prod(img_size)+action_size]))
+#         
+#         if shuffle:
+#             dataset = dataset.apply(tf.data.experimental.shuffle_and_repeat(buffer_size=1024, count=num_epochs))
+#         else:
+#             dataset = dataset.repeat(num_epochs)
+#         
+#         dataset = dataset.apply(tf.data.experimental.map_and_batch(self._parser, self._batch_size, drop_remainder=True))
+#         dataset = dataset.prefetch(self._batch_size)
+#         
+#         iterator = dataset.make_one_shot_iterator()
+#         data = iterator.get_next()
 # #         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
 #         data = {}
 #         ### 100 trajectories of length 100 for 64x64x3 images
 #         data["images"] = np.zeros((10,8,64,64,3))
 #         ### 100 trajectories of length 100 for 3 actions
 #         data["actions"] = np.zeros((10,8,3))
-        step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
+        step_types = tf.fill([self._batch_size, self._sequence_length], StepType.MID)
         self._loss, self._outputs = self.compute_loss(self._states_placeholder, self._action_placeholder, step_types)
         # def compute_future_observation_likelihoods(self, actions, step_types, images):
-        step_types = tf.fill([1,8], StepType.MID)
+        step_types = tf.fill([1,self._sequence_length], StepType.MID)
         self._future_obs_likies = self.compute_future_observation_likelihoods(self._action_placeholder_1, step_types, self._states_placeholder_1)
         self._compute_latent_dists = self.compute_latent_dists(self._action_placeholder_1, step_types, self._states_placeholder_1)
         
@@ -1075,8 +1080,8 @@ class SLACModel(SiameseNetwork):
             # data_array = np.concatenate([data1, data2, data4, data5,data6,data7])
             data_array = states
             
-            self._batch_size = self.getSettings()["lstm_batch_size"][0]
-            self._sequence_length = 8
+#             self._batch_size = self.getSettings()["lstm_batch_size"][0]
+#             self._sequence_length = 8
             self.reset()
             shuffle = True
             num_epochs = None
@@ -1407,7 +1412,7 @@ class SLACModel(SiameseNetwork):
         ### Can't get this to work....
 #         self.save_weights(self._sess, fileName+"_slac_model", counter=0)
         #import ipdb;ipdb.set_trace()
-        display_gif(all_images, fileName+"_slac_model", counter=0)
+        display_gif(all_images, fileName+"_slac_model", counter=0, max_outputs=self._sequence_length)
 #         self.reset()
 #         hf = h5py.File(fileName+"_bounds.h5", "w")
 #         hf.create_dataset('_state_bounds', data=self.getStateBounds())
