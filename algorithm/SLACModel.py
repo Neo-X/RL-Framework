@@ -16,11 +16,15 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 from tensorflow.python.util import nest
 
+# TODO remove star import
 from model.ModelUtil import *
+from model.ModelUtil import norm_state
 from model.LearningUtil import kl_D_keras, setFromFlat
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
+# TODO remove star import
 from algorithm.SiameseNetwork import *
+from algorithm.SiameseNetwork import SiameseNetwork
 
 tfd = tfp.distributions
 
@@ -129,23 +133,19 @@ class SLACModel(SiameseNetwork):
     def state_size(self):
         return self.latent1_size + self.latent2_size
 
-    def compute_loss(
-        self,
-        images,
-        actions,
-        step_types,
-        rewards=None,
-        discounts=None,
-        latent_posterior_samples_and_dists=None,
-    ):
+    def compute_loss(self,
+                     images,
+                     actions,
+                     step_types,
+                     rewards=None,
+                     discounts=None,
+                     latent_posterior_samples_and_dists=None):
         sequence_length = step_types.shape[1].value - 1
         # semihack for discrete actions
         actions = tf.cast(actions, dtype=tf.float32)
 
         if latent_posterior_samples_and_dists is None:
-            latent_posterior_samples_and_dists = self.sample_posterior(
-                images, actions, step_types
-            )
+            latent_posterior_samples_and_dists = self.sample_posterior(images, actions, step_types)
         (
             (latent1_posterior_samples, latent2_posterior_samples),
             (latent1_posterior_dists, latent2_posterior_dists),
@@ -907,7 +907,7 @@ class SLACModel(SiameseNetwork):
         action_size = 3
         state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         action = np.array(norm_state(action, self.getActionBounds()), dtype=self.getSettings()['float_type'])
-        # pdb.set_trace()
+        pdb.set_trace()
         
         images = np.reshape(state, state.shape[:1] + tuple(img_size))
         actions = np.reshape(action, action.shape)

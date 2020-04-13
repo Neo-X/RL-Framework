@@ -415,17 +415,15 @@ def trainModelParallel(inputData):
                 
         
         ### Keep forward models on the CPU
-        if ( (("email_log_data_periodically" in settings)
-            and (settings["email_log_data_periodically"] == True))
-            or 
-             ("save_video_to_file" in settings)):
+        create_videos = settings.get("email_log_data_periodically", False) or "save_video_to_file" in settings
+        video_creation_period_supplied = settings.get("checkpoint_vid_rounds", None) is not None
+        create_logging_worker = create_videos and video_creation_period_supplied
+        
+        if create_logging_worker:
             loggingWorkerQueue = multiprocessing.Queue(1)
-            loggingWorker = LoggingWorker(settings, 
-                                          collectEmailData,
-                                           loggingWorkerQueue)
+            loggingWorker = LoggingWorker(settings, collectEmailData, loggingWorkerQueue)
             loggingWorker.start()
-            if ("test_movie_rendering" in settings
-                and (settings["test_movie_rendering"] == True)):
+            if settings.get("test_movie_rendering", False):
                 return
         
         ### These are the workers for training
@@ -1367,11 +1365,10 @@ def trainModelParallel(inputData):
             # mean_reward = std_reward = mean_bellman_error = std_bellman_error = mean_discount_error = std_discount_error = None
             # if ( trainData["round"] % 10 ) == 0 :
 
-            if "checkpoint_vid_rounds" in settings and settings["checkpoint_vid_rounds"] is not None \
-			and trainData["round"] % settings["checkpoint_vid_rounds"] == 0:
-               loggingWorkerQueue.put(('checkpoint_vid_rounds', trainData["round"]))
+            if create_logging_worker and trainData["round"] % settings["checkpoint_vid_rounds"] == 0:
+                loggingWorkerQueue.put(('checkpoint_vid_rounds', trainData["round"]))
 
-            trainData["round"] = trainData["round"] + 1
+            trainData["round"] += 1
                 
             gc.collect()    
             # print (h.heap())
