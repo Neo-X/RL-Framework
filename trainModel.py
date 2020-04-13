@@ -201,8 +201,8 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
     ### back to normal settings
     if ("logger_instance" in set):
         settings__2["logger_instance"] = clog
-    masterAgent.setSettings(settings__2)
-    masterAgent.getPolicy().setSettings(settings__2)
+    masterAgent.setSettings(settings__2,  forceCopy=True)
+    # masterAgent.getPolicy().setSettings(settings__2)
     print ("Done pretraining fd")
 
 # python -m memory_profiler example.py
@@ -233,7 +233,8 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
         if (settings['train_forward_dynamics']):
             agent.setForwardDynamics(forwardDynamicsModel)
         
-        elif ( settings['use_simulation_sampling'] ):
+        elif ( "use_simulation_sampling" in settings
+               and settings['use_simulation_sampling'] ):
             
             sampler = createSampler(settings, exp_)
             ## This should be some kind of copy of the simulator not a network
