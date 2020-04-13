@@ -991,10 +991,10 @@ class SLACModel(SiameseNetwork):
         
         data_array = data_array.astype(np.float32)
         self._all_batch_size, self._all_sequence_length = data_array.shape[:2]
-        self._batch_size = 32
+        self._batch_size = self.getSettings()["lstm_batch_size"][0]
         self._sequence_length = 8
-        self._states_placeholder = tf.placeholder(shape=[32, self._sequence_length] + self.getSettings()["fd_terrain_shape"], dtype=tf.float32)
-        self._action_placeholder = tf.placeholder(shape=[32, self._sequence_length, action_size], dtype=tf.float32)
+        self._states_placeholder = tf.placeholder(shape=[self.getSettings()["lstm_batch_size"][0], self._sequence_length] + self.getSettings()["fd_terrain_shape"], dtype=tf.float32)
+        self._action_placeholder = tf.placeholder(shape=[self.getSettings()["lstm_batch_size"][0], self._sequence_length, action_size], dtype=tf.float32)
         self._states_placeholder_1 = tf.placeholder(shape=[1, self._sequence_length] + self.getSettings()["fd_terrain_shape"], dtype=tf.float32)
         self._action_placeholder_1 = tf.placeholder(shape=[1, self._sequence_length-1, action_size], dtype=tf.float32)
         shuffle = True
@@ -1075,7 +1075,7 @@ class SLACModel(SiameseNetwork):
             # data_array = np.concatenate([data1, data2, data4, data5,data6,data7])
             data_array = states
             
-            self._batch_size = 32
+            self._batch_size = self.getSettings()["lstm_batch_size"][0]
             self._sequence_length = 8
             self.reset()
             shuffle = True
