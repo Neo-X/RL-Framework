@@ -20,9 +20,6 @@ except:
     pass
 import gym
 import os, sys
-terrainRL_PATH = os.environ['TERRAINRL_PATH']
-print ("terrainRL_PATH: ", terrainRL_PATH)
-sys.path.append(terrainRL_PATH+'/lib')
 # from OpenGL import GL
 import numpy as np
 # print(envs.registry.all())
@@ -32,6 +29,8 @@ import numpy as np
 print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 # env = gym.make('MembraneTarget-v0')
 # env = gym.make('CartPole-v1')
+# import ppaquette_gym_doom
+# env = gym.make('ppaquette/DoomBasic-v0')
 env = gym.make("PD-Biped3D-HLC-Obstacles-render-v2")
 # MembraneHardware-v0
 # env = gym.make('Hopper-v1')
