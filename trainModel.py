@@ -5,7 +5,6 @@ import datetime
 import gc
 import inspect
 import json
-import matplotlib
 import multiprocessing
 import logging
 import os
@@ -328,7 +327,6 @@ def trainModelParallel(inputData):
         setupLearningBackend(settings)
 
         # TODO all of these imports should happen at the beginning of the file.
-        from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
         from simulation.collectExperience import collectExperience
         from model.ModelUtil import validBounds, fixBounds, anneal_value, getLearningData
         # from model.LearningMultiAgent import LearningMultiAgent, LearningWorker
@@ -429,12 +427,6 @@ def trainModelParallel(inputData):
         exp_val.finish()
         (agent, learning_workers) = createLearningAgent(settings, None, print_info=True)
         masterAgent = agent
-        
-        if ((settings['visualize_learning'] == False) 
-            and (settings['save_trainData'] == True) ):
-            import matplotlib
-            matplotlib.use('Agg')
-            print("********Using non interactive matplotlib interface")
         
         
         masterAgent.setPolicy(model)
@@ -558,80 +550,9 @@ def trainModelParallel(inputData):
                 
             
         del model
-        
-        ### It would be nice to move this to its own files/classes as well.
-        if ( settings['save_trainData'] or settings['visualize_learning']):
-            from RLVisualize import RLVisualize
-            if (settings['train_forward_dynamics']
-                or settings['debug_critic']
-                or settings['debug_actor']):
-                from NNVisualize import NNVisualize
-            
-        if settings['visualize_learning']:
-            title = getAgentNameString(settings['agent_name'])
-            k = title.rfind(".") + 1
-            if (k > len(title)): ## name does not contain a .
-                k = 0 
-            title = str(settings['sim_config_file'])
-            if (settings['environment_type'] == "open_AI_Gym"):
-                settings['environment_type'] = settings['sim_config_file']
-            rlv = RLVisualize(title=title + " agent on " + str(settings['environment_type']), settings=settings)
-            rlv.setInteractive()
-            rlv.init()
-        if (settings['train_forward_dynamics']):
-            if settings['visualize_learning']:
-                title = settings['forward_dynamics_model_type']
-                k = title.rfind(".") + 1
-                if (k > len(title)): ## name does not contain a .
-                    k = 0 
-                title = title[k:]
-                nlv = NNVisualize(title=str("Dynamics Model") + " with " + title, settings=settings)
-                nlv.setInteractive()
-                nlv.init()
-            if (settings['train_reward_predictor']):
-                if settings['visualize_learning']:
-                    title = settings['forward_dynamics_model_type']
-                    k = title.rfind(".") + 1
-                    if (k > len(title)): ## name does not contain a .
-                        k = 0 
-                    
-                    title = title[k:]
-                    rewardlv = NNVisualize(title=str("Reward Model") + " with " + title, settings=settings)
-                    rewardlv.setInteractive()
-                    rewardlv.init()
-                 
-        if (settings['debug_critic']):
-            criticLosses = []
-            criticRegularizationCosts = [] 
-            if (settings['visualize_learning']):
-                title = getAgentNameString(settings['agent_name'])
-                k = title.rfind(".") + 1
-                if (k > len(title)): ## name does not contain a .
-                    k = 0 
-                title = title[k:]
-                critic_loss_viz = NNVisualize(title=str("Critic Loss") + " with " + title)
-                critic_loss_viz.setInteractive()
-                critic_loss_viz.init()
-                critic_regularization_viz = NNVisualize(title=str("Critic Reg Cost") + " with " + title)
-                critic_regularization_viz.setInteractive()
-                critic_regularization_viz.init()
-            
-        if (settings['debug_actor']):
-            actorLosses = []
-            actorRegularizationCosts = []            
-            if (settings['visualize_learning']):
-                title = getAgentNameString(settings['agent_name'])
-                k = title.rfind(".") + 1
-                if (k > len(title)): ## name does not contain a .
-                    k = 0 
-                title = title[k:]
-                actor_loss_viz = NNVisualize(title=str("Actor Loss") + " with " + title)
-                actor_loss_viz.setInteractive()
-                actor_loss_viz.init()
-                actor_regularization_viz = NNVisualize(title=str("Actor Reg Cost") + " with " + title)
-                actor_regularization_viz.setInteractive()
-                actor_regularization_viz.init()
-                
+        from util.Plotting import Plotter
+        plotter = Plotter(settings)
+                        
         settings["logger_instance"] = exp_logger
         settings["round"] = int(trainData["round"])
         masterAgent.setSettings(settings, forceCopy="all")
@@ -875,15 +796,10 @@ def trainModelParallel(inputData):
                         std_discount_error = 0
                         mean_eval = np.mean(reward_over_epocs)
                         std_eval = np.std(reward_over_epocs)
-                    elif (settings['on_policy'] == True ):
-                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval, otherMetrics = evalModelParrallel( input_anchor_queue=eval_sim_work_queues,
-                                                                   model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
-                    elif (settings['on_policy'] == "fast"):
-                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval, otherMetrics = evalModelMoreParrallel( input_anchor_queue=input_anchor_queue_eval,
-                                                                   model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                     else:
-                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval, otherMetrics = evalModelParrallel( input_anchor_queue=input_anchor_queue_eval,
-                                                                model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
+                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, \
+                        mean_discount_error, std_discount_error, mean_eval, std_eval, \
+                        otherMetrics = sampler.obtainSamples( masterAgent, anchors=settings['eval_epochs'], p=0, eval=True)
                 """
                 for sm in sim_workers:
                     sm.setP(0.0)
@@ -944,107 +860,8 @@ def trainModelParallel(inputData):
                             logExperimentData(trainData, "mean_forward_dynamics_reward_loss", mean_dynamicsRewardLosses, settings)
                             logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_dynamicsRewardLosses, settings)
                             
-                    ### Lets always save a figure for the learning...
-                    if ( settings['save_trainData'] and (not settings['visualize_learning'])
-                         and (settings["train_actor"] == True)):
-                        rlv_ = RLVisualize(title=str(settings['sim_config_file']) + " agent on " + str(settings['environment_type']), settings=settings)
-                        rlv_.init()
-                        rlv_.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
-                        rlv_.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
-                        rlv_.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
-                        rlv_.redraw()
-                        rlv_.saveVisual(directory+getAgentName())
-                        rlv_.finish()
-                        del rlv_
-                    if settings['visualize_learning'] and (settings["train_actor"] == True):
-                        rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
-                        rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
-                        rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
-                        rlv.redraw()
-                        rlv.setInteractiveOff()
-                        rlv.saveVisual(directory+getAgentName())
-                        rlv.setInteractive()
-                    
-                    if (settings['train_forward_dynamics'] and settings['save_trainData']
-                        and (not settings['visualize_learning'])):
-                        nlv_ = NNVisualize(title=str("Dynamics Model") + " with " + str(settings['sim_config_file']), settings=settings)
-                        nlv_.init()
-                        nlv_.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
-                        nlv_.redraw()
-                        nlv_.saveVisual(directory+"trainingGraphNN")
-                        nlv_.finish()
-                        del nlv_
-                        if (settings['train_reward_predictor']):
-                            rewardlv_ = NNVisualize(title=str("Reward Model") + " with " + str(settings['sim_config_file']), settings=settings)
-                            rewardlv_.init()
-                            rewardlv_.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
-                            rewardlv_.redraw()
-                            rewardlv_.saveVisual(directory+"rewardTrainingGraph")
-                            rewardlv_.finish()
-                            del rewardlv_
-                    if (settings['visualize_learning'] and settings['train_forward_dynamics']):
-                        nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
-                        nlv.redraw()
-                        nlv.setInteractiveOff()
-                        nlv.saveVisual(directory+"trainingGraphNN")
-                        nlv.setInteractive()
-                        if (settings['train_reward_predictor']):
-                            rewardlv.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
-                            rewardlv.redraw()
-                            rewardlv.setInteractiveOff()
-                            rewardlv.saveVisual(directory+"rewardTrainingGraph")
-                            rewardlv.setInteractive()
-                    if (settings['debug_critic']):
-                        
-                        mean_criticLosses = np.mean([np.mean(cl) for cl in criticLosses])
-                        std_criticLosses = np.mean([np.std(acl) for acl in criticLosses])
-                        logExperimentData(trainData, "mean_critic_loss", mean_criticLosses, settings)
-                        logExperimentData(trainData, "std_critic_loss", std_criticLosses, settings)
-                        criticLosses = []
-                        if (settings['visualize_learning']):
-                            critic_loss_viz.updateLoss(np.array(trainData["mean_critic_loss"]), np.array(trainData["std_critic_loss"]))
-                            critic_loss_viz.redraw()
-                            critic_loss_viz.setInteractiveOff()
-                            critic_loss_viz.saveVisual(directory+"criticLossGraph")
-                            critic_loss_viz.setInteractive()
-                        
-                        mean_criticRegularizationCosts = np.mean(criticRegularizationCosts)
-                        std_criticRegularizationCosts = np.std(criticRegularizationCosts)
-                        logExperimentData(trainData, "mean_critic_regularization_cost", mean_criticRegularizationCosts, settings)
-                        logExperimentData(trainData, "std_critic_regularization_cost", std_criticRegularizationCosts, settings)
-                        criticRegularizationCosts = []
-                        if (settings['visualize_learning']):
-                            critic_regularization_viz.updateLoss(np.array(trainData["mean_critic_regularization_cost"]), np.array(trainData["std_critic_regularization_cost"]))
-                            critic_regularization_viz.redraw()
-                            critic_regularization_viz.setInteractiveOff()
-                            critic_regularization_viz.saveVisual(directory+"criticRegularizationGraph")
-                            critic_regularization_viz.setInteractive()
-                        
-                    if (settings['debug_actor']):
-                        
-                        mean_actorLosses = np.mean([np.mean(acL) for acL in actorLosses])
-                        std_actorLosses = np.mean([np.std(acl) for acl in actorLosses])
-                        logExperimentData(trainData, "mean_actor_loss", mean_actorLosses, settings)
-                        logExperimentData(trainData, "std_actor_loss", std_actorLosses, settings)
-                        actorLosses = []
-                        if (settings['visualize_learning']):
-                            actor_loss_viz.updateLoss(np.array(trainData["mean_actor_loss"]), np.array(trainData["std_actor_loss"]))
-                            actor_loss_viz.redraw()
-                            actor_loss_viz.setInteractiveOff()
-                            actor_loss_viz.saveVisual(directory+"actorLossGraph")
-                            actor_loss_viz.setInteractive()
-                        
-                        mean_actorRegularizationCosts = np.mean(actorRegularizationCosts)
-                        std_actorRegularizationCosts = np.std(actorRegularizationCosts)
-                        logExperimentData(trainData, "mean_actor_regularization_cost", mean_actorRegularizationCosts, settings)
-                        logExperimentData(trainData, "std_actor_regularization_cost", std_actorRegularizationCosts, settings)
-                        actorRegularizationCosts = []
-                        if (settings['visualize_learning']):
-                            actor_regularization_viz.updateLoss(np.array(trainData["mean_actor_regularization_cost"]), np.array(trainData["std_actor_regularization_cost"]))
-                            actor_regularization_viz.redraw()
-                            actor_regularization_viz.setInteractiveOff()
-                            actor_regularization_viz.saveVisual(directory+"actorRegularizationGraph")
-                            actor_regularization_viz.setInteractive()
+                            
+                    plotter.udpatePlots(trainData)
                 """for lw in learning_workers:
                     lw.start()
                    """     
@@ -1161,26 +978,6 @@ def trainModelParallel(inputData):
     
     """ 
     
-    print("Delete any plots being used")
-    
-    if settings['visualize_learning']:    
-        rlv.finish()
-    if (settings['train_forward_dynamics']):
-        if settings['visualize_learning']:
-            nlv.finish()
-        if (settings['train_reward_predictor']):
-            if settings['visualize_learning']:
-                rewardlv.finish()
-             
-    if (settings['debug_critic']):
-        if (settings['visualize_learning']):
-            critic_loss_viz.finish()
-            critic_regularization_viz.finish()
-    if (settings['debug_actor']):
-        if (settings['visualize_learning']):
-            actor_loss_viz.finish()
-            actor_regularization_viz.finish()
-    
     if ("learning_backend" in settings and
         (settings["learning_backend"] == "tensorflow")):
         import keras        
@@ -1286,7 +1083,7 @@ def main():
         ]
     )
     log.info("Starting main. Command-line: {}".format(sys.argv))
-    log.info("matplotlib backend: {}".format(matplotlib.get_backend()))
+#     log.info("matplotlib backend: {}".format(matplotlib.get_backend()))
     
     options = getOptions(sys.argv)
     options = vars(options)

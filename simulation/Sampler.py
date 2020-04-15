@@ -154,22 +154,40 @@ class Sampler(object):
                                    type='keep_alive',
                                    p=1)
             
-    def obtainSamples(self, agent, rollouts, p):
+    def obtainSamples(self, agent, rollouts, p, eval=False):
         from simulation.simEpoch import simModelParrallel, simModelMoreParrallel, simEpoch
-        if (self._settings['on_policy'] == "fast"):
-            out = simModelMoreParrallel( sw_message_queues=self._input_anchor_queue,
-                                       model=agent, settings=self._settings, 
-                                       eval_episode_data_queue=self._eval_episode_data_queue, 
-                                       anchors=rollouts
-                                       ,p=p)
-        else:
-            out = simModelParrallel( sw_message_queues=self._sim_work_queues,
-                                       model=agent, settings=self._settings, 
-                                       eval_episode_data_queue=self._eval_episode_data_queue, 
-                                       anchors=rollouts
-                                       ,p=p)
+        from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
+        if (eval == True):
+            
+            if (settings['on_policy'] == True ):
+                oout = evalModelParrallel( input_anchor_queue=self._eval_sim_work_queues,
+                                model=masterAgent, settings=settings, eval_episode_data_queue=self._eval_episode_data_queue, 
+                                anchors=settings['eval_epochs'])
+            elif (settings['on_policy'] == "fast"):
+                out = evalModelMoreParrallel( input_anchor_queue=self._input_anchor_queue_eval,
+                                model=masterAgent, settings=settings, eval_episode_data_queue=self._eval_episode_data_queue, 
+                                anchors=settings['eval_epochs'])
+            else:
+                out = evalModelParrallel( input_anchor_queue=self._input_anchor_queue_eval,
+                                model=masterAgent, settings=settings, eval_episode_data_queue=self._eval_episode_data_queue, 
+                                anchors=settings['eval_epochs'])
+        else: 
+            if (self._settings['on_policy'] == "fast"):
+                out = simModelMoreParrallel( sw_message_queues=self._input_anchor_queue,
+                                           model=agent, settings=self._settings, 
+                                           eval_episode_data_queue=self._eval_episode_data_queue, 
+                                           anchors=rollouts
+                                           ,p=p)
+            else:
+                out = simModelParrallel( sw_message_queues=self._sim_work_queues,
+                                           model=agent, settings=self._settings, 
+                                           eval_episode_data_queue=self._eval_episode_data_queue, 
+                                           anchors=rollouts
+                                           ,p=p)
             
         return out
+    
+    
         
         
         
