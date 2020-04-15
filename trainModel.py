@@ -816,30 +816,7 @@ def trainModelParallel(inputData):
                     print ("Master agent experience size: " + str(masterAgent.samples()))
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
                 
-                if (settings['on_policy'] is False):
-                    ## There could be stale policy parameters in here, use the last set put in the queue
-                    data = None
-                    while (not masterAgent_message_queue.empty()):
-                        ## Don't block
-                        try:
-                            data = masterAgent_message_queue.get(False)
-                        except Exception as inst:
-                            # print ("training: In model parameter message queue empty: ", masterAgent_message_queue.qsize())
-                            pass
-                    if (not (data == None) ):
-                        # print ("Data: ", data)
-                        masterAgent.setExperience(data[0])
-                        masterAgent.getPolicy().setNetworkParameters(data[1])
-                        masterAgent.setStateBounds(masterAgent.getExperience().getStateBounds())
-                        masterAgent.setActionBounds(masterAgent.getExperience().getActionBounds())
-                        masterAgent.setRewardBounds(masterAgent.getExperience().getRewardBounds())
-                        if (settings['train_forward_dynamics']):
-                            masterAgent.getForwardDynamics().setNetworkParameters(data[2])
-                            if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
-                                masterAgent.setFDExperience(data[3])
                         
-                # experience = learningNamespace.experience
-                # actor.setExperience(experience)
                 """
                 pr.disable()
                 f = open('x.prof', 'a')
@@ -854,38 +831,7 @@ def trainModelParallel(inputData):
                 if ( output_experience_queue != None):
                     print ("exp tuple queue size: ", output_experience_queue.qsize())
             
-            if (not settings['on_policy']):
-                # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
-                # masterAgent.setExperience(learningNamespace.experience)
-                masterAgent.reset()
-                data = ('Update_Policy', p,
-                        masterAgent.getStateBounds(),
-                        masterAgent.getActionBounds(),
-                        masterAgent.getRewardBounds(),
-                        masterAgent.getPolicy().getNetworkParameters())
-                if (settings['train_forward_dynamics']):
-                    # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                    data = ('Update_Policy', p, 
-                            masterAgent.getStateBounds(),
-                            masterAgent.getActionBounds(),
-                            masterAgent.getRewardBounds(),
-                            masterAgent.getPolicy().getNetworkParameters(),
-                             masterAgent.getForwardDynamics().getNetworkParameters())
-                message['type'] = 'Update_Policy'
-                message['data'] = data
-                for m_q in sim_work_queues:
-                    ## Don't block on full queue
-                    try:
-                        m_q.put(message, False)
-                    except: 
-                        print ("SimWorker model parameter message queue full: ", m_q.qsize())
-                if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-                    for m_q in eval_sim_work_queues:
-                        ## Don't block on full queue
-                        try:
-                            m_q.put(message, False)
-                        except: 
-                            print ("SimWorker model parameter message queue full: ", m_q.qsize())
+            
               
             if (trainData["round"] % settings['plotting_update_freq_num_rounds']) == 0:
                 # Running less often helps speed learning up.

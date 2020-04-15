@@ -155,7 +155,7 @@ class Sampler(object):
                                    p=1)
             
     def obtainSamples(self, agent, rollouts, p):
-        from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
+        from simulation.simEpoch import simModelParrallel, simModelMoreParrallel, simEpoch
         if (self._settings['on_policy'] == "fast"):
             out = simModelMoreParrallel( sw_message_queues=self._input_anchor_queue,
                                        model=agent, settings=self._settings, 
@@ -189,6 +189,7 @@ class Sampler(object):
             for m_q in self._eval_sim_work_queues:
                 ## block on full queue
                 m_q.put(message, timeout=self._timeout_)
+                
                 
     def finish(self):
         
