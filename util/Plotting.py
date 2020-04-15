@@ -3,7 +3,7 @@
     A class that contains most of the logging and plotting logic
 """
 
-from util.SimulationUtil import getDataDirectory, getAgentNameString
+from util.SimulationUtil import getDataDirectory, getAgentNameString, getAgentName, getAgentNameString
 
 class Plotter(object):
     
