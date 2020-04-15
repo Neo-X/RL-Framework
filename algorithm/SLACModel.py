@@ -825,90 +825,43 @@ class SLACModel(SiameseNetwork):
 #           display_gif(all_images, "data/", counter=trainInfo["round"])
         return loss_val
     
-    def predict_encoding(self, state):
+    def predict_encoding(self, state, action, marginal=None):
         """
             Compute distance between two states
         """
         # state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
-        if (("train_LSTM_FD" in self._settings)
-                    and (self._settings["train_LSTM_FD"] == True)):
-            h_a = self._model.processed_a.predict([np.array([state])])#         self.reset()
-#         hf = h5py.File(fileName+"_bounds.h5", "w")
-#         hf.create_dataset('_state_bounds', data=self.getStateBounds())
-#         hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
-#         hf.create_dataset('_action_bounds', data=self.getActionBounds())
-#         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-#             print("fd save self.getStateBounds(): ", len(self.getStateBounds()[0]))
-#         # hf.create_dataset('_resultgetStateBounds()', data=self.getResultStateBounds())
-#         # print ("fd: ", self)
-#         hf.flush()
-#         hf.close()
-#         suffix = ".h5"
-#         ### Save models
-#         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
-#         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
-#         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
-#         self._model._reward_net.save_weights(fileName+"_reward"+suffix, overwrite=True)
-#         self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
-#         # self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
-#         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
-#         # self._modelTarget._reward_net.save_weights(fileName+"_reward_T"+suffix, overwrite=True)
-#         # print ("self._model._actor_train: ", self._model._actor_train)
-#         try:
-#             from keras.utils import plot_model
-#             ### Save model design as image
-#             plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
-#             plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
-#             plot_model(self._modelTarget._forward_dynamics_net, to_file=fileName+"_FD_decode"+'.svg', show_shapes=True)
-#         except Exception as inst:
-#             ### Maybe the needed libraries are not available
-#             print ("Error saving diagrams for rl models.")
-#             print (inst)
-#             
-#         if (states is not None):
-#             ## Don't use Xwindows backend for this
-#             import matplotlib
-#             # matplotlib.use('Agg')
-#             import matplotlib.pyplot as plt
-#             # img_ = np.reshape(viewData, (150,158,3))
-#             ### get the sequence prediction
-#             predicted_y = self._model._reward_net.predict([states, actions], batch_size=states.shape[0])
-#             
-#             img_ = predicted_y[0]
-#             img_z = predicted_y[1]
-#             ### Get first sequence in batch
-#             img_ = img_[0]
-#             img_x = states[0]
-#             import imageio
-#             import PIL
-#             from PIL import Image
-#             images_x = []
-#             images_y = []
-#             images_z = []
-#             for i in range(len(img_)):
-#                 img__y = np.reshape(img_[i], self._settings["fd_terrain_shape"])
-#                 images_y.append(Image.fromarray(img__y).resize((256,256))) ### upsampling
-#                 print("img_ shape", img__y.shape, " sum: ", np.sum(img__y))
-#                 # fig1 = plt.figure(2)
-#                 ### Save generated image
-#                 # plt.imshow(img__y, origin='lower')
-#                 # plt.title("agent visual Data: ")
-#                 # fig1.savefig(fileName+"viz_state_"+str(i)+".png")
-#                 ### Save input image
-#                 img__x = np.reshape(img_x[i], self._settings["fd_terrain_shape"])
-#                 images_x.append(Image.fromarray(img__x).resize((256,256))) ### upsampling
-# #                 plt.imshow(img__x, origin='lower')
-# #                 plt.title("agent visual Data: ")
-# #                 fig1.savefig(fileName+"viz_state_input_"+str(i)+".png")
-# #                 img__z = np.reshape(img_z[i], self._settings["fd_terrain_shape"])
-# #                 images_z.append(img__z)
-#                 
-#             imageio.mimsave(fileName+"viz_state_input_"+'.gif', images_x, duration=0.5,)
-#             imageio.mimsave(fileName+"viz_conditional_"+'.gif', images_y, duration=0.5,)
-# #             imageio.mimsave(fileName+"viz_marginal_"+'.gif', images_z, duration=0.5,)
-        else:
-            h_a = self._model._forward_dynamics_net.predict([state])[0]
-        return h_a
+        """
+            Predict reward which is inverse of distance metric
+        """
+        # print ("state bounds length: ", self.getStateBounds())
+        # print ("fd: ", self)
+        img_size = self.getSettings()["fd_terrain_shape"]
+        action_size = 3
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        action = np.array(norm_state(action, self.getActionBounds()), dtype=self.getSettings()['float_type'])
+        
+        images = np.reshape(state, state.shape[:1] + tuple(img_size))
+        actions = np.reshape(action, action.shape)
+#         actions = action
+        data = self.parser(images, actions)
+        images = data["images"]
+        actions = data["actions"]
+        
+        # Approximate log p(x_T | x_{1:T-1}, a_{1:T-1})
+#         step_types = tf.fill([batch_size, sequence_length + 1], StepType.MID)
+        step_types = tf.fill([1, state.shape[0] + 1], StepType.MID)
+        
+#         approx_log_p_xT_value = self.compute_future_observation_likelihoods(
+#             actions=actions, step_types=step_types, images=images)
+        reward_ = []
+        for i in range (len(images)):
+#             (latent1_sample, latent2_sample), (latent1_dist, latent2_dist) = self._sess.run([self._compute_latent_dists], 
+#                                                 feed_dict={self._states_placeholder_1: [images[i]], self._action_placeholder_1: [actions[i]]})
+            latent_samples = self._sess.run([self._compute_latent_dists], 
+                                                feed_dict={self._states_placeholder_1: [images[i]], self._action_placeholder_1: [actions[i]]})
+            reward_.append(latent_samples[0][0])
+        # critic_next_time_step = critic_next_time_step._replace(reward=approx_log_p_xT_value)
+        return np.array(reward_)
     
     def predict(self, state, state2):
         """
@@ -1500,3 +1453,20 @@ def map_distribution_structure(func, *dist_structure):
         return dist_structure
     return nest.map_structure(_func, *dist_structure)
     
+def display_gif(images, logdir, fps=10, max_outputs=8, counter=0):
+    import moviepy.editor as mpy
+    images = images[:max_outputs]
+    images = np.clip(images, 0.0, 1.0)
+    images = (images * 255.0).astype(np.uint8)
+    images = np.concatenate(images, axis=-2)
+    clip = mpy.ImageSequenceClip(list(images), fps=fps)
+    # clip.write_videofile(logdir+str(global_counter)+".mp4", fps=fps)
+    
+    # import moviepy.editor as mpy
+    # clip = mpy.ImageSequenceClip(images, fps=20)
+    
+    # video_dir = video_dir_prefix + 'BCpolicy-gripper_state2'+str(reset_arg)+'/'
+    
+    # if os.path.isdir(video_dir)!=True:
+    #     os.makedirs(video_dir, exist_ok = True)
+    clip.write_gif(logdir+str(counter)+".gif", fps=20)
