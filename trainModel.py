@@ -597,7 +597,7 @@ def trainModelParallel(inputData):
                         out = (([],[],[],[],[],[],[],[], []), [], [], [])
                     
                     else:
-                            out = sampler.obtainSamples( agent=masterAgent,
+                            out = sampler.obtainSamples( masterAgent=masterAgent,
                                                          rollouts=settings['num_on_policy_rollouts']
                                                        ,p=p)
                     
@@ -832,7 +832,7 @@ def trainModelParallel(inputData):
                             logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_dynamicsRewardLosses, settings)
                             
                             
-                    plotter.udpatePlots(masterAgent, trainData)
+                    plotter.updatePlots(masterAgent, trainData)
                 """for lw in learning_workers:
                     lw.start()
                    """     

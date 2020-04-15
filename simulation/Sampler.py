@@ -158,20 +158,21 @@ class Sampler(object):
         if (eval == True):
             if (self._settings['on_policy'] == True ):
                 out = evalModelParrallel( input_anchor_queue=self._eval_sim_work_queues,
-                                model=masterAgent, settings=settings, eval_episode_data_queue=self._eval_episode_data_queue, 
-                                anchors=settings['eval_epochs'])
+                                model=masterAgent, settings=self._settings, eval_episode_data_queue=self._eval_episode_data_queue, 
+                                anchors=rollouts)
             elif (self._settings['on_policy'] == "fast"):
                 out = evalModelMoreParrallel( input_anchor_queue=self._input_anchor_queue_eval,
-                                model=masterAgent, settings=settings, eval_episode_data_queue=self._eval_episode_data_queue, 
-                                anchors=settings['eval_epochs'])
+                                model=masterAgent, settings=self._settings, eval_episode_data_queue=self._eval_episode_data_queue, 
+                                anchors=rollouts)
             else:
                 out = evalModelParrallel( input_anchor_queue=self._input_anchor_queue_eval,
-                                model=masterAgent, settings=settings, eval_episode_data_queue=self._eval_episode_data_queue, 
-                                anchors=settings['eval_epochs'])
+                                model=masterAgent, settings=self._settings, eval_episode_data_queue=self._eval_episode_data_queue, 
+                                anchors=rollouts)
         else: 
             
             if (self._settings['num_available_threads'] == -1):
-                
+                pass
+                ### simEpoch....
                 
             if (self._settings['on_policy'] == "fast"):
                 out = simModelMoreParrallel( sw_message_queues=self._input_anchor_queue,
