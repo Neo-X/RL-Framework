@@ -669,11 +669,18 @@ def trainModelParallel(inputData):
                         print( "Actor loss: ", masterAgent.getPolicy()._get_action_diff())
                         """
                         masterAgent.reset()
-                        # loss__ = [loss___ masterAgent.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage)
+                        actorLosses = []
+                        
                         loss__ = [p_.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage) for p_ in masterAgent.getAgents() ]
                         actorLosses.append(np.mean(loss__))
                         regularizationCost__ = [p_.getPolicy().get_actor_regularization() for p_ in masterAgent.getAgents() ]
                         actorRegularizationCosts.append(np.mean(regularizationCost__))
+                        
+                        mean_actorLosses = np.mean([np.mean(acL) for acL in actorLosses])
+                        std_actorLosses = np.mean([np.std(acl) for acl in actorLosses])
+                        logExperimentData(trainData, "mean_actor_loss", mean_actorLosses, settings)
+                        logExperimentData(trainData, "std_actor_loss", std_actorLosses, settings)
+                        # loss__ = [loss___ masterAgent.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage)
                     
                     if not all(np.isfinite(np.mean(error, axis=0))):
                         print ("Bellman Error is Nan: " + str(error) + str(np.isfinite(error)))
