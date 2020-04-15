@@ -9,8 +9,8 @@ class Plotter(object):
     
     def __init__(self, settings):
         import matplotlib
-        
-        self._settings = settings
+        import copy
+        self._settings = copy.deepcopy(settings)
         
         if ((self._settings['visualize_learning'] == False) 
             and (self._settings['save_trainData'] == True) ):
