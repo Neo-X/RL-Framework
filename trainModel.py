@@ -19,7 +19,6 @@ import time
 import traceback
 
 from model.LearningMultiAgent import LearningMultiAgent
-from simulation.SimWorker import SimWorker
 from simulation.LoggingWorker import LoggingWorker
 from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
 from util.simOptions import getOptions
@@ -114,7 +113,6 @@ def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
 
 def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
                     datas=None, sampler=None):
-    from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
     settings__ = copy.deepcopy(masterAgent.getSettings())
     settings__2 = copy.deepcopy(masterAgent.getSettings())
     settings__["train_actor"] = False
@@ -142,7 +140,6 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
     
 def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
                     datas=None, sampler=None):
-    from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
     
     ### comet logging does not like being pickeled
     set = masterAgent.getSettings()
@@ -331,8 +328,6 @@ def trainModelParallel(inputData):
         setupLearningBackend(settings)
 
         # TODO all of these imports should happen at the beginning of the file.
-        from simulation.SimWorker import SimWorker
-        from simulation.simEpoch import simEpoch, simModelParrallel, simModelMoreParrallel
         from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
         from simulation.collectExperience import collectExperience
         from model.ModelUtil import validBounds, fixBounds, anneal_value, getLearningData
@@ -474,7 +469,7 @@ def trainModelParallel(inputData):
         experiencefd = collectExperience(actor,
                                         masterAgent,
                                         settings,
-                                        sampler)
+                                        sampler=sampler)
             
         masterAgent.setExperience(experience)
         fd_epxerience_length = settings['experience_length']
@@ -547,10 +542,6 @@ def trainModelParallel(inputData):
         bellman_errors=[]
         masterAgent.setPolicy(model)
         # print("Master agent state bounds: ",  repr(masterAgent.getStateBounds()))
-        for sw in sim_workers: # Need to update parameter bounds for models
-            print ("exp: ", sw._exp)
-            print ("sw modle: ", sw._model.getPolicy()) 
-            
             
         ## If not on policy
         if ( not settings['on_policy']):
@@ -567,20 +558,6 @@ def trainModelParallel(inputData):
                 
             
         del model
-        ## Give gloabl access to processes to they can be terminated when ctrl+c is pressed
-        global sim_processes
-        sim_processes = sim_workers
-        global learning_processes
-        learning_processes = learning_workers
-        global _input_anchor_queue
-        _input_anchor_queue = input_anchor_queue
-        global _output_experience_queue
-        _output_experience_queue = output_experience_queue
-        global _eval_episode_data_queue
-        _eval_episode_data_queue = eval_episode_data_queue
-        global _sim_work_queues
-        _sim_work_queues = sim_work_queues
-        
         
         ### It would be nice to move this to its own files/classes as well.
         if ( settings['save_trainData'] or settings['visualize_learning']):
