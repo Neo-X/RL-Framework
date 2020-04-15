@@ -9,66 +9,64 @@ from simulation.SimWorker import SimWorker
 
 class Sampler(object):
     
-    def __init__(self, settings, log):
+    def __init__(self, settings, log, exp_val=None):
         self._log = log
         self._settings = settings
 
-        if (settings['num_available_threads'] == -1):
+        self._exp_val = None
+        if (self._settings['num_available_threads'] == -1):
             # No threading
-            pass
+            from util.SimulationUtil import createEnvironment
+            self._exp_val = createEnvironment(self._settings["sim_config_file"], 
+                                        self._settings['environment_type'], 
+                                        self._settings, render=self._settings['shouldRender'], index=0)
+            self._exp_val.setActor(actor)
+            self._exp_val.getActor().init()
+            self._exp_val.init()
         else:
             # Threading.
-            self._input_anchor_queue = multiprocessing.Queue(settings['num_available_threads'])
-            self._input_anchor_queue_eval = multiprocessing.Queue(settings['num_available_threads'])
-            self._output_experience_queue = multiprocessing.Queue(settings['num_available_threads'])
-            self._eval_episode_data_queue = multiprocessing.Queue(settings['num_available_threads'])
+            self._input_anchor_queue = multiprocessing.Queue(self._settings['num_available_threads'])
+            self._input_anchor_queue_eval = multiprocessing.Queue(self._settings['num_available_threads'])
+            self._output_experience_queue = multiprocessing.Queue(self._settings['num_available_threads'])
+            self._eval_episode_data_queue = multiprocessing.Queue(self._settings['num_available_threads'])
 
         # Tag_FullObserve_SLAC_mini.json: True            
-        if (settings['on_policy']):
+        if (self._settings['on_policy']):
             ## So that off-policy agent does not learn
             self._output_experience_queue = None
             
-        exp_val = None
         self._timeout_ = 60 * 10 ### 10 min timeout
         # Tag_FullObserve_SLAC_mini.json: True, 1800        
-        if ("simulation_timeout" in settings): self._timeout_ = settings["simulation_timeout"]
+        if ("simulation_timeout" in self._settings): self._timeout_ = self._settings["simulation_timeout"]
         
         
         ### These are the workers for training
         (self._sim_workers, self._sim_work_queues) = self.createSimWorkers(self._settings, self._input_anchor_queue, 
                                               self._output_experience_queue, self._eval_episode_data_queue, 
-                                              [], [], exp_val)
+                                              [], [], self._exp_val)
 
         self._eval_sim_workers = self._sim_workers
         self._eval_sim_work_queues = self._sim_work_queues
-        if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-            (self._eval_sim_workers, self._eval_sim_work_queues) = self.createSimWorkers(settings, self._input_anchor_queue_eval, 
+        if ( 'override_sim_env_id' in self._settings and (self._settings['override_sim_env_id'] != False)):
+            (self._eval_sim_workers, self._eval_sim_work_queues) = self.createSimWorkers(self._settings, self._input_anchor_queue_eval, 
                                                             self._output_experience_queue, self._eval_episode_data_queue, 
-                                                            None, forwardDynamicsModel, exp_val,
-                                                            default_sim_id=settings['override_sim_env_id'])
+                                                            None, forwardDynamicsModel, self._exp_val,
+                                                            default_sim_id=self._settings['override_sim_env_id'])
         else:
             self._input_anchor_queue_eval = self._input_anchor_queue
         
         
-        if (int(settings["num_available_threads"]) > 0):
+        if (int(self._settings["num_available_threads"]) > 0):
             for sw in self._sim_workers:
                 print ("Sim worker")
                 print (sw)
                 sw.start()
-            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+            if ( 'override_sim_env_id' in self._settings and (self._settings['override_sim_env_id'] != False)):
                 for sw in self._eval_sim_workers:
                     print ("Sim worker")
                     print (sw)
                     sw.start()
         
-        
-        ### This is for a single-threaded Synchronous sim only.
-        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
-            self._sim_workers[0].setEnvironment(exp_val)
-            self._sim_workers[0].start()
-            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-                self._eval_sim_workers[0].setEnvironment(exp_val)
-                self._eval_sim_workers[0].start()
         
     # python -m memory_profiler example.py
     # @profile(precision=5)
@@ -154,16 +152,15 @@ class Sampler(object):
                                    type='keep_alive',
                                    p=1)
             
-    def obtainSamples(self, agent, rollouts, p, eval=False):
+    def obtainSamples(self, masterAgent, rollouts, p, eval=False):
         from simulation.simEpoch import simModelParrallel, simModelMoreParrallel, simEpoch
         from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
         if (eval == True):
-            
-            if (settings['on_policy'] == True ):
-                oout = evalModelParrallel( input_anchor_queue=self._eval_sim_work_queues,
+            if (self._settings['on_policy'] == True ):
+                out = evalModelParrallel( input_anchor_queue=self._eval_sim_work_queues,
                                 model=masterAgent, settings=settings, eval_episode_data_queue=self._eval_episode_data_queue, 
                                 anchors=settings['eval_epochs'])
-            elif (settings['on_policy'] == "fast"):
+            elif (self._settings['on_policy'] == "fast"):
                 out = evalModelMoreParrallel( input_anchor_queue=self._input_anchor_queue_eval,
                                 model=masterAgent, settings=settings, eval_episode_data_queue=self._eval_episode_data_queue, 
                                 anchors=settings['eval_epochs'])
@@ -172,15 +169,19 @@ class Sampler(object):
                                 model=masterAgent, settings=settings, eval_episode_data_queue=self._eval_episode_data_queue, 
                                 anchors=settings['eval_epochs'])
         else: 
+            
+            if (self._settings['num_available_threads'] == -1):
+                
+                
             if (self._settings['on_policy'] == "fast"):
                 out = simModelMoreParrallel( sw_message_queues=self._input_anchor_queue,
-                                           model=agent, settings=self._settings, 
+                                           model=masterAgent, settings=self._settings, 
                                            eval_episode_data_queue=self._eval_episode_data_queue, 
                                            anchors=rollouts
                                            ,p=p)
             else:
                 out = simModelParrallel( sw_message_queues=self._sim_work_queues,
-                                           model=agent, settings=self._settings, 
+                                           model=masterAgent, settings=self._settings, 
                                            eval_episode_data_queue=self._eval_episode_data_queue, 
                                            anchors=rollouts
                                            ,p=p)
@@ -294,3 +295,8 @@ class Sampler(object):
             self._exp_val.finish()
     
     
+    def info(self):
+        print ("sim queue size: ", self._input_anchor_queue.qsize() )
+        if ( self._output_experience_queue != None):
+            print ("exp tuple queue size: ", self._output_experience_queue.qsize())
+        

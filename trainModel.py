@@ -424,7 +424,7 @@ def trainModelParallel(inputData):
             rewardModel.setActor(actor)
             rewardModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
-        exp_val.finish()
+#         exp_val.finish()
         (agent, learning_workers) = createLearningAgent(settings, None, print_info=True)
         masterAgent = agent
         
@@ -661,26 +661,6 @@ def trainModelParallel(inputData):
                         regularizationCost__ = masterAgent.getPolicy().get_critic_regularization()
                         criticRegularizationCosts.append(regularizationCost__)
                         
-                    if (settings['debug_actor']):
-                        """
-                        print( "Advantage: ", masterAgent.getPolicy()._get_advantage())
-                        print("Policy prob: ", masterAgent.getPolicy()._q_action())
-                        print("Policy log prob: ", masterAgent.getPolicy()._get_log_prob())
-                        print( "Actor loss: ", masterAgent.getPolicy()._get_action_diff())
-                        """
-                        masterAgent.reset()
-                        actorLosses = []
-                        
-                        loss__ = [p_.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage) for p_ in masterAgent.getAgents() ]
-                        actorLosses.append(np.mean(loss__))
-                        regularizationCost__ = [p_.getPolicy().get_actor_regularization() for p_ in masterAgent.getAgents() ]
-                        actorRegularizationCosts.append(np.mean(regularizationCost__))
-                        
-                        mean_actorLosses = np.mean([np.mean(acL) for acL in actorLosses])
-                        std_actorLosses = np.mean([np.std(acl) for acl in actorLosses])
-                        logExperimentData(trainData, "mean_actor_loss", mean_actorLosses, settings)
-                        logExperimentData(trainData, "std_actor_loss", std_actorLosses, settings)
-                        # loss__ = [loss___ masterAgent.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage)
                     
                     if not all(np.isfinite(np.mean(error, axis=0))):
                         print ("Bellman Error is Nan: " + str(error) + str(np.isfinite(error)))
@@ -755,19 +735,10 @@ def trainModelParallel(inputData):
                 # this->_actor->iterate();
             ## This will let me know which part of learning is going slower training updates or simulation
             if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                print ("sim queue size: ", input_anchor_queue.qsize() )
-                if ( output_experience_queue != None):
-                    print ("exp tuple queue size: ", output_experience_queue.qsize())
-            
-            
+                sampler.info()
               
             if (trainData["round"] % settings['plotting_update_freq_num_rounds']) == 0:
                 # Running less often helps speed learning up.
-                # Sync up sim actors
-                
-                # if (settings['on_policy'] or ((settings['num_available_threads'] == 1))):
-                #     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp_val, masterAgent, discount_factor, 
-                #                                         anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings)
                 # else:
                 if ("skip_rollouts" in settings and 
                         (settings["skip_rollouts"] == True)):
@@ -806,15 +777,8 @@ def trainModelParallel(inputData):
                     else:
                         mean_reward, std_reward, mean_bellman_error, std_bellman_error, \
                         mean_discount_error, std_discount_error, mean_eval, std_eval, \
-                        otherMetrics = sampler.obtainSamples( masterAgent, anchors=settings['eval_epochs'], p=0, eval=True)
-                """
-                for sm in sim_workers:
-                    sm.setP(0.0)
-                for lw in learning_workers:
-                    output_experience_queue.put(None, timeout=timeout_)
-                mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error = evalModelParrallel(input_anchor_queue, output_experience_queue, discount_factor, 
-                                                    anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
-                                                    """
+                        otherMetrics = sampler.obtainSamples( masterAgent, rollouts=settings['eval_epochs'], p=0, eval=True)
+
                 print ("round_, p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
                 print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
                 if np.mean(mean_bellman_error) > 10000:
@@ -868,7 +832,7 @@ def trainModelParallel(inputData):
                             logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_dynamicsRewardLosses, settings)
                             
                             
-                    plotter.udpatePlots(trainData)
+                    plotter.udpatePlots(masterAgent, trainData)
                 """for lw in learning_workers:
                     lw.start()
                    """     
