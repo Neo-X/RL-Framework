@@ -8,6 +8,7 @@ import gc
 sys.setrecursionlimit(50000)
 # from sim.PendulumEnvState import PendulumEnvState
 # from sim.PendulumEnv import PendulumEnv
+import logging
 from multiprocessing import Process, Queue
 # from pathos.multiprocessing import Pool
 import threading
@@ -18,6 +19,7 @@ from util.utils import checkSetting, checkSettingExists
 # import memory_profiler
 # import resources
 
+log = logging.getLogger(__file__)
     
     
 # @profile(precision=5)
@@ -677,7 +679,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None, p=1):
     import numpy as np
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-        print ("Simulating epochs in Parallel:")
+        log.info("Simulating epochs in Parallel:")
     j=0
     timeout_ = 60 * 10 ### 10 min timeout
     if ("simulation_timeout" in settings):
@@ -723,8 +725,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         p_ = max(float(settings['anneal_exploration']), settings['epsilon'] * p)
         min_samples = min_samples * (1.0/p_)
     
-        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-            print("Updated min sample from collection is: ", min_samples)
+        log.info("Updated min sample from collection is: " + str(min_samples))
     samples__ = 0
     while ( (samples__ < (min_samples))
             ):
