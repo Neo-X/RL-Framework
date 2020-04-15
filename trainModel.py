@@ -497,6 +497,17 @@ def trainModelParallel(inputData):
         
         if not os.path.exists(directory):
             os.makedirs(directory)
+
+        log_fn = "{}/trainModel_log_{}.log".format(directory, random_string(8))
+        log_level = getattr(logging, settings.get("log_level", "info").upper(), logging.INFO)
+        handlers = [logging.FileHandler(log_fn),
+                    logging.StreamHandler()]
+        _ = [__.setLevel(log_level) for __ in handlers]
+
+        # You could change the logging level by setting the level= argument here, e.g. via the settings file
+        logging.basicConfig(level=log_level,
+                            format="[%(filename)s:%(lineno)s:%(thread)d:%(process)d - %(funcName)10s():%(levelname)s] %(message)s",
+                            handlers=handlers)
             
         if ("pretrained_data_folder" in settings):
             import shutil
@@ -545,6 +556,7 @@ def trainModelParallel(inputData):
         exp_val.init()
         
         ### This should really be moved inside createRLAgent
+        # pdb.set_trace()
         (state_bounds, action_bounds, settings) = processBounds(state_bounds, action_bounds, settings, exp_val)
         
         ### This is for a single-threaded Synchronous sim only.
@@ -706,9 +718,8 @@ def trainModelParallel(inputData):
         masterAgent.setPolicy(model)
         # print("Master agent state bounds: ",  repr(masterAgent.getStateBounds()))
         for sw in sim_workers: # Need to update parameter bounds for models
-            print ("exp: ", sw._exp)
-            print ("sw modle: ", sw._model.getPolicy()) 
-            
+            log.info("exp: " + str(sw._exp))
+            log.info("sw modle: " + str(sw._model.getPolicy()))
             
         ## If not on policy
         if ( not settings['on_policy']):
@@ -829,7 +840,7 @@ def trainModelParallel(inputData):
                            falls_=falls_, G_ts_=G_ts_, exp_actions=exp_actions, advantage_=advantage_, sim_work_queues=sim_work_queues,
                            datas=datas, eval_episode_data_queue=eval_episode_data_queue)
         
-        print ("Starting first round: ", trainData["round"])
+        log.info("Starting first round: " + str(trainData["round"]))
         if (settings['on_policy']):
             sim_epochs_ = epochs
             # epochs = 1
@@ -1600,23 +1611,7 @@ def main():
         python trainModel.py <sim_settings_file>
         Example:
         python trainModel.py settings/navGame/PPO_5D.json 
-    """
-    # TODO set log path more intelligently, including date/time
-    if not os.path.isdir('training_logs'): os.mkdir('training_logs')
-    log_fn = "training_logs/trainModel_log_{}.log".format(random_string(8))
-
-    # You could change the logging level by setting the level= argument here, e.g. via the settings file
-    logging.basicConfig(
-        level=logging.INFO,
-        format="[%(filename)s:%(lineno)s:%(thread)d:%(process)d - %(funcName)10s() ] %(message)s",
-        handlers=[
-            logging.FileHandler(log_fn),
-            logging.StreamHandler()
-        ]
-    )
-    log.info("Starting main. Command-line: {}".format(sys.argv))
-    log.info("matplotlib backend: {}".format(matplotlib.get_backend()))
-    
+    """    
     options = getOptions(sys.argv)
     options = vars(options)
     file = open(options['configFile'])

@@ -1,7 +1,11 @@
+
+import logging
 import numpy as np
 import copy
 
 import sys
+import time
+
 from model.ModelUtil import *
 import keras.backend as K
 import keras
@@ -9,6 +13,8 @@ from keras.models import Sequential, Model
 from algorithm.KERASAlgorithm import *
 
 from algorithm.AlgorithmInterface import AlgorithmInterface
+
+log = logging.getLogger(__file__)
 
 class DoubleDQN_KERAS(KERASAlgorithm):
     
@@ -168,6 +174,10 @@ class DoubleDQN_KERAS(KERASAlgorithm):
         """
             Don't normalize here it is done in q_values
         """
+        log.info("State: {}".format(state))
+        log.info("State bounds: {}".format(state))
+        print("state ", state, type(state))
+        print("state bounds: {}", self._state_bounds)
         state = norm_state(state, self._state_bounds)
         # q_vals = self.q_values2(state)
 

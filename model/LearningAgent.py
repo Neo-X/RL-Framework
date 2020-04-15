@@ -1081,11 +1081,13 @@ class LearningAgent(AgentInterface):
         # print("state: ", np.array(state).shape, state)
         state = self.processState(state)
         # print("state after: ", np.array(state).shape, state)
+        log.debug("State: {}".format(state))
         if (use_mbrl):
             action = self.getSampler().predict(state, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
             act = [action]
         else:
             act = self.getPolicy().predict(state, evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+
         if self._useLock:
             self._accesLock.release()
         return act
