@@ -32,9 +32,8 @@ class Plotter(object):
             if (k > len(title)): ## name does not contain a .
                 k = 0 
             title = str(self._settings['sim_config_file'])
-            if (self._settings['environment_type'] == "open_AI_Gym"):
-                self._settings['environment_type'] = self._settings['sim_config_file']
-            self._rlv = RLVisualize(title=title + " agent on " + str(self._settings['environment_type']), settings=self._settings)
+            self._env_name = self._settings['sim_config_file']
+            self._rlv = RLVisualize(title=title + " agent on " + str(self._env_name), settings=self._settings)
             self._rlv.setInteractive()
             self._rlv.init()
         if (self._settings['train_forward_dynamics']):
@@ -92,9 +91,114 @@ class Plotter(object):
         ### Lets always save a figure for the learning...
         import numpy as np
         directory= getDataDirectory(self._settings)
+        
+        # print ("masterAgent.getExperience().samples() >= batch_size: ", masterAgent.getExperience().samples(), " >= ", batch_size)
+        error = 0
+        rewards = 0
+        criticLosses = []
+        criticRegularizationCosts = []
+        actorLosses = []
+        actorRegularizationCosts = []
+        if masterAgent.samples() >= batch_size:
+            states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage, datas = masterAgent.get_batch(batch_size, 0)
+            # print ("Batch size: " + str(batch_size))
+            masterAgent.reset()
+            error = masterAgent.bellman_error()
+            # error = np.mean(np.fabs(error), axis=1)
+            # print ("Error: ", error)
+            # bellman_errors.append(np.mean(np.fabs(error)))
+            bellman_errors.append(error)
+            if (self._settings['debug_critic']):
+                masterAgent.reset()
+                if ((("train_LSTM" in self._settings)
+                and (self._settings["train_LSTM"] == True))
+                    or (("train_LSTM_Critic" in self._settings)
+                    and (self._settings["train_LSTM_Critic"] == True))):
+                    batch_size_lstm = 4
+                    if ("lstm_batch_size" in self._settings):
+                        batch_size_lstm = self._settings["lstm_batch_size"][1]
+                    states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_, datas = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
+                    loss__ = masterAgent.getPolicy().get_critic_loss(states_, actions_, rewards_, result_states_)
+                else:
+                    loss__ = masterAgent.getPolicy().get_critic_loss(states, actions, rewards, result_states)
+                criticLosses.append(loss__)
+                regularizationCost__ = masterAgent.getPolicy().get_critic_regularization()
+                criticRegularizationCosts.append(regularizationCost__)
+                
+            
+            if not all(np.isfinite(np.mean(error, axis=0))):
+                print ("Bellman Error is Nan: " + str(error) + str(np.isfinite(error)))
+                # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                print ("States: " + str(states) + " ResultsStates: " + str(result_states) + " Rewards: " + str(rewards) + " Actions: " + str(actions) + " Falls: ", str(falls))
+                sys.exit()
+            
+            error = np.mean(np.fabs(error), axis=1)
+            if np.mean(error) > 10000:
+                print ("Error to big: ")
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    print (states, actions, rewards, result_states)
+                
+        if (self._settings['train_forward_dynamics']):
+            if ( 'keep_seperate_fd_exp_buffer' in self._settings 
+                 and (self._settings['keep_seperate_fd_exp_buffer'])):
+                states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage, datas = masterAgent.getFDBatch(batch_size)
+            masterAgent.reset()
+            if (("train_LSTM_FD" in self._settings)
+                and (self._settings["train_LSTM_FD"] == True)):
+                batch_size_lstm_fd = 4
+                if ("lstm_batch_size" in self._settings):
+                    batch_size_lstm_fd = self._settings["lstm_batch_size"][0]
+                ### This can consume a lot of memory if trajectories are long...
+                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
+                dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
+            else:
+                dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
+            if (type(dynamicsLoss) == 'list'):
+                dynamicsLoss = np.mean([np.mean(np.fabs(dfl)) for dfl in dynamicsLoss])
+            else:
+                dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
+            dynamicsLosses.append(dynamicsLoss)
+            if (self._settings['train_reward_predictor']):
+                masterAgent.reset()
+                if (("train_LSTM_Reward" in self._settings)
+                    and (self._settings["train_LSTM_Reward"] == True)):
+                    batch_size_lstm_fd = 4
+                    if ("lstm_batch_size" in self._settings):
+                        batch_size_lstm_fd = self._settings["lstm_batch_size"][0]
+                    ### This can consume a lot of memory if trajectories are long...
+                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
+                    dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
+                else:
+                    dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
+                
+                if (type(dynamicsRewardLoss) == 'list'):
+                    dynamicsRewardLoss = np.mean([np.mean(np.fabs(drl)) for drl in dynamicsRewardLoss])
+                else:
+                    dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss))
+
+                dynamicsRewardLosses.append(dynamicsRewardLoss)
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                if (self._settings['train_forward_dynamics']):
+                    print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
+                else:
+                    print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
+            # discounted_values.append(discounted_sum)
+            
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            print ("Master agent experience size: " + str(masterAgent.samples()))
+        # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
+        
+                
+        """
+        pr.disable()
+        f = open('x.prof', 'a')
+        pstats.Stats(pr, stream=f).sort_stats('time').print_stats()
+        f.close()
+        """
+        
         if ( self._settings['save_trainData'] and (not self._settings['visualize_learning'])
              and (self._settings["train_actor"] == True)):
-            rlv_ = RLVisualize(title=str(self._settings['sim_config_file']) + " agent on " + str(self._settings['environment_type']), settings=self._settings)
+            rlv_ = RLVisualize(title=str(self._settings['sim_config_file']) + " agent on " + str(self._env_name), settings=self._settings)
             rlv_.init()
             rlv_.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
             rlv_.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
@@ -144,8 +248,6 @@ class Plotter(object):
         if (self._settings['debug_critic']):
             
             masterAgent.reset()
-            criticLosses = []
-            criticRegularizationCosts = []
             if ((("train_LSTM" in self._settings)
             and (self._settings["train_LSTM"] == True))
                 or (("train_LSTM_Critic" in self._settings)
@@ -186,9 +288,6 @@ class Plotter(object):
         if (self._settings['debug_actor']):
             
             masterAgent.reset()
-            actorLosses = []
-            actorRegularizationCosts = []
-            
             loss__ = [p_.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage) for p_ in masterAgent.getAgents() ]
             actorLosses.append(np.mean(loss__))
             regularizationCost__ = [p_.getPolicy().get_actor_regularization() for p_ in masterAgent.getAgents() ]

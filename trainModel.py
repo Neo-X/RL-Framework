@@ -30,7 +30,6 @@ from ModelEvaluation import modelEvaluation
 
 sys.setrecursionlimit(50000)
 sys.path.append("../")
-sys.path.append("../characterSimAdapter/")
 
 # Global variables to manage multiprocessing / multithreading.
 sim_processes = []
