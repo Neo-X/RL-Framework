@@ -193,6 +193,114 @@ class Plotter(object):
         # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
         
                 
+        
+            # this->_actor->iterate();
+        ## This will let me know which part of learning is going slower training updates or simulation
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            sampler.info()
+          
+        if (trainData["round"] % self._settings['plotting_update_freq_num_rounds']) == 0:
+            # Running less often helps speed learning up.
+            # else:
+            if ("skip_rollouts" in self._settings and 
+                    (self._settings["skip_rollouts"] == True)):
+                mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval, otherMetrics = 0,0,0,0,0,0,0,0, [{}]
+                mean_reward = [0] * self._settings["perform_multiagent_training"]
+                reward_over_epocs = [[0]] * self._settings["perform_multiagent_training"]
+            else:
+                rewards__=[]
+                reward_over_epocs = []
+                for tr in range(len(__rewards)):
+                    rewards__ = []
+                    for agent_ in range(len(masterAgent.getAgents())): 
+                        rewards__.append(np.array(__rewards[tr]).flatten()[agent_::len(masterAgent.getAgents())])
+                        # discounted_sum__.append(np.array(discounted_sum).flatten()[agent_::len(masterAgent.getAgents())])
+                        # value__.append(np.array(q_value).flatten()[agent_::len(masterAgent.getAgents())])
+                        # discount_error__.append(discounted_sum__[agent_] - value__[agent_])
+                    rewards_ = [np.mean(rew) for rew in rewards__]
+                    # print ("rewards__", tr ,": ", rewards_)
+                    reward_over_epocs.append(rewards_)
+                    
+                if ( ( self._settings["eval_epochs"] == "stochastic")):
+                    mean_reward = np.mean(reward_over_epocs)
+                    std_reward = np.std(reward_over_epocs)
+                    discounted_sum__=[]
+                    value__=[]
+                    discount_error__ = []
+                    mean_bellman_error = 0
+                    std_bellman_error = 0
+                    mean_discount_error = 0
+                    std_discount_error = 0
+                    mean_eval = np.mean(reward_over_epocs)
+                    std_eval = np.std(reward_over_epocs)
+                else:
+                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, \
+                    mean_discount_error, std_discount_error, mean_eval, std_eval, \
+                    otherMetrics = sampler.obtainSamples( masterAgent, rollouts=self._settings['eval_epochs'], p=0, eval=True)
+
+            print ("round_, p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
+            print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
+            if np.mean(mean_bellman_error) > 10000:
+                print ("Error to big: ")
+            else:
+                if (self._settings['train_forward_dynamics']):
+                    mean_dynamicsLosses = np.mean(dynamicsLosses)
+                    std_dynamicsLosses = np.std(dynamicsLosses)
+                    dynamicsLosses = []
+                    if (self._settings['train_reward_predictor']):
+                        mean_dynamicsRewardLosses = np.mean(dynamicsRewardLosses)
+                        std_dynamicsRewardLosses = np.std(dynamicsRewardLosses)
+                        dynamicsRewardLosses = []
+                    
+                    
+#                     logExperimentData(trainData, "falls", np.mean([met["falls"] for met in otherMetrics]), self._settings)
+                for key in otherMetrics[0]:
+                    ### Put all info data in the logs
+                    # print ("attempting to log metrics: ", key, " values: ", [met[key] for met in otherMetrics])
+                    
+                    logExperimentData(trainData, key, np.mean([met[key] for met in otherMetrics]), self._settings)
+                    # pass
+#                     logExperimentData(trainData, "mem_usage_sim", np.mean([met["mem_usage_sim"] for met in otherMetrics]), self._settings)
+                logExperimentData(trainData, "mem_usage_train", np.mean(current_mem_usage()), self._settings)
+                logExperimentData(trainData, "mean_reward", mean_reward, self._settings)
+                # print ("__rewards: " , reward_over_epocs)
+                logExperimentData(trainData, "mean_reward_train", np.mean(reward_over_epocs), self._settings)
+                for ag in range(self._settings["perform_multiagent_training"]):
+                    logExperimentData(trainData, "mean_reward_agent_"+str(ag), np.mean(mean_reward[ag]), self._settings)
+                    mean_train_reward = np.mean(np.array(reward_over_epocs)[:,ag])
+                    # print ("mean_train_reward: ", mean_train_reward)
+                    logExperimentData(trainData, "mean_reward_train_"+str(ag), mean_train_reward, self._settings)
+                logExperimentData(trainData, "std_reward", std_reward, self._settings)
+                logExperimentData(trainData, "anneal_p", p, self._settings)
+                if (self._settings["train_actor"] == True):
+                        
+                    logExperimentData(trainData, "mean_bellman_error", np.array([np.mean(er_) for er_ in np.fabs(bellman_errors[0])]), self._settings)
+                    logExperimentData(trainData, "std_bellman_error", np.array([np.std(er_) for er_ in bellman_errors[0]]), self._settings)
+                    bellman_errors=[]
+                    logExperimentData(trainData, "mean_discount_error", mean_discount_error, self._settings)
+                    logExperimentData(trainData, "std_discount_error", std_discount_error, self._settings)
+                    logExperimentData(trainData, "mean_eval", mean_eval, self._settings)
+                    logExperimentData(trainData, "std_eval", std_eval, self._settings)
+                # error = np.mean(np.fabs(error), axis=1)
+                # trainData["std_bellman_error"].append(std_bellman_error)
+                if (self._settings['train_forward_dynamics']):
+                    logExperimentData(trainData, "mean_forward_dynamics_loss", mean_dynamicsLosses, self._settings)
+                    logExperimentData(trainData, "std_forward_dynamics_loss", std_dynamicsLosses, self._settings)
+                    if (self._settings['train_reward_predictor']):
+                        logExperimentData(trainData, "mean_forward_dynamics_reward_loss", mean_dynamicsRewardLosses, self._settings)
+                        logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_dynamicsRewardLosses, self._settings)
+                        
+                        
+                plotter.updatePlots(masterAgent, trainData)
+            """for lw in learning_workers:
+                lw.start()
+               """     
+            ## Visulaize some stuff if you want to
+            if (int(self._settings["num_available_threads"]) == -1 
+                # or (int(self._settings["num_available_threads"]) == 1)
+                ): # This is okay if there is one thread only...
+                exp_val.updateViz(actor, masterAgent, directory, p=p)
+                
         """
         pr.disable()
         f = open('x.prof', 'a')
