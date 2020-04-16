@@ -91,7 +91,8 @@ class Plotter(object):
         ### Lets always save a figure for the learning...
         import numpy as np
         directory= getDataDirectory(self._settings)
-        
+        if ( 'value_function_batch_size' in self._settings): batch_size=self._settings["value_function_batch_size"]
+        else: batch_size=self._settings["batch_size"]
         # print ("masterAgent.getExperience().samples() >= batch_size: ", masterAgent.getExperience().samples(), " >= ", batch_size)
         error = 0
         rewards = 0
@@ -99,6 +100,9 @@ class Plotter(object):
         criticRegularizationCosts = []
         actorLosses = []
         actorRegularizationCosts = []
+        bellman_errors = []
+        dynamicsLosses = []
+        dynamicsRewardLosses = []
         if masterAgent.samples() >= batch_size:
             states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage, datas = masterAgent.get_batch(batch_size, 0)
             # print ("Batch size: " + str(batch_size))

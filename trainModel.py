@@ -620,8 +620,6 @@ def trainModelParallel(inputData):
                     else:
                         sampler.updateParameters(masterAgent, p=tmp_p)
                     
-                    # states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
-                    # print ("Batch size: " + str(batch_size))
                 else:
                     ### Old off-policy method not really supported now.
                     episodeData = {}
@@ -629,107 +627,6 @@ def trainModelParallel(inputData):
                     episodeData['type'] = 'sim'
                     input_anchor_queue.put(episodeData, timeout=timeout_)
                 
-                # pr.enable()
-                # print ("Current Tuple: " + str(learningNamespace.experience.current()))
-                # print ("masterAgent.getExperience().samples() >= batch_size: ", masterAgent.getExperience().samples(), " >= ", batch_size)
-                error = 0
-                rewards = 0
-                if masterAgent.samples() >= batch_size:
-                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage, datas = masterAgent.get_batch(batch_size, 0)
-                    # print ("Batch size: " + str(batch_size))
-                    masterAgent.reset()
-                    error = masterAgent.bellman_error()
-                    # error = np.mean(np.fabs(error), axis=1)
-                    # print ("Error: ", error)
-                    # bellman_errors.append(np.mean(np.fabs(error)))
-                    bellman_errors.append(error)
-                    if (settings['debug_critic']):
-                        masterAgent.reset()
-                        if ((("train_LSTM" in settings)
-                        and (settings["train_LSTM"] == True))
-                            or (("train_LSTM_Critic" in settings)
-                            and (settings["train_LSTM_Critic"] == True))):
-                            batch_size_lstm = 4
-                            if ("lstm_batch_size" in settings):
-                                batch_size_lstm = settings["lstm_batch_size"][1]
-                            states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_, datas = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
-                            loss__ = masterAgent.getPolicy().get_critic_loss(states_, actions_, rewards_, result_states_)
-                        else:
-                            loss__ = masterAgent.getPolicy().get_critic_loss(states, actions, rewards, result_states)
-                        criticLosses.append(loss__)
-                        regularizationCost__ = masterAgent.getPolicy().get_critic_regularization()
-                        criticRegularizationCosts.append(regularizationCost__)
-                        
-                    
-                    if not all(np.isfinite(np.mean(error, axis=0))):
-                        print ("Bellman Error is Nan: " + str(error) + str(np.isfinite(error)))
-                        # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                        print ("States: " + str(states) + " ResultsStates: " + str(result_states) + " Rewards: " + str(rewards) + " Actions: " + str(actions) + " Falls: ", str(falls))
-                        sys.exit()
-                    
-                    error = np.mean(np.fabs(error), axis=1)
-                    if np.mean(error) > 10000:
-                        print ("Error to big: ")
-                        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                            print (states, actions, rewards, result_states)
-                        
-                if (settings['train_forward_dynamics']):
-                    if ( 'keep_seperate_fd_exp_buffer' in settings 
-                         and (settings['keep_seperate_fd_exp_buffer'])):
-                        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage, datas = masterAgent.getFDBatch(batch_size)
-                    masterAgent.reset()
-                    if (("train_LSTM_FD" in settings)
-                        and (settings["train_LSTM_FD"] == True)):
-                        batch_size_lstm_fd = 4
-                        if ("lstm_batch_size" in settings):
-                            batch_size_lstm_fd = settings["lstm_batch_size"][0]
-                        ### This can consume a lot of memory if trajectories are long...
-                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
-                        dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
-                    else:
-                        dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
-                    if (type(dynamicsLoss) == 'list'):
-                        dynamicsLoss = np.mean([np.mean(np.fabs(dfl)) for dfl in dynamicsLoss])
-                    else:
-                        dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
-                    dynamicsLosses.append(dynamicsLoss)
-                    if (settings['train_reward_predictor']):
-                        masterAgent.reset()
-                        if (("train_LSTM_Reward" in settings)
-                            and (settings["train_LSTM_Reward"] == True)):
-                            batch_size_lstm_fd = 4
-                            if ("lstm_batch_size" in settings):
-                                batch_size_lstm_fd = settings["lstm_batch_size"][0]
-                            ### This can consume a lot of memory if trajectories are long...
-                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
-                            dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
-                        else:
-                            dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
-                        
-                        if (type(dynamicsRewardLoss) == 'list'):
-                            dynamicsRewardLoss = np.mean([np.mean(np.fabs(drl)) for drl in dynamicsRewardLoss])
-                        else:
-                            dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss))
-
-                        dynamicsRewardLosses.append(dynamicsRewardLoss)
-                    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                        if (settings['train_forward_dynamics']):
-                            print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
-                        else:
-                            print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
-                    # discounted_values.append(discounted_sum)
-                    
-                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                    print ("Master agent experience size: " + str(masterAgent.samples()))
-                # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
-                
-                        
-                """
-                pr.disable()
-                f = open('x.prof', 'a')
-                pstats.Stats(pr, stream=f).sort_stats('time').print_stats()
-                f.close()
-                """
             
                 # this->_actor->iterate();
             ## This will let me know which part of learning is going slower training updates or simulation
