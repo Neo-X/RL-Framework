@@ -311,6 +311,7 @@ def trainModelParallel(inputData):
     # TODO this function is way too long
     # (sys.argv[1], settings)
     settings = inputData[1]
+    settings["round"] = 0
 
     # Tag_FullObserve_SLAC_mini.json: True (not in settings)
     if ("perform_multiagent_training" not in settings):
