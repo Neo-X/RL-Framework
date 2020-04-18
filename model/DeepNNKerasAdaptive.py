@@ -973,8 +973,6 @@ class DeepNNKerasAdaptive(ModelInterface):
                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(networkVel_y)
                     networkVel_y = self.getActivationType(self._settings['activation_type'])(networkVel_y)
-            if ( self._dropout_p > 0.001 ):
-                network = Dropout(rate=self._dropout_p)(network)
                 
         return network
     

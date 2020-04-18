@@ -140,7 +140,7 @@ class Sampler(object):
             out = simModelMoreParrallel( sw_message_queues=self._sim_work_queues
                                        ,model=masterAgent, settings=settings__ 
                                        ,eval_episode_data_queue=self._eval_episode_data_queue 
-                                       ,anchors=settings['num_on_policy_rollouts']
+                                       ,anchors=self._settings['num_on_policy_rollouts']
                                        ,type='keep_alive'
                                        ,p=1
                                        )
@@ -148,7 +148,7 @@ class Sampler(object):
             out = simModelParrallel( sw_message_queues=self._sim_work_queues,
                                    model=masterAgent, settings=settings__, 
                                    eval_episode_data_queue=self._eval_episode_data_queue, 
-                                   anchors=settings__['num_on_policy_rollouts'],
+                                   anchors=self._settings['num_on_policy_rollouts'],
                                    type='keep_alive',
                                    p=1)
             
@@ -205,7 +205,7 @@ class Sampler(object):
             print("trainModel: Sending current network parameters: ", m_q)
             m_q.put(message, timeout=self._timeout_)
             
-        if ( 'override_sim_env_id' in self._settings and (settings['override_sim_env_id'] != False)):
+        if ( 'override_sim_env_id' in self._settings and (self._settings['override_sim_env_id'] != False)):
             for m_q in self._eval_sim_work_queues:
                 ## block on full queue
                 m_q.put(message, timeout=self._timeout_)
@@ -214,7 +214,7 @@ class Sampler(object):
     def finish(self):
         
         print ("Terminating Workers")
-        if (self.settings['on_policy'] == True):
+        if (self._settings['on_policy'] == True):
             for m_q in self._sim_work_queues:
                 ## block on full queue
                 m_q.put(None, timeout=self._timeout_)
@@ -292,7 +292,7 @@ class Sampler(object):
         
         
         print ("Finish sim")
-        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
+        if (int(self._settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
             self._exp_val.finish()
     
     
