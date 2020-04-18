@@ -76,7 +76,7 @@ class LoggingWorker(Process):
                     if data_[0] == "checkpoint_vid_rounds":
                         from ModelEvaluation import modelEvaluation
                         roundNum = data_[1]
-                        log.info('Creating video for checkpoint round {}'.format(roundNum))
+#                         log.info('Creating video for checkpoint round {}'.format(roundNum))
                         settings_copy = copy.deepcopy(self._settings)
                         filename = settings_copy['save_video_to_file']
                         settings_copy['save_video_to_file'] = filename[:filename.rindex('.')] + '_round' + str(roundNum) + filename[filename.rindex('.'):]
@@ -86,7 +86,8 @@ class LoggingWorker(Process):
                     if (not running):
                         break
             except (queue.Empty, OSError) as error:
-                log.warning("Caught error when attempting to evaluate model: {}".format(error))
+#                 log.warning("Caught error when attempting to evaluate model: {}".format(error))
+                pass
             time.sleep(1)
             # try:
             if ( ( steps__ >= timeout_ )
