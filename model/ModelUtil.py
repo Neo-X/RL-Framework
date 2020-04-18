@@ -199,9 +199,19 @@ def norm_action(action_, action_bounds_):
     # if (len(action_) != len(action_bounds_[0])):
     # print (np.array(action_).shape, " == " , np.array(action_bounds_[0]).shape)
     #     print (np.array(action_), " == " , np.array(action_bounds_[0]))
-    assert (   (len(action_) == len(action_bounds_[0]))
-            or (np.array(action_).shape[-1] == len(action_bounds_[0]))
-            or (len(action_[0]) == len(action_bounds_[0])) ), "action_ " + str(np.array(action_).shape ) + " == " + str(np.array(action_bounds_[0]).shape)
+    try:
+        assert (   (len(action_) == len(action_bounds_[0]))
+                   or (np.array(action_).shape[-1] == len(action_bounds_[0]))
+                   or (len(action_[0]) == len(action_bounds_[0])) )
+    except TypeError as e:
+        print("Caught type error when enforcing action/state shape bounds")
+        raise e
+    except AssertionError as e:
+        s = "Caught assertion error when enforcing action/state shape bounds: {}. Actions: {}, Bounds: {}".format(e,
+                                                                                                                  action_bounds_,
+                                                                                                                  action_)
+        print(s)
+        raise Exception(e)
     
     avg = (action_bounds_[0] + action_bounds_[1])/2.0
     std = (action_bounds_[1] - action_bounds_[0])/2.0

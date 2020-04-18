@@ -5,6 +5,7 @@ theano.config.mode='FAST_RUN'
 theano.config.floatX='float32'
 """
 
+import logging
 import numpy as np
 import sys
 import json
@@ -14,6 +15,8 @@ import dill
 import datetime
 import os
 from util.SimulationUtil import getAgentName
+
+log = logging.getLogger(os.path.basename(__file__))
 
 def trainForwardDynamics(settings):
     """
@@ -319,9 +322,11 @@ def trainForwardDynamics(settings):
             trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
             trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
             if (settings['train_reward_predictor']):
-                print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " ForwardPredictionLoss: " + str(dynamicsLoss) + ", Reward Prediction Loss: ", dynamicsRewardLosses, "in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
+                log.info("\n\nRound: {}, Epoch: {}, ForwardPredictionLoss: {}, Reward Prediction Loss: {}. in {:.1f} seconds\n===\n".format(
+                    round_, epoch, dynamicsLoss, dynamicsRewardLosses, datetime.timedelta(seconds=(t1-t0))))
             else:
-                print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " ForwardPredictionLoss: " + str(dynamicsLoss) + " in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
+                log.info("\n\nRound: {}, Epoch: {}, ForwardPredictionLoss: {}, in {:.1f} seconds\n===\n".format(
+                    round_, epoch, dynamicsLoss, datetime.timedelta(seconds=(t1-t0))))
             # print ("State Bounds: ", forwardDynamicsModel.getStateBounds(), " exp: ", experience.getStateBounds())
             # print ("Action Bounds: ", forwardDynamicsModel.getActionBounds(), " exp: ", experience.getActionBounds())
             # print (str(datetime.timedelta(seconds=(t1-t0))))

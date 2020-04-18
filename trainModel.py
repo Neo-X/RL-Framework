@@ -288,17 +288,15 @@ def trainModelParallel(inputData):
         sampler = Sampler(settings, log)
         
         ### Keep forward models on the CPU
-        if ( (("email_log_data_periodically" in settings)
-            and (settings["email_log_data_periodically"] == True))
-            or 
-             ("save_video_to_file" in settings)):
+        create_videos = settings.get("email_log_data_periodically", False) or "save_video_to_file" in settings
+        video_creation_period_supplied = settings.get("checkpoint_vid_rounds", None) is not None
+        create_logging_worker = create_videos and video_creation_period_supplied
+        
+        if create_logging_worker:
             loggingWorkerQueue = multiprocessing.Queue(1)
-            loggingWorker = LoggingWorker(settings, 
-                                          collectEmailData,
-                                           loggingWorkerQueue)
+            loggingWorker = LoggingWorker(settings, collectEmailData, loggingWorkerQueue)
             loggingWorker.start()
-            if ("test_movie_rendering" in settings
-                and (settings["test_movie_rendering"] == True)):
+            if settings.get("test_movie_rendering", False):
                 return
         
         
@@ -342,6 +340,17 @@ def trainModelParallel(inputData):
         
         if not os.path.exists(directory):
             os.makedirs(directory)
+
+        log_fn = "{}/trainModel_log_{}.log".format(directory, random_string(8))
+        log_level = getattr(logging, settings.get("log_level", "info").upper(), logging.INFO)
+        handlers = [logging.FileHandler(log_fn),
+                    logging.StreamHandler()]
+        _ = [__.setLevel(log_level) for __ in handlers]
+
+        # You could change the logging level by setting the level= argument here, e.g. via the settings file
+        logging.basicConfig(level=log_level,
+                            format="[%(filename)s:%(lineno)s:%(thread)d:%(process)d - %(funcName)10s():%(levelname)s] %(message)s",
+                            handlers=handlers)
             
         if ("pretrained_data_folder" in settings):
             import shutil
@@ -398,6 +407,7 @@ def trainModelParallel(inputData):
         exp_val.init()
         
         ### This should really be moved inside createRLAgent
+        # pdb.set_trace()
         (state_bounds, action_bounds, settings) = processBounds(state_bounds, action_bounds, settings, exp_val)
         
         ### This is for a single-threaded Synchronous sim only.
@@ -569,7 +579,7 @@ def trainModelParallel(inputData):
                            falls_=falls_, G_ts_=G_ts_, exp_actions=exp_actions, advantage_=advantage_,
                            datas=datas, sampler=sampler)
         
-        print ("Starting first round: ", trainData["round"])
+        log.info("Starting first round: " + str(trainData["round"]))
         if (settings['on_policy']):
             sim_epochs_ = epochs
             # epochs = 1
@@ -625,9 +635,7 @@ def trainModelParallel(inputData):
                     episodeData = {}
                     episodeData['data'] = epoch
                     episodeData['type'] = 'sim'
-                    input_anchor_queue.put(episodeData, timeout=timeout_)
-                
-            
+                    input_anchor_queue.put(episodeData, timeout=timeout_)         
                 
             if (trainData["round"] % settings['saving_update_freq_num_rounds']) == 0:
             
@@ -689,11 +697,10 @@ def trainModelParallel(inputData):
             # mean_reward = std_reward = mean_bellman_error = std_bellman_error = mean_discount_error = std_discount_error = None
             # if ( trainData["round"] % 10 ) == 0 :
 
-            if "checkpoint_vid_rounds" in settings and settings["checkpoint_vid_rounds"] is not None \
-			and trainData["round"] % settings["checkpoint_vid_rounds"] == 0:
-               loggingWorkerQueue.put(('checkpoint_vid_rounds', trainData["round"]))
+            if create_logging_worker and trainData["round"] % settings["checkpoint_vid_rounds"] == 0:
+                loggingWorkerQueue.put(('checkpoint_vid_rounds', trainData["round"]))
 
-            trainData["round"] = trainData["round"] + 1
+            trainData["round"] += 1
                 
             gc.collect()    
             # print (h.heap())
@@ -828,19 +835,6 @@ def main():
         Example:
         python trainModel.py settings/navGame/PPO_5D.json 
     """
-    # TODO set log path more intelligently, including date/time
-    if not os.path.isdir('training_logs'): os.mkdir('training_logs')
-    log_fn = "training_logs/trainModel_log_{}.log".format(random_string(8))
-    logging.basicConfig(
-        level=logging.INFO,
-        format="[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s",
-        handlers=[
-            logging.FileHandler(log_fn),
-            logging.StreamHandler()
-        ]
-    )
-    log.info("Starting main. Command-line: {}".format(sys.argv))
-#     log.info("matplotlib backend: {}".format(matplotlib.get_backend()))
     
     options = getOptions(sys.argv)
     options = vars(options)

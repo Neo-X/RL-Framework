@@ -1,4 +1,6 @@
+
 import copy
+import logging
 import sys
 from builtins import isinstance
 sys.setrecursionlimit(50000)
@@ -16,6 +18,8 @@ import dill as cPickle
 import gc
 # from guppy import hpy; h=hpy()
 # from memprof import memprof
+
+log = logging.getLogger(os.path.basename(__file__))
 
 def updateSettings(settings1, newSettings):
     """
@@ -253,9 +257,9 @@ def processBounds(state_bounds, action_bounds, settings, sim):
         if ("perform_multiagent_training" in settings):
             settings['action_bounds'] = [settings['action_bounds']]
         action_bounds = settings['state_bounds']
-        
+
+    print ("Getting state bounds from environment")        
     if ("perform_multiagent_training" in settings):
-        print ("Getting state bounds from environment")
         state_bounds_ = []
         for i in range (settings["perform_multiagent_training"]):
             if (state_bounds[i] == "ask_env"):
@@ -282,7 +286,6 @@ def processBounds(state_bounds, action_bounds, settings, sim):
         print ("settings['state_bounds']: ", np.array(settings['state_bounds']).shape)
     elif ((state_bounds == "ask_env")
         or (state_bounds == ["ask_env"])):
-        print ("Getting state bounds from environment")
         s_min = sim.getEnvironment().observation_space.low.flatten()
         s_max = sim.getEnvironment().observation_space.high.flatten()
         print (sim.getEnvironment().observation_space.low)
@@ -833,7 +836,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                 env.see_through_walls = True
                 return env
             env = env_factory()
-        else: ### simpleRoom-v0
+        elif settings["sim_config_file"] == "simpleRoom-v0":
             from surprise.envs.minigrid.envs.simple_room import SimpleEnemyEnv
             from surprise.buffers.buffers import BernoulliBuffer
             from surprise.wrappers.base_surprise import BaseSurpriseWrapper
@@ -851,6 +854,26 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                     )
                 return env
             env = env_factory()
+        elif settings["sim_config_file"] == "simpleRoomVisual-v0":
+            from surprise.envs.minigrid.envs.simple_room_visual import SimpleRoomVisualEnv
+            from surprise.buffers.buffers import BernoulliBuffer
+            from surprise.wrappers.base_surprise import BaseSurpriseWrapper
+            from surprise.wrappers.visitation_count import VisitationCountWrapper
+            from sim.OpenAIGymEnv import OpenAIGymEnv
+            env_name = config_file
+            def env_factory():
+                #env = SimpleEnemyEnv(max_steps=500, agent_pos=(6,9))
+                env = SimpleRoomVisualEnv(max_steps=500)
+                env.see_through_walls = True
+                # env = BaseSurpriseWrapper(
+                #         env, 
+                #         BernoulliBuffer(49), 
+                #         env.max_steps
+                #     )
+                return env
+            env = env_factory()
+        else:
+            raise ValueError("Unknown minigrid sim config! {}".format(settings["sim_config_file"]))
         conf = copy.deepcopy(settings)
         conf['render'] = render
         exp = OpenAIGymEnv(env, conf, multiAgent=False)
@@ -1104,7 +1127,7 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                                   action_bounds=action_bounds, settings_=settings,
                                   reward_bounds=reward_bounds, 
                                   print_info=print_info)
-                    print("Loaded FD algorithm: ", forwardDynamicsModel)
+                    log.info("Loaded FD algorithm: {}".format(forwardDynamicsModel))
                     # return model
                 else:
                     print ("Unknown learning algorithm type: " + str(algorihtm_type))

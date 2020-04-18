@@ -1,6 +1,9 @@
 
-
+import logging
+import os
 import subprocess
+
+log = logging.getLogger(os.path.basename(__file__))
 
 def get_git_revision_hash():
     out = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
@@ -72,8 +75,17 @@ def saveVAEBatch(settings, directory, model):
     # scipy.misc.imsave('outfile.jpg', vae_out[0])
     
 def rlPrint(settings=None, level="train", text=""):
-    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"][level]):
-        print (text)
+    # Deprecating this way... Just use the logger 
+    # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"][level]):
+    #     print (text)
+
+    # Add rest of "levels" options
+    if level == "train":
+        log.info(text)
+    elif level == "debug":
+        log.debug(text)
+    else:
+        log.info(text)
         
 def load_keras_model(filename, custom_objects={}):
     from keras.models import load_model
