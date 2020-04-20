@@ -486,7 +486,6 @@ def trainModelParallel(inputData):
         from util.ExperienceMemory import ExperienceMemory
         
         model_type= settings["model_type"]
-        settings["logger_instance"] = exp_logger
         directory= getDataDirectory(settings)
         
         if not os.path.exists(directory):
@@ -807,6 +806,7 @@ def trainModelParallel(inputData):
                 
 
         settings["round"] = int(trainData["round"])
+        settings["logger_instance"] = exp_logger
         masterAgent.setSettings(settings)
 
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)
