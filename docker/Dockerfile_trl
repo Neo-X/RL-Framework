@@ -105,8 +105,8 @@ RUN pip install -r /root/playground/RL-Framework/requirements.txt
 # RUN popd
 
 ### Add OpenGL libraries to LD path.
-COPY libOpenGL.so /usr/lib/nvidia/libOpenGL.so
-ENV LD_LIBRARY_PATH /usr/lib/nvidia:${LD_LIBRARY_PATH}
+# COPY libOpenGL.so /usr/lib/nvidia/libOpenGL.so
+# ENV LD_LIBRARY_PATH /usr/lib/nvidia:${LD_LIBRARY_PATH}
 
 WORKDIR /root/playground
 RUN ls -la

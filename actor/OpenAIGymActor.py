@@ -29,6 +29,7 @@ class OpenAIGymActor(ActorInterface):
                 (self._settings["use_entropy_reward"] == "ICM") or
                 (self._settings["use_entropy_reward"] == "ICM_bonus") or
                 (self._settings["use_entropy_reward"] == "ICM+SMiRL")
+                or (self._settings["use_entropy_reward"] == "RND")
             )):
             state = sim.getState()
             
@@ -58,7 +59,7 @@ class OpenAIGymActor(ActorInterface):
             self._reward_sum = self._reward_sum + np.mean(reward)
             # print ("entropy: ", bs_r, " reward: ", reward)
             reward = (bs_r * bs_w) + reward
-            return reward
+            return ob, reward, done, info
         elif ("use_entropy_reward" in self._settings
             and (self._settings["use_entropy_reward"] == "action")):
             action_z = action_[0][-self._settings["encoding_vector_size"]]
@@ -67,7 +68,7 @@ class OpenAIGymActor(ActorInterface):
             self._reward_sum = self._reward_sum + np.mean(reward)
             
             reward = bs_r
-            return reward
+            return ob, reward, done, info
         elif ("use_entropy_reward" in self._settings
             and (self._settings["use_entropy_reward"] == "ICM")):
             bs_r = self.rewardICM(state, action_, sim.getState())
@@ -75,7 +76,8 @@ class OpenAIGymActor(ActorInterface):
             
             reward = bs_r
             # print ("ICM reward:", reward)
-            return reward
+            return ob, reward, done, info
+        
         elif ("use_entropy_reward" in self._settings
             and (self._settings["use_entropy_reward"] == "ICM_bonus")):
             bs_r = self.rewardICM(state, action_, sim.getState())
@@ -95,6 +97,14 @@ class OpenAIGymActor(ActorInterface):
             # reward = bs_r
             # print ("ICM reward:", bs_r)
             reward = (r_icm * bs_w) + r_smirl
+        elif ("use_entropy_reward" in self._settings
+            and (self._settings["use_entropy_reward"] == "RND")):
+            bs_r = self.rewardRND(state, action_, sim.getState())
+            self._reward_sum = self._reward_sum + np.mean(reward)
+            
+            reward = bs_r
+            # print ("ICM reward:", reward)
+            return ob, reward, done, info
         else:
             self._reward_sum = self._reward_sum + np.mean(reward)        
         return ob, reward, done, info

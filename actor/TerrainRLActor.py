@@ -98,7 +98,8 @@ class TerrainRLActor(ActorInterface):
                    )
         self._reward_sum = self._reward_sum + reward_
         # print ("Reward: ", reward_)
-        return reward_
+        ob = sim.getEnvironment().getState()
+        return ob, reward_, False, {}
     
     def getEvaluationData(self):
         return self._reward_sum

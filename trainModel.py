@@ -334,6 +334,7 @@ def trainModelParallel(inputData):
 
     # Creates and stores the comet logger.
     exp_logger = settings["logger_instance"] = setupEnvironmentVariable(settings)
+    settings["logger_instance"] = None
     settings['sample_single_trajectories'] = True    
     settingsFileName = inputData[0]    
     try:
@@ -385,7 +386,7 @@ def trainModelParallel(inputData):
         if ( ((settings["load_saved_model"] == True)
               or (settings["load_saved_model"] == 'last')) and
             (settings["save_experience_memory"] == "continual")):
-            
+            from util.SimulationUtil import getDataDirectory, getAgentNameString
             ### load training data
             directory = getDataDirectory(settings)
             file_name_ = directory+"trainingData_" + str(getAgentNameString(settings['agent_name'])) + ".json"
@@ -485,6 +486,7 @@ def trainModelParallel(inputData):
         from util.ExperienceMemory import ExperienceMemory
         
         model_type= settings["model_type"]
+        settings["logger_instance"] = exp_logger
         directory= getDataDirectory(settings)
         
         if not os.path.exists(directory):
