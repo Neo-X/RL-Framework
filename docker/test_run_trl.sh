@@ -11,7 +11,7 @@ echo "arg 1 $1"
 cmd=$1
 fullcmd="pushd /root/playground/TerrainRLSim; git pull origin master; popd; pushd /root/playground/RLSimulationEnvironments; git pull origin master; popd; pushd /root/playground/RL-Framework; git pull origin master; ${cmd}"
 echo $fullcmd
-command=(docker run --rm -v /home/gberseth/playgrond/RL-Framework:/root/playground/RL-Framework -it rlframe_trl:latest /bin/bash -c "$fullcmd" )
+command=(docker run --rm -v /home/gberseth/playground/RL-Framework:/root/playground/RL-Framework -it rlframe_trl:latest /bin/bash -c "$fullcmd" )
 echo "${command[@]}"
 # eval $command
 "${command[@]}"
