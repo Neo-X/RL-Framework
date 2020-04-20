@@ -928,6 +928,9 @@ def createActor(env_type, settings, experience):
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
+    elif (env_type == 'terrainRLSim'):
+        from actor.OpenAIGymActorMARL import OpenAIGymActorMARL
+        actor = OpenAIGymActorMARL(settings, experience)
     elif (env_type == 'MultiworldFixedLLC') or (env_type == 'MetaworldFixedLLC'):
         from actor.MultiworldMultiCharActor import MultiworldMultiCharActor
         actor = MultiworldMultiCharActor(settings, experience)
