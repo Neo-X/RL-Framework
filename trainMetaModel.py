@@ -70,14 +70,14 @@ def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     # simData["settings_files"] = None ## Remove extra info
     simData['sim_time'] = sim_time_
     contents_ = json.dumps(metaSettings, indent=4, sort_keys=True) + "\n" + json.dumps(simData, indent=4, sort_keys=True)
-    try:
-#         sendEmail(subject="Simulation Running: " + str(simData['sim_time']), contents=contents_, hyperSettings=metaSettings, 
-#                   simSettings=settings['configFile'], dataFile=tarFileName,
-#                   pictureFile=pictureFileName)    
-    except Exception as e:
-        print("Error sending email this computer might not be authorized to use the email account.")
-        print("Error: ", e)
-        print (traceback.format_exc())
+#     try:
+# #         sendEmail(subject="Simulation Running: " + str(simData['sim_time']), contents=contents_, hyperSettings=metaSettings, 
+# #                   simSettings=settings['configFile'], dataFile=tarFileName,
+# #                   pictureFile=pictureFileName)    
+#     except Exception as e:
+#         print("Error sending email this computer might not be authorized to use the email account.")
+#         print("Error: ", e)
+#         print (traceback.format_exc())
         
     ### Backup data
     if (("backup_exp_data" in settings)
