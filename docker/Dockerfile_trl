@@ -114,31 +114,6 @@ ENV TERRAINRL_PATH /root/playground/TerrainRLSim
 WORKDIR /root/playground/TerrainRLSim
 RUN wget https://github.com/UBCMOCCA/TerrainRLSim/releases/download/0.8/TerrainRLSim_external_June_21_2019.tar.xz
 RUN tar -xvf TerrainRLSim_external_June_21_2019.tar.xz
-<<<<<<< HEAD
-RUN ls
-# RUN chmod +x ./deb_deps.sh && ./deb_deps.sh
-RUN apt-get -y update
-### For rendering the simulation using OpenGL
-RUN apt-get -y install freeglut3-dev build-essential libx11-dev libxmu-dev libxi-dev libgl1-mesa-glx libglu1-mesa libglu1-mesa-dev libglew1.6-dev mesa-utils 
-### dependancies for caffe....
-RUN apt-get install -y libprotobuf-dev libleveldb-dev libsnappy-dev libopencv-dev libhdf5-serial-dev protobuf-compiler
-### Not sure what needs this
-RUN apt-get install -y --no-install-recommends libboost-all-dev
-### more dependancies of caffe
-RUN apt-get install -y libgflags-dev libgoogle-glog-dev liblmdb-dev
-### more dependancies of caffe
-RUN apt-get install -y libatlas-base-dev
-### Make sure you have a good compiler
-# ./setupgcc6.sh
-
-RUN apt-get install -y libf2c2-dev 
-### need for shader rendering
-RUN apt-get install -y libglew-dev
-### Needed for Python wrappers 
-RUN apt-get install -y swig3.0 premake4
-### For openGL ES support
-RUN apt-get install -y libglfw3-dev libgles2-mesa-dev
-
 RUN chmod +x ./deb_deps.sh
 RUN ./deb_deps.sh
 RUN cd external/caffe && make clean && make -j 8
