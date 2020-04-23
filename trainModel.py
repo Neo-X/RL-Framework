@@ -332,7 +332,6 @@ def trainModelParallel(inputData):
         from util.SimulationUtil import createRLAgent, createNewFDModel, processBounds
         from util.SimulationUtil import createActor, getAgentName, updateSettings, getAgentNameString
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
-        from util.utils import current_mem_usage
         from util.ExperienceMemory import ExperienceMemory
         
         model_type= settings["model_type"]
@@ -595,6 +594,7 @@ def trainModelParallel(inputData):
             p = max(settings['min_epsilon'], min(1.0, p))*settings['epsilon'] # Keeps it between 1.0 and 0.2
             if ( settings['load_saved_model'] == True):
                 p = settings['min_epsilon']
+            settings["p"] = p
                 
             # pr = cProfile.Profile()
             for epoch in range(epochs):
@@ -635,7 +635,20 @@ def trainModelParallel(inputData):
                     episodeData = {}
                     episodeData['data'] = epoch
                     episodeData['type'] = 'sim'
-                    input_anchor_queue.put(episodeData, timeout=timeout_)         
+                    input_anchor_queue.put(episodeData, timeout=timeout_)       
+                    
+            if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                if (settings['train_forward_dynamics']):
+                    print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p))
+                else:
+                    print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p))
+            if (trainData["round"] % settings['plotting_update_freq_num_rounds']) == 0:
+                
+                plotter.updatePlots(masterAgent, trainData, sampler, out, p)
+                
+            ## This will let me know which part of learning is going slower training updates or simulation
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                sampler.info()
                 
             if (trainData["round"] % settings['saving_update_freq_num_rounds']) == 0:
             
@@ -674,26 +687,6 @@ def trainModelParallel(inputData):
                 json.dump(trainData, fp, cls=NumpyEncoder)
                 fp.close()
                 # draw data
-                """
-                t0 = time.time()
-                if (settings["save_experience_memory"] == "continual"
-                    or(settings["save_experience_memory"] == "all")):
-                    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                        print ("Saving Experience memory")
-                    file_name=directory+getAgentName()+"_expBufferInit.hdf5"
-                    masterAgent.getExperience().saveToFile(file_name)
-                    if (settings['train_forward_dynamics']):
-                        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                            print ("Saving Experience FD memory")
-                        file_name=directory+getAgentName()+"_FD_expBufferInit.hdf5"
-                        if ("keep_seperate_fd_exp_buffer" in settings
-                            and (settings["keep_seperate_fd_exp_buffer"] == True)):
-                            masterAgent.getFDExperience().saveToFile(file_name)
-                t1 = time.time()
-                sim_time_ = datetime.timedelta(seconds=(t1-t0))
-                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                    print ("exp saving time complete in " + str(sim_time_) + " seconds")
-                """
             # mean_reward = std_reward = mean_bellman_error = std_bellman_error = mean_discount_error = std_discount_error = None
             # if ( trainData["round"] % 10 ) == 0 :
 

@@ -4,6 +4,8 @@
 """
 
 from util.SimulationUtil import getDataDirectory, getAgentNameString, getAgentName, getAgentNameString
+from RLVisualize import RLVisualize
+from NNVisualize import NNVisualize
 
 class Plotter(object):
     
@@ -87,8 +89,12 @@ class Plotter(object):
                 self._actor_regularization_viz.init()
         
         
-    def updatePlots(self, masterAgent, trainData):
+    def updatePlots(self, masterAgent, trainData, sampler, out, p):
         ### Lets always save a figure for the learning...
+        from util.SimulationUtil import createEnvironment, logExperimentData, saveData
+        from util.utils import current_mem_usage
+        (tuples, discounted_sum, q_value, evalData) = out
+        (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__, datas__) = tuples
         import numpy as np
         directory= getDataDirectory(self._settings)
         if ( 'value_function_batch_size' in self._settings): batch_size=self._settings["value_function_batch_size"]
@@ -155,6 +161,11 @@ class Plotter(object):
                 ### This can consume a lot of memory if trajectories are long...
                 state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
                 dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
+                
+                if ("compute_model_metrics" in self._settings 
+                    and (self._settings["compute_model_metrics"])):
+                    modelMetrics = masterAgent.getForwardDynamics().compute_model_metrics(state_, action_)
+                    print ("modelMetrics: ", modelMetrics)
             else:
                 dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
             if (type(dynamicsLoss) == 'list'):
@@ -172,6 +183,11 @@ class Plotter(object):
                     ### This can consume a lot of memory if trajectories are long...
                     state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
                     dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
+                    
+                    if ("compute_model_metrics" in self._settings 
+                        and (self._settings["compute_model_metrics"])):
+                        modelMetrics = masterAgent.getForwardDynamics().compute_model_metrics(state_, action_)
+                        print ("modelMetrics: ", modelMetrics)
                 else:
                     dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
                 
@@ -181,24 +197,12 @@ class Plotter(object):
                     dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss))
 
                 dynamicsRewardLosses.append(dynamicsRewardLoss)
-            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                if (self._settings['train_forward_dynamics']):
-                    print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
-                else:
-                    print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
             # discounted_values.append(discounted_sum)
             
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
             print ("Master agent experience size: " + str(masterAgent.samples()))
         # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
         
-                
-        
-            # this->_actor->iterate();
-        ## This will let me know which part of learning is going slower training updates or simulation
-        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-            sampler.info()
-          
         if (trainData["round"] % self._settings['plotting_update_freq_num_rounds']) == 0:
             # Running less often helps speed learning up.
             # else:
@@ -239,7 +243,7 @@ class Plotter(object):
                     otherMetrics = sampler.obtainSamples( masterAgent, rollouts=self._settings['eval_epochs'], p=0, eval=True)
 
             print ("round_, p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
-            print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
+#             print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
             if np.mean(mean_bellman_error) > 10000:
                 print ("Error to big: ")
             else:
@@ -291,10 +295,6 @@ class Plotter(object):
                         logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_dynamicsRewardLosses, self._settings)
                         
                         
-                plotter.updatePlots(masterAgent, trainData)
-            """for lw in learning_workers:
-                lw.start()
-               """     
             ## Visulaize some stuff if you want to
             if (int(self._settings["num_available_threads"]) == -1 
                 # or (int(self._settings["num_available_threads"]) == 1)

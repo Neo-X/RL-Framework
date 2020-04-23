@@ -131,8 +131,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     while (i_ < settings['max_epoch_length']):
         
 #         state_ = [exp.getState()]
-        print ("state_: ", repr(np.array(state_).shape))
-        print ("state_: ", state_)
+#         print ("state_: ", repr(np.array(state_).shape))
+#         print ("state_: ", state_)
         action=None
             
         (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,

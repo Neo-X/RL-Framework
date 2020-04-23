@@ -82,16 +82,16 @@ class SLACModel(SiameseNetwork):
         self.latent1_first_prior = latent1_first_prior_distribution_ctor(self.latent1_size, name='Latent1FirstPrior')
         # p(z_1^2 | z_1^1)
         self.latent2_first_prior = latent2_distribution_ctor(
-            8 * base_depth, self.latent2_size, name='Latent2FirstPrior'
+            self._sequence_length * base_depth, self.latent2_size, name='Latent2FirstPrior'
         )
         # p(z_{t+1}^1 | z_t^2, a_t)
-        self.latent1_prior = latent1_distribution_ctor(8 * base_depth, self.latent1_size, name='Latent1Prior')
+        self.latent1_prior = latent1_distribution_ctor(self._sequence_length * base_depth, self.latent1_size, name='Latent1Prior')
         # p(z_{t+1}^2 | z_{t+1}^1, z_t^2, a_t) (? Conceptually similar to p(z_{t+1} | z_t, a_t) ?)
-        self.latent2_prior = latent2_distribution_ctor(8 * base_depth, self.latent2_size, name='Latent2Prior')
+        self.latent2_prior = latent2_distribution_ctor(self._sequence_length * base_depth, self.latent2_size, name='Latent2Prior')
 
         # q(z_1^1 | x_1)
         self.latent1_first_posterior = latent1_distribution_ctor(
-            8 * base_depth, self.latent1_size, name='Latent1_FirstPosterior'
+            self._sequence_length * base_depth, self.latent1_size, name='Latent1_FirstPosterior'
         )
         # TODO ?????????????????????????????????????????????????????????????????????????????????????????????????????
         # This next line seems extremely broken? WHY?
@@ -99,7 +99,7 @@ class SLACModel(SiameseNetwork):
         self.latent2_first_posterior = self.latent2_first_prior
         
         # q(z_{t+1}^1 | x_{t+1}, z_t^2, a_t)
-        self.latent1_posterior = latent1_distribution_ctor(8 * base_depth, self.latent1_size, name='Latent1Posterior')
+        self.latent1_posterior = latent1_distribution_ctor(self._sequence_length * base_depth, self.latent1_size, name='Latent1Posterior')
 
         # TODO ?????????????????????????????????????????????????????????????????????????????????????????????????????
         # This next line seems extremely broken? WHY?
@@ -110,12 +110,12 @@ class SLACModel(SiameseNetwork):
         if compressor is None:
             if ("slac_use_small_imgs" in self.getSettings()
                 and (self.getSettings()["slac_use_small_imgs"])):
-                self.compressor = CompressorSmall(base_depth, 8 * base_depth)
+                self.compressor = CompressorSmall(base_depth, self._sequence_length * base_depth, sequence_length=self._sequence_length)
                 # p(x_t | z_t^1, z_t^2)
                 self.observation_decoder = DecoderSmall(base_depth, scale=decoder_stddev)
             
             else:
-                self.compressor = Compressor(base_depth, 8 * base_depth)
+                self.compressor = Compressor(base_depth, self._sequence_length * base_depth, sequence_length=self._sequence_length)
                 # p(x_t | z_t^1, z_t^2)
                 self.observation_decoder = Decoder(base_depth, scale=decoder_stddev)
         else:
@@ -127,12 +127,12 @@ class SLACModel(SiameseNetwork):
             self.observation_decoder = MultivariateNormalDiag(base_depth, observation_dimension)
         if self.model_reward:
             # p(r_t | z_t^1, z_t^2, a_t, z_{t+1}^1, z_{t+1}^2)
-            self.reward_predictor = Normal(8 * base_depth, scale=reward_stddev)
+            self.reward_predictor = Normal(self._sequence_length * base_depth, scale=reward_stddev)
         else:
             self.reward_predictor = None
         if self.model_discount:
             # p(d_t | z_{t+1}^1, z_{t+1}^2)
-            self.discount_predictor = Bernoulli(8 * base_depth)
+            self.discount_predictor = Bernoulli(self._sequence_length * base_depth)
         else:
             self.discount_predictor = None
             
@@ -590,6 +590,32 @@ class SLACModel(SiameseNetwork):
 #         last_dists = (l1_dist[:, -1], l2_dist[:, -1])
 
         return last_latents
+    
+    def compute_latent_dists_seq(self, actions, step_types, images):
+        """ Estimate:
+              p(x_T=future_image | a_{1:T-1}=actions, x_{1:T-1}=past_images) 
+                =E_{z_{T} ~ p(z_{T} | x_{1:T-1}, a_{1:T-1})} p(x_{T} | z_{T} )
+
+        :param actions: (B, T-1, A) action sequence
+        :param step_types: (B, T) step-type sequence
+        :param images: (B, T, ...) observed images sequence
+        :returns: 
+        :rtype: 
+        """
+
+        x_1toTm1 = images[:, :-1]
+        x_T = images[:, -1]
+        del images
+
+        # Sample z_{t+1} ~ p(z_{t+1} | x_{1:t}, a_{1:t})
+        # TODO compute a bunch of z_{t+1}! Not just one. This will better-estimate the expectation. 
+        ((l1_samples, l2_samples), _) = (self.sample_prior_or_posterior(actions=actions, step_types=step_types, images=x_1toTm1))
+        ((l1_samples, l2_samples), (l1_dist, l2_dist)) = (self.sample_prior_or_posterior(actions=actions, step_types=step_types, images=x_1toTm1))
+        # (z^1_T, z^2_T)
+        last_latents = (l1_samples, l2_samples)
+        last_dists = (l1_dist.mean(), l1_dist.stddev(), l2_dist.mean(), l2_dist.stddev())
+
+        return (last_latents, last_dists)
 
     # def compute_future_latent_log_prob(self, actions, step_types, images):
         # latent1_dist.log_prob(
@@ -659,15 +685,16 @@ class SLACModel(SiameseNetwork):
 # #         step_types = tf.fill(tf.shape(data['images'])[:2], StepType.MID)
 #         data = {}
 #         # 100 trajectories of length 100 for 64x64x3 images
-#         data["images"] = np.zeros((10,8,64,64,3))
+#         data["images"] = np.zeros((10,self._sequence_length,64,64,3))
 #         # 100 trajectories of length 100 for 3 actions
-#         data["actions"] = np.zeros((10,8,3))
+#         data["actions"] = np.zeros((10,self._sequence_length,3))
         step_types = tf.fill([self._batch_size, self._sequence_length], StepType.MID)
         self._loss, self._outputs = self.compute_loss(self._states_placeholder, self._action_placeholder, step_types)
         # def compute_future_observation_likelihoods(self, actions, step_types, images):
         step_types = tf.fill([1,self._sequence_length], StepType.MID)
         self._future_obs_likies = self.compute_future_observation_likelihoods(self._action_placeholder_1, step_types, self._states_placeholder_1)
         self._compute_latent_dists = self.compute_latent_dists(self._action_placeholder_1, step_types, self._states_placeholder_1)
+        self._compute_latent_dists_seq = self.compute_latent_dists_seq(self._action_placeholder_1, step_types, self._states_placeholder_1)
         
         self._global_step = tf.train.create_global_step()
         self._adam_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4)
@@ -798,7 +825,6 @@ class SLACModel(SiameseNetwork):
             data_array = states
             
             self._batch_size = 32
-            self._sequence_length = 8
             self.reset()
             shuffle = True
             num_epochs = None
@@ -811,18 +837,8 @@ class SLACModel(SiameseNetwork):
         for i in range(1):
             out, loss_val, global_step_val = self._sess.run([self._train_op,self._loss, self._global_step], 
                                                         feed_dict={self._states_placeholder: states, self._action_placeholder: actions})
-          
-#         print('step = %d, loss = %f' % (global_step_val, loss_val))
-#         print ("trainInfo: ", trainInfo)
-#           if i % 100 == 0:
-#         if trainInfo["round"] % 5 == 0 and (trainInfo["epoch"] == 0) and (trainInfo["iteration"] == 0) :
-#           images, posterior_images, conditional_prior_images, prior_images = self._sess.run(
-#               [self._outputs['images'], self._outputs['posterior_images'], self._outputs['conditional_prior_images'], self._outputs['prior_images']],
-#                                                         feed_dict={self._states_placeholder: states, self._action_placeholder: actions})
-#           all_images = np.concatenate([images, posterior_images, conditional_prior_images, prior_images], axis=2)
-#           save_weights(self._sess, "data/", counter=trainInfo["round"])
-#           #import ipdb;ipdb.set_trace()
-#           display_gif(all_images, "data/", counter=trainInfo["round"])
+            
+
         return loss_val
     
     def predict_encoding(self, state, action, marginal=None):
@@ -863,6 +879,64 @@ class SLACModel(SiameseNetwork):
         # critic_next_time_step = critic_next_time_step._replace(reward=approx_log_p_xT_value)
         return np.array(reward_)
     
+    def predict_encoding_dist(self, state, action, marginal=None):
+        """
+            Compute distance between two states
+        """
+        # state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        """
+            Predict reward which is inverse of distance metric
+        """
+        # print ("state bounds length: ", self.getStateBounds())
+        # print ("fd: ", self)
+        img_size = self.getSettings()["fd_terrain_shape"]
+        action_size = 3
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        action = np.array(norm_state(action, self.getActionBounds()), dtype=self.getSettings()['float_type'])
+        
+        images = np.reshape(state, state.shape[:1] + tuple(img_size))
+        actions = np.reshape(action, action.shape)
+#         actions = action
+        data = self.parser(images, actions)
+        images = data["images"]
+        actions = data["actions"]
+        
+        # Approximate log p(x_T | x_{1:T-1}, a_{1:T-1})
+#         step_types = tf.fill([batch_size, sequence_length + 1], StepType.MID)
+        step_types = tf.fill([1, state.shape[0] + 1], StepType.MID)
+        
+#         approx_log_p_xT_value = self.compute_future_observation_likelihoods(
+#             actions=actions, step_types=step_types, images=images)
+        reward_ = []
+        for i in range (len(images)):
+#             (latent1_sample, latent2_sample), (latent1_dist, latent2_dist) = self._sess.run([self._compute_latent_dists], 
+#                                                 feed_dict={self._states_placeholder_1: [images[i]], self._action_placeholder_1: [actions[i]]})
+            (latent_samples, latent_dist) = self._sess.run([self._compute_latent_dists_seq], 
+                                                feed_dict={self._states_placeholder_1: [images[i]], self._action_placeholder_1: [actions[i]]})
+            ### Compute latent entropy
+            reward_.append(latent_dist[0][0])
+        # critic_next_time_step = critic_next_time_step._replace(reward=approx_log_p_xT_value)
+        return np.array(reward_)
+    
+    def compute_model_metrics(self, states, actions):
+        
+        ### We don't like the last action
+        infos = []
+        
+        states = np.reshape(states, states.shape[:2] + tuple(self.getSettings()["fd_terrain_shape"]))
+#         actions = np.reshape(action, action.shape)
+        
+        for i in range (len(states)):
+            info = {}
+            action_seq = actions[i][0:self._sequence_length-1]
+            (latent_samples, latent_dist) = self._sess.run([self._compute_latent_dists_seq], 
+                                                feed_dict={self._states_placeholder_1: [states[i]], self._action_placeholder_1: [action_seq ]})[0]
+        
+            info["conditional_entropy"] = latent_dist[1]
+            infos.append(info)
+        ### Compute latent entropy
+        return infos
+        
     def predict(self, state, state2):
         """
             Compute distance between two states
@@ -1228,7 +1302,7 @@ class MultivariateNormalDiag(tf.Module):
 class CompressorSmall(tf.Module):
     """Feature extractor."""
 
-    def __init__(self, base_depth, feature_size, name=None):
+    def __init__(self, base_depth, feature_size, name=None, sequence_length=8):
         super(CompressorSmall, self).__init__(name=name)
         self.feature_size = feature_size
         conv = functools.partial(
@@ -1236,9 +1310,9 @@ class CompressorSmall(tf.Module):
         )
         self.conv1 = conv(base_depth, 5, 2)
 #         self.conv2 = conv(2 * base_depth, 3, 2)
-        self.conv3 = conv(4 * base_depth, 3, 2)
+        self.conv3 = conv(int(sequence_length/2) * base_depth, 3, 2)
 #         self.conv4 = conv(8 * base_depth, 3, 2)
-        self.conv5 = conv(8 * base_depth, 4, padding="VALID")
+        self.conv5 = conv(sequence_length * base_depth, 4, padding="VALID")
 
     def __call__(self, image):
         image_shape = tf.shape(image)[-3:]
@@ -1255,15 +1329,15 @@ class CompressorSmall(tf.Module):
 class DecoderSmall(tf.Module):
     """Probabilistic decoder for `p(x_t | z_t)`."""
 
-    def __init__(self, base_depth, channels=3, scale=1.0, name=None):
+    def __init__(self, base_depth, channels=3, scale=1.0, name=None, sequence_length=8):
         super(DecoderSmall, self).__init__(name=name)
         self.scale = scale
         conv_transpose = functools.partial(
             tf.keras.layers.Conv2DTranspose, padding="SAME", activation=tf.nn.leaky_relu
         )
-        self.conv_transpose1 = conv_transpose(8 * base_depth, 4, padding="VALID")
+        self.conv_transpose1 = conv_transpose(sequence_length * base_depth, 4, padding="VALID")
 #         self.conv_transpose2 = conv_transpose(4 * base_depth, 3, 2)
-        self.conv_transpose3 = conv_transpose(2 * base_depth, 3, 2)
+        self.conv_transpose3 = conv_transpose(int(sequence_length/2) * base_depth, 3, 2)
 #         self.conv_transpose4 = conv_transpose(base_depth, 3, 2)
         self.conv_transpose5 = conv_transpose(channels, 5, 2)
 
@@ -1301,7 +1375,7 @@ class Compressor(tf.Module):
         self.conv2 = conv(2 * base_depth, 3, 2)
         self.conv3 = conv(4 * base_depth, 3, 2)
         self.conv4 = conv(8 * base_depth, 3, 2)
-        self.conv5 = conv(8 * base_depth, 4, padding="VALID")
+        self.conv5 = conv(self._sequence_length * base_depth, 4, padding="VALID")
 
     def __call__(self, image):
         image_shape = tf.shape(image)[-3:]
@@ -1324,7 +1398,7 @@ class Decoder(tf.Module):
         conv_transpose = functools.partial(
             tf.keras.layers.Conv2DTranspose, padding="SAME", activation=tf.nn.leaky_relu
         )
-        self.conv_transpose1 = conv_transpose(8 * base_depth, 4, padding="VALID")
+        self.conv_transpose1 = conv_transpose(self._sequence_length * base_depth, 4, padding="VALID")
         self.conv_transpose2 = conv_transpose(4 * base_depth, 3, 2)
         self.conv_transpose3 = conv_transpose(2 * base_depth, 3, 2)
         self.conv_transpose4 = conv_transpose(base_depth, 3, 2)
