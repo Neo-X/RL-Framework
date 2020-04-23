@@ -221,6 +221,7 @@ def _initialize_train_data():
 def trainModelParallel(inputData):
     # TODO this function is way too long
     # (sys.argv[1], settings)
+    from util.SimulationUtil import getDataDirectory, getAgentNameString, getAgentName, getAgentNameString
     settings = inputData[1]
 
     # Tag_FullObserve_SLAC_mini.json: True (not in settings)
@@ -604,7 +605,7 @@ def trainModelParallel(inputData):
                     if ("skip_rollouts" in settings and 
                         (settings["skip_rollouts"] == True)):
                         out = (([],[],[],[],[],[],[],[], []), [], [], [])
-                    
+                        sampler.sendKeepAlive()
                     else:
                             out = sampler.obtainSamples( masterAgent=masterAgent,
                                                          rollouts=settings['num_on_policy_rollouts']

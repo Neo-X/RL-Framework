@@ -16,14 +16,6 @@ class OpenAIGymActorMARL(OpenAIGymActor):
         
         return reward
     
-        # @profile(precision=5)
-    def actContinuous(self, sim, action_, bootstrapping=False):
-        import numpy as np
-        # Actor should be FIRST here
-        ob, reward, done, info  = super().step(self, action_)
-       
-        return ob, reward, done, info
-    
         
     def updateAction(self, sim, action_):
         import numpy as np

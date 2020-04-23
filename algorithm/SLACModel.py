@@ -931,8 +931,10 @@ class SLACModel(SiameseNetwork):
             action_seq = actions[i][0:self._sequence_length-1]
             (latent_samples, latent_dist) = self._sess.run([self._compute_latent_dists_seq], 
                                                 feed_dict={self._states_placeholder_1: [states[i]], self._action_placeholder_1: [action_seq ]})[0]
-        
-            info["conditional_entropy"] = latent_dist[1]
+            
+            ### Average latent variance
+            info["conditional_entropy"] = np.mean(latent_dist[1], axis=-1)
+            info["conditional_entropy2"] = np.mean(latent_dist[3], axis=-1)
             infos.append(info)
         ### Compute latent entropy
         return infos

@@ -162,10 +162,6 @@ class Plotter(object):
                 state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
                 dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
                 
-                if ("compute_model_metrics" in self._settings 
-                    and (self._settings["compute_model_metrics"])):
-                    modelMetrics = masterAgent.getForwardDynamics().compute_model_metrics(state_, action_)
-                    print ("modelMetrics: ", modelMetrics)
             else:
                 dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
             if (type(dynamicsLoss) == 'list'):
@@ -177,17 +173,31 @@ class Plotter(object):
                 masterAgent.reset()
                 if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
-                    batch_size_lstm_fd = 4
-                    if ("lstm_batch_size" in self._settings):
-                        batch_size_lstm_fd = self._settings["lstm_batch_size"][0]
+                    batch_size_lstm_fd = 8
+#                     if ("lstm_batch_size" in self._settings):
+#                         batch_size_lstm_fd = self._settings["lstm_batch_size"][0]
                     ### This can consume a lot of memory if trajectories are long...
-                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
+                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=batch_size_lstm_fd)
                     dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
                     
                     if ("compute_model_metrics" in self._settings 
                         and (self._settings["compute_model_metrics"])):
                         modelMetrics = masterAgent.getForwardDynamics().compute_model_metrics(state_, action_)
-                        print ("modelMetrics: ", modelMetrics)
+#                         print ("modelMetrics: ", modelMetrics)
+#                         print ("datas: ", datas)
+                        for d in range(len(datas)):
+                            datas[d].update(modelMetrics[d])
+                            for key in datas[d]:
+                                ### Put all info data in the logs
+                                ### Plot the batch data.
+                                nlv_ = NNVisualize(title=key+str(d), settings=self._settings)
+                                nlv_.init()
+                                data_ = np.array(datas[d][key], dtype="float32").flatten()
+                                nlv_.updateLoss(data_, np.zeros_like(data_))
+                                nlv_.redraw()
+                                nlv_.saveVisual(directory+key+str(d))
+                                nlv_.finish()
+#                                 logExperimentData(trainData, key+str(d), np.mean([met[key] for met in otherMetrics]), self._settings)
                 else:
                     dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
                 
@@ -310,7 +320,7 @@ class Plotter(object):
         
         if ( self._settings['save_trainData'] and (not self._settings['visualize_learning'])
              and (self._settings["train_actor"] == True)):
-            rlv_ = RLVisualize(title=str(self._settings['sim_config_file']) + " agent on " + str(self._env_name), settings=self._settings)
+            rlv_ = RLVisualize(title=str(self._settings['sim_config_file']), settings=self._settings)
             rlv_.init()
             rlv_.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
             rlv_.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
@@ -407,8 +417,8 @@ class Plotter(object):
             
             mean_actorLosses = np.mean([np.mean(acL) for acL in actorLosses])
             std_actorLosses = np.mean([np.std(acl) for acl in actorLosses])
-            logExperimentData(trainData, "mean_actor_loss", mean_actorLosses, settings)
-            logExperimentData(trainData, "std_actor_loss", std_actorLosses, settings)
+            logExperimentData(trainData, "mean_actor_loss", mean_actorLosses, self._settings)
+            logExperimentData(trainData, "std_actor_loss", std_actorLosses, self._settings)
             
             
             if (self._settings['visualize_learning']):

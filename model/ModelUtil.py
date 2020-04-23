@@ -1050,7 +1050,7 @@ def checkDataIsValid(data, verbose=False, scale=1.0, identifier="Data"):
             for data__ in data:
                 valid = valid and checkDataIsValid(data__, verbose=verbose, scale=scale, identifier=identifier)
         """
-        bad_value_boundary=100000
+        bad_value_boundary=10000000
         data = np.array(data)
         if (not np.all(np.isfinite(data))):
             if ( verbose ):

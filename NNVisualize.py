@@ -103,7 +103,7 @@ class NNVisualize(object):
         
         
     def updateLoss(self, error, std):
-        self._bellman_error.set_xdata(np.zeros_like(error))
+        self._bellman_error.set_xdata(np.arange(len(error)))
         self._bellman_error.set_ydata(error)
         if ( not self._nice):
             self._bellman_error_ax.collections.remove(self._bellman_error_std)

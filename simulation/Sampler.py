@@ -202,7 +202,7 @@ class Sampler(object):
         message['type'] = 'Update_Policy'
         message['data'] = data
         for m_q in self._sim_work_queues:
-            print("trainModel: Sending current network parameters: ", m_q)
+#             print("trainModel: Sending current network parameters: ", m_q)
             m_q.put(message, timeout=self._timeout_)
             
         if ( 'override_sim_env_id' in self._settings and (self._settings['override_sim_env_id'] != False)):
