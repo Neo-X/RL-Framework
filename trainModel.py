@@ -647,7 +647,7 @@ def trainModelParallel(inputData):
                 plotter.updatePlots(masterAgent, trainData, sampler, out, p)
                 
             ## This will let me know which part of learning is going slower training updates or simulation
-            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                 sampler.info()
                 
             if (trainData["round"] % settings['saving_update_freq_num_rounds']) == 0:

@@ -119,7 +119,7 @@
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.05,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
-"debug_actor": true,
+"debug_actor": false,
 	"comment__": "float type to use, if for example you want to train on the GPU use float32",
 "float_type": "float32",
 	"comment__": "What processor type to perform the training on [cpu|gpu]",
