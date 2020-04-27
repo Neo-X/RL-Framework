@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "TagEnvPartiallyObserved-1particle-flatobs-dualstate-16x16-v0/IC2_marginal_mini_latent_check_17",
+"data_folder": "TagEnvPartiallyObserved-1particle-flatobs-dualstate-16x16-v0/IC2_marginal_mini_latent_check_18",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",

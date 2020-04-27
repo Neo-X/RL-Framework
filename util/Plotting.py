@@ -87,6 +87,16 @@ class Plotter(object):
                 self._actor_regularization_viz = NNVisualize(title=str("Actor Reg Cost") + " with " + title)
                 self._actor_regularization_viz.setInteractive()
                 self._actor_regularization_viz.init()
+                
+        # paramSampler = exp_val.getActor().getParamSampler()
+        self._best_eval =-100000000.0
+#         self._mean_eval = best_eval * 10
+        self._best_dynamicsLosses = self._best_eval*-1.0
+#         self._mean_dynamicsLosses = best_dynamicsLosses * 10 
+                
+                
+    def getSettings(self):
+        return self._settings
         
         
     def updatePlots(self, masterAgent, trainData, sampler, out, p):
@@ -253,7 +263,7 @@ class Plotter(object):
                     otherMetrics = sampler.obtainSamples( masterAgent, rollouts=self._settings['eval_epochs'], p=0, eval=True)
 
             print ("round_, p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
-#             print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
+            print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
             if np.mean(mean_bellman_error) > 10000:
                 print ("Error to big: ")
             else:
@@ -407,7 +417,7 @@ class Plotter(object):
                 self._critic_regularization_viz.saveVisual(directory+"criticRegularizationGraph")
                 self._critic_regularization_viz.setInteractive()
             
-        if (self._settings['debug_actor']):
+        if (self.getSettings()['debug_actor']):
             
             masterAgent.reset()
             loss__ = [p_.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage) for p_ in masterAgent.getAgents() ]
@@ -439,6 +449,41 @@ class Plotter(object):
                 self._actor_regularization_viz.setInteractiveOff()
                 self._actor_regularization_viz.saveVisual(directory+"actorRegularizationGraph")
                 self._actor_regularization_viz.setInteractive()
+                
+                
+        if (trainData["round"] % self.getSettings()['saving_update_freq_num_rounds']) == 0:
+        
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['hyper_train']):
+                print ("Saving current masterAgent")
+            masterAgent.saveTo(directory)
+            
+            if ( self.getSettings()['train_forward_dynamics'] and 
+                 (mean_dynamicsLosses < self._best_dynamicsLosses)):
+                self._best_dynamicsLosses = mean_dynamicsLosses
+                if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['hyper_train']):
+                    print ("Saving BEST current forward dynamics agent: " + str(self._best_dynamicsLosses))
+                masterAgent.saveTo(directory, bestFD=True)
+                    
+            if (mean_eval > self._best_eval):
+                self._best_eval = mean_eval
+                if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['hyper_train']):
+                    print ("Saving BEST current agent: " + str(self._best_eval))
+                masterAgent.saveTo(directory, bestPolicy=True)
+                
+            fp = open(directory+"trainingData_" + str(getAgentNameString(self.getSettings()['agent_name'])) + ".json", 'w')
+            # print ("Train data: ", trainData)
+            from util.utils import NumpyEncoder 
+            import json
+            # print ("trainData: ", trainData)
+            json.dump(trainData, fp, cls=NumpyEncoder)
+            fp.close()
+            # draw data
+
+        if "checkpoint_vid_rounds" in self.getSettings() and self.getSettings()["checkpoint_vid_rounds"] is not None \
+        and trainData["round"] % self.getSettings()["checkpoint_vid_rounds"] == 0:
+           loggingWorkerQueue.put(('checkpoint_vid_rounds', trainData["round"]))
+
+
         
     def finish(self):
         print("Delete any plots being used")

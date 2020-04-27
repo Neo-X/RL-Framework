@@ -6,6 +6,8 @@ import multiprocessing
 from util.SimulationUtil import createActor
 from model.LearningMultiAgent import LearningMultiAgent
 from simulation.SimWorker import SimWorker
+from simulation.simEpoch import simModelParrallel, simModelMoreParrallel, simEpoch
+from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
 
 class Sampler(object):
     
@@ -68,6 +70,8 @@ class Sampler(object):
                     sw.start()
         
         
+    def getSettings(self):
+        return self._settings
     # python -m memory_profiler example.py
     # @profile(precision=5)
     def createSimWorkers(self, settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, default_sim_id=None):
@@ -133,28 +137,26 @@ class Sampler(object):
     
         return (sim_workers, sim_work_queues)
     
-    def sendKeepAlive(self):
+    def sendKeepAlive(self, masterAgent):
         
         ### Send keep alive to sim processes
-        if (masterAgent.getSettings()['on_policy'] == "fast"):
+        if (self.getSettings()['on_policy'] == "fast"):
             out = simModelMoreParrallel( sw_message_queues=self._sim_work_queues
-                                       ,model=masterAgent, settings=settings__ 
+                                       ,model=masterAgent, settings=self.getSettings() 
                                        ,eval_episode_data_queue=self._eval_episode_data_queue 
-                                       ,anchors=self._settings['num_on_policy_rollouts']
+                                       ,anchors=self.getSettings()['num_on_policy_rollouts']
                                        ,type='keep_alive'
                                        ,p=1
                                        )
         else:
             out = simModelParrallel( sw_message_queues=self._sim_work_queues,
-                                   model=masterAgent, settings=settings__, 
+                                   model=masterAgent, settings=self.getSettings(), 
                                    eval_episode_data_queue=self._eval_episode_data_queue, 
-                                   anchors=self._settings['num_on_policy_rollouts'],
+                                   anchors=self.getSettings()['num_on_policy_rollouts'],
                                    type='keep_alive',
                                    p=1)
             
     def obtainSamples(self, masterAgent, rollouts, p, eval=False):
-        from simulation.simEpoch import simModelParrallel, simModelMoreParrallel, simEpoch
-        from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
         if (eval == True):
             if (self._settings['on_policy'] == True ):
                 out = evalModelParrallel( input_anchor_queue=self._eval_sim_work_queues,

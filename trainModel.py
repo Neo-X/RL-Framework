@@ -301,12 +301,6 @@ def trainModelParallel(inputData):
                 return
         
         
-        # paramSampler = exp_val.getActor().getParamSampler()
-        best_eval =-100000000.0
-        mean_eval = best_eval * 10
-        best_dynamicsLosses = best_eval*-1.0
-        mean_dynamicsLosses = best_dynamicsLosses * 10 
-            
         values = []
         discounted_values = []
         bellman_error = []
@@ -605,11 +599,11 @@ def trainModelParallel(inputData):
                     if ("skip_rollouts" in settings and 
                         (settings["skip_rollouts"] == True)):
                         out = (([],[],[],[],[],[],[],[], []), [], [], [])
-                        sampler.sendKeepAlive()
+                        sampler.sendKeepAlive(masterAgent)
                     else:
-                            out = sampler.obtainSamples( masterAgent=masterAgent,
-                                                         rollouts=settings['num_on_policy_rollouts']
-                                                       ,p=p)
+                        out = sampler.obtainSamples( masterAgent=masterAgent,
+                                                     rollouts=settings['num_on_policy_rollouts']
+                                                   ,p=p)
                     
                     (tuples, discounted_sum, q_value, evalData) = out
                     (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__, datas__) = tuples
@@ -651,46 +645,6 @@ def trainModelParallel(inputData):
             if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                 sampler.info()
                 
-            if (trainData["round"] % settings['saving_update_freq_num_rounds']) == 0:
-            
-                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
-                    print ("Saving current masterAgent")
-                masterAgent.saveTo(directory)
-                
-                if ( settings['train_forward_dynamics'] and 
-                     (mean_dynamicsLosses < best_dynamicsLosses)):
-                    best_dynamicsLosses = mean_dynamicsLosses
-                    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
-                        print ("Saving BEST current forward dynamics agent: " + str(best_dynamicsLosses))
-                    masterAgent.saveTo(directory, bestFD=True)
-                        
-                if (mean_eval > best_eval):
-                    best_eval = mean_eval
-                    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
-                        print ("Saving BEST current agent: " + str(best_eval))
-                    masterAgent.saveTo(directory, bestPolicy=True)
-                    
-                fp = open(directory+"trainingData_" + str(getAgentNameString(settings['agent_name'])) + ".json", 'w')
-                # print ("Train data: ", trainData)
-                ## because json does not serialize np.float32 
-                """
-                for key in trainData:
-                    # print ("trainData[",key,"]", trainData[key])
-                    if (key == 'error'):
-                        continue
-                    elif (type(trainData[key]) is list):
-                        trainData[key] = [float(i) for i in trainData[key]]
-                    else:
-                        trainData[key] = float(trainData[key])
-                """
-                from util.utils import NumpyEncoder 
-                # print ("trainData: ", trainData)
-                json.dump(trainData, fp, cls=NumpyEncoder)
-                fp.close()
-                # draw data
-            # mean_reward = std_reward = mean_bellman_error = std_bellman_error = mean_discount_error = std_discount_error = None
-            # if ( trainData["round"] % 10 ) == 0 :
-
             if create_logging_worker and trainData["round"] % settings["checkpoint_vid_rounds"] == 0:
                 loggingWorkerQueue.put(('checkpoint_vid_rounds', trainData["round"]))
 
@@ -744,13 +698,13 @@ def trainModelParallel(inputData):
         sess.close()
         del sess
     
-    if ((("email_log_data_periodically" in settings)
-            and (settings["email_log_data_periodically"] == True))
-        or 
-         ("save_video_to_file" in settings)):
-        loggingWorkerQueue.put("perform_logging")
-        loggingWorkerQueue.put(False)
-        loggingWorker.join()
+#     if ((("email_log_data_periodically" in settings)
+#             and (settings["email_log_data_periodically"] == True))
+#         or 
+#          ("save_video_to_file" in settings)):
+#         loggingWorkerQueue.put("perform_logging")
+#         loggingWorkerQueue.put(False)
+#         loggingWorker.join()
     # print ("sys.modules: ", json.dumps(str(sys.modules), indent=2))
     ### This will find ALL your memory deallocation issues in C++...
     ### And errors in terinating processes properly...
