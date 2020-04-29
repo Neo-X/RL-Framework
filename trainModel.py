@@ -360,7 +360,7 @@ def trainModelParallel(inputData):
                 shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_bounds.h5", directory+getAgentName()+str(i)+"_Best_bounds.h5" )
             # sys.exit()
             
-        saveData(settings, settingsFileName)
+        saveData(settings, settingsFileName, exp_logger)
             
         state_bounds = settings['state_bounds']
         discrete_actions = settings['discrete_actions']
@@ -639,7 +639,7 @@ def trainModelParallel(inputData):
                     print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p))
             if (trainData["round"] % settings['plotting_update_freq_num_rounds']) == 0:
                 
-                plotter.updatePlots(masterAgent, trainData, sampler, out, p)
+                plotter.updatePlots(masterAgent, trainData, sampler, out, p, settings)
                 
             ## This will let me know which part of learning is going slower training updates or simulation
             if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):

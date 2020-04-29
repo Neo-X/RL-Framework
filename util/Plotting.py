@@ -99,10 +99,13 @@ class Plotter(object):
         return self._settings
         
         
-    def updatePlots(self, masterAgent, trainData, sampler, out, p):
+    def updatePlots(self, masterAgent, trainData, sampler, out, p, settings):
         ### Lets always save a figure for the learning...
         from util.SimulationUtil import createEnvironment, logExperimentData, saveData
         from util.utils import current_mem_usage
+        self._settings = settings
+        
+        
         (tuples, discounted_sum, q_value, evalData) = out
         (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__, datas__) = tuples
         import numpy as np

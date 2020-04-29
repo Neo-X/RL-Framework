@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_NewContacts_v0/Tensorflow_Pushes_Strong_14",
+"data_folder": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_NewContacts_v0/Tensorflow_Pushes_Strong_15",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -16,7 +16,7 @@
     "comment__": "Config file for the simulator",
 "sim_config_file": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_NewContacts_v0",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.15,
+"exploration_rate": 0.1,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 1000,
     "comment__": "Number of epochs to perform per round",
@@ -411,8 +411,10 @@
 "critic_network_layer_sizes": [ 
 							{"layer_type": "Dense", "units": 512, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dropout", "rate": 0.2},
 							{"layer_type": "Dense", "units": 256, "use_bias": true},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" }
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dropout", "rate": 0.2}
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [ 

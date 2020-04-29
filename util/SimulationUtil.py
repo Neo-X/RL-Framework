@@ -53,7 +53,7 @@ def getGPUBusIndex(index=0):
     ### return BUS ID
     return raw_devices[index][6:]
 
-def saveData(settings, settingsFileName):
+def saveData(settings, settingsFileName, exp_logger):
     
     directory= getDataDirectory(settings)
     
@@ -66,6 +66,7 @@ def saveData(settings, settingsFileName):
     print ("Saving settings file with data: ", out_file_name)
     if ("logger_instance" in settings):
         exp_logger = settings["logger_instance"]
+        settings["logger_instance_key"] = exp_logger.get_key()
         settings["logger_instance"] = None
     out_file = open(out_file_name, 'w')
     out_file.write(json.dumps(settings, indent=4))
@@ -190,13 +191,20 @@ def setupEnvironmentVariable(settings, eval=False):
                     exp_config = json.loads(exp_config)
                 # Add the following code anywhere in your machine learning file
                 print ("Tracking training via commet.ml")
-                experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",
-                                        project_name=exp_config["project_name"], workspace="glenb")
-                experiment.log_parameters(settings)
-                experiment.add_tag("comet_test")
-                experiment.set_name(settings["data_folder"])
-                # experiment.log_dependency(self, "terrainRLAdapter", version)
-                experiment.set_filename(fname="cometML_test")
+                if ("logger_instance_key" in settings):
+                    from comet_ml import ExistingExperiment
+                    experiment = ExistingExperiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu", previous_experiment=settings["logger_instance_key"],
+                                                 project_name=exp_config["project_name"], workspace="glenb")
+                    print(comet_logger)
+                else:
+                    
+                    experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",
+                                            project_name=exp_config["project_name"], workspace="glenb")
+                    experiment.log_parameters(settings)
+                    experiment.add_tag("comet_test")
+                    experiment.set_name(settings["data_folder"])
+                    # experiment.log_dependency(self, "terrainRLAdapter", version)
+                    experiment.set_filename(fname="cometML_test")
                 return experiment
         except Exception as inst:
             print ("Not tracking training via commet.ml")
