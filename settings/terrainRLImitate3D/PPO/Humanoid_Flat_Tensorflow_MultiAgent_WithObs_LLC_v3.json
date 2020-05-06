@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_NewContacts_v0/Tensorflow_Pushes_Strong_18",
+"data_folder": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_v1/Tensorflow_Pushes_13",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -14,9 +14,9 @@
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
-"sim_config_file": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_NewContacts_v0",
+"sim_config_file": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_v1",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.175,
+"exploration_rate": 0.2,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 1000,
     "comment__": "Number of epochs to perform per round",
@@ -177,7 +177,8 @@
          1.00000000e+00,  1.00000000e+00,  1.00000000e+00,
          1.00000000e+00,  1.00000000e+00,  1.00000000e+00]],
     "comment__": "abdoment                  neck,                   right_hip                 right_knee     right_ankle                right_shoulder          right_elbow, right_wrist,   left_hip                 left_knee  left_ankle,              left_shoulder            left_elbow,    right_wrist",	     
-"action_bounds": "ask_env",
+"action_bounds": [[-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.57, -1.0, -1.0, -1.0, -2.57,  -3.14,        -1.0, -1.0, -1.0, -1.57,   -1.0, -1.0, -1.0, -2.57,  -3.14,       -0.1,          -1.0, -1.0, -1.0, -1.57,   -3.14,   -1.0, -1.0, -1.0, -2.57,  -1.0, -1.0, -1.0, -2.57, -3.14,        -0.1],
+				  [ 1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  2.57,  1.0,  1.0,  1.0,  2.57, 1.0,            1.0,  1.0,  1.0,  1.57,    1.0,  1.0,  1.0,  2.57,   1.00,        0.1,           1.0,  1.0,  1.0,  1.57,     1.0,    1.0,  1.0,  1.0,  2.57,   1.0,  1.0,  1.0,  2.57,  1.0,          0.1]],
     "comment__": "Set of discrete actions that can be sampled from",				     
 "discrete_actions": [[-0.92, 2.8],
                     [0.02, 3.0],
@@ -411,10 +412,8 @@
 "critic_network_layer_sizes": [ 
 							{"layer_type": "Dense", "units": 512, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dropout", "rate": 0.2},
 							{"layer_type": "Dense", "units": 256, "use_bias": true},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dropout", "rate": 0.2}
+							{"layer_type": "activation", "activation_type": "leaky_rectify" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [ 
@@ -483,10 +482,9 @@
 	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (no TD loss)",
 "dont_use_td_learning": false,
 	"comment__": "Add a negative reward when the robot falls",
-"use_fall_reward_shaping": true,
+"use_fall_reward_shaping": false,
 	"comment__": "Data for using comet ML for logging learning experiments",
 "experiment_logging":
 	{"use_comet": true,
-	"project_name": "deepcrowds"},
-"reset_on_fall_probability": 0.95
+	"project_name": "deepcrowds"}
 }
