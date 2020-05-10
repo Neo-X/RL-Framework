@@ -245,7 +245,7 @@ def trainModelParallel(inputData):
         return False
 
     # Creates and stores the comet logger.
-    exp_logger = settings["logger_instance"] = setupEnvironmentVariable(settings)
+    exp_logger = setupEnvironmentVariable(settings)
     settings["logger_instance"] = None
     settings['sample_single_trajectories'] = True    
     settingsFileName = inputData[0]    
@@ -554,105 +554,12 @@ def trainModelParallel(inputData):
                 
             
         del model
-<<<<<<< HEAD
         from util.Plotting import Plotter
         plotter = Plotter(settings)
                         
         settings["logger_instance"] = exp_logger
         settings["round"] = int(trainData["round"])
         masterAgent.setSettings(settings, forceCopy="all")
-=======
-        ## Give gloabl access to processes to they can be terminated when ctrl+c is pressed
-        global sim_processes
-        sim_processes = sim_workers
-        global learning_processes
-        learning_processes = learning_workers
-        global _input_anchor_queue
-        _input_anchor_queue = input_anchor_queue
-        global _output_experience_queue
-        _output_experience_queue = output_experience_queue
-        global _eval_episode_data_queue
-        _eval_episode_data_queue = eval_episode_data_queue
-        global _sim_work_queues
-        _sim_work_queues = sim_work_queues
-        
-        if ( settings['save_trainData'] or settings['visualize_learning']):
-            from RLVisualize import RLVisualize
-            if (settings['train_forward_dynamics']
-                or settings['debug_critic']
-                or settings['debug_actor']):
-                from NNVisualize import NNVisualize
-            
-        if settings['visualize_learning']:
-            title = getAgentNameString(settings['agent_name'])
-            k = title.rfind(".") + 1
-            if (k > len(title)): ## name does not contain a .
-                k = 0 
-            title = str(settings['sim_config_file'])
-            if (settings['environment_type'] == "open_AI_Gym"):
-                settings['environment_type'] = settings['sim_config_file']
-            rlv = RLVisualize(title=title + " agent on " + str(settings['environment_type']), settings=settings)
-            rlv.setInteractive()
-            rlv.init()
-        if (settings['train_forward_dynamics']):
-            if settings['visualize_learning']:
-                title = settings['forward_dynamics_model_type']
-                k = title.rfind(".") + 1
-                if (k > len(title)): ## name does not contain a .
-                    k = 0 
-                title = title[k:]
-                nlv = NNVisualize(title=str("Dynamics Model") + " with " + title, settings=settings)
-                nlv.setInteractive()
-                nlv.init()
-            if (settings['train_reward_predictor']):
-                if settings['visualize_learning']:
-                    title = settings['forward_dynamics_model_type']
-                    k = title.rfind(".") + 1
-                    if (k > len(title)): ## name does not contain a .
-                        k = 0 
-                    
-                    title = title[k:]
-                    rewardlv = NNVisualize(title=str("Reward Model") + " with " + title, settings=settings)
-                    rewardlv.setInteractive()
-                    rewardlv.init()
-                 
-        if (settings['debug_critic']):
-            criticLosses = []
-            criticRegularizationCosts = [] 
-            if (settings['visualize_learning']):
-                title = getAgentNameString(settings['agent_name'])
-                k = title.rfind(".") + 1
-                if (k > len(title)): ## name does not contain a .
-                    k = 0 
-                title = title[k:]
-                critic_loss_viz = NNVisualize(title=str("Critic Loss") + " with " + title)
-                critic_loss_viz.setInteractive()
-                critic_loss_viz.init()
-                critic_regularization_viz = NNVisualize(title=str("Critic Reg Cost") + " with " + title)
-                critic_regularization_viz.setInteractive()
-                critic_regularization_viz.init()
-            
-        if (settings['debug_actor']):
-            actorLosses = []
-            actorRegularizationCosts = []            
-            if (settings['visualize_learning']):
-                title = getAgentNameString(settings['agent_name'])
-                k = title.rfind(".") + 1
-                if (k > len(title)): ## name does not contain a .
-                    k = 0 
-                title = title[k:]
-                actor_loss_viz = NNVisualize(title=str("Actor Loss") + " with " + title)
-                actor_loss_viz.setInteractive()
-                actor_loss_viz.init()
-                actor_regularization_viz = NNVisualize(title=str("Actor Reg Cost") + " with " + title)
-                actor_regularization_viz.setInteractive()
-                actor_regularization_viz.init()
-                
-
-        settings["round"] = int(trainData["round"])
-        settings["logger_instance"] = exp_logger
-        masterAgent.setSettings(settings)
->>>>>>> 7343478958b94f1992d4a48c981ecdc9f3050fa3
 
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)
             and (trainData["round"] == 0)):
