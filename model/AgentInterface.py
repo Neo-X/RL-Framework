@@ -1,9 +1,9 @@
-"""
-    An interface class for Agents to be used in the system.
-
-"""
 
 class AgentInterface(object):
+    """
+    An interface class for Agents to be used in the system.
+
+    """
     
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
         AgentInterface.setActionBounds(self, action_bounds) 

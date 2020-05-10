@@ -7,6 +7,7 @@ sys.setrecursionlimit(50000)
 import os
 import json
 from pydoc import locate
+import logging
 
 import dill
 import dill as pickle
@@ -122,6 +123,14 @@ def saveData(settings, settingsFileName, exp_logger):
             out_file.close()
 
 def logExperimentData(trainData, key, value, settings):
+    """This function logs scalar metrics info, possibly to comet
+
+    :param trainData: 
+    :param key: str key to log (optional, not used if type(value) == OrderDict)
+    :param value: OrderedDict or value to log
+    :param settings: settings object
+    :returns: None
+    """
     import numpy as np
     from collections import OrderedDict
     
@@ -129,12 +138,12 @@ def logExperimentData(trainData, key, value, settings):
         and (settings["logger_instance"] is not None)):
         logger = settings["logger_instance"] 
         logger.set_step(step=settings["round"])
-        
+
+        # The log_metrics function requires a dictionary mapping strs to one of Float/Integer/Boolean/String
         if (isinstance(value, OrderedDict)):
             logger.log_metrics(value)
         else:
             logger.log_metrics({key:np.mean(value)})
-        
         
     if key in trainData:
         trainData[key].append(value)
@@ -189,7 +198,9 @@ def setupEnvironmentVariable(settings, eval=False):
                 if (isinstance(exp_config, str)):
                     print ("exp_config: ", exp_config)
                     exp_config = json.loads(exp_config)
+
                 # Add the following code anywhere in your machine learning file
+<<<<<<< HEAD
                 print ("Tracking training via commet.ml")
                 if ("logger_instance_key" in settings):
                     from comet_ml import ExistingExperiment
@@ -205,6 +216,17 @@ def setupEnvironmentVariable(settings, eval=False):
                     experiment.set_name(settings["data_folder"])
                     # experiment.log_dependency(self, "terrainRLAdapter", version)
                     experiment.set_filename(fname="cometML_test")
+=======
+                log.info("Tracking training via commet.ml")
+                # This is the key comet object with which to log things
+                experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",
+                                        project_name=exp_config["project_name"], workspace="glenb")
+                experiment.log_parameters(settings)
+                experiment.add_tag("comet_test")
+                experiment.set_name(settings["data_folder"])
+                # experiment.log_dependency(self, "terrainRLAdapter", version)
+                experiment.set_filename(fname="cometML_test")
+>>>>>>> 7343478958b94f1992d4a48c981ecdc9f3050fa3
                 return experiment
         except Exception as inst:
             print ("Not tracking training via commet.ml")

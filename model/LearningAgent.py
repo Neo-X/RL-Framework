@@ -2,13 +2,27 @@
     An interface class for Agents to be used in the system.
 
 """
+<<<<<<< HEAD
 import datetime
 from multiprocessing import Process
 # from pathos.multiprocessing import Pool
 import logging
+=======
+import copy
+import datetime
+import numpy as np
+from multiprocessing import Process, Queue
+import os
+import threading
+import time
+
+
+>>>>>>> 7343478958b94f1992d4a48c981ecdc9f3050fa3
 from model.AgentInterface import AgentInterface
 from model.ModelUtil import *
+from util.SimulationUtil import logExperimentData
 from util.utils import rlPrint
+<<<<<<< HEAD
 import os
 import copy
 import threading
@@ -16,6 +30,8 @@ import time
 
 log = logging.getLogger(os.path.basename(__file__))
 # np.set_printoptions(threshold=np.nan)
+=======
+>>>>>>> 7343478958b94f1992d4a48c981ecdc9f3050fa3
 
 class LearningAgent(AgentInterface):
     
@@ -288,8 +304,6 @@ class LearningAgent(AgentInterface):
         loss = 0
         critic_loss = 0
         loss_actor = 0
-        import numpy as np
-        from util.SimulationUtil import logExperimentData
         
         value_function_batch_size = self._settings.get('value_function_batch_size', self._settings["batch_size"])
 
