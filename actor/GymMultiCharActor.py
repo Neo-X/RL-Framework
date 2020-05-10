@@ -39,6 +39,7 @@ class GymMultiCharActor(ActorInterface):
                 
                 settings["load_saved_model"] = True
                 # settings["load_saved_model"] = "network_and_scales"
+                ### This returns a list of agents now.
                 model = createRLAgent(settings['agent_name'], state_bounds=settings["state_bounds"],
                                        discrete_actions=np.array([[0]]), 
                                        reward_bounds=settings["reward_bounds"], 
@@ -51,7 +52,7 @@ class GymMultiCharActor(ActorInterface):
                 # model.setSettings(settings_)
                 f.close()
                 
-            self._llc_policy = model
+            self._llc_policy = model[0]
         
         
     def updateAction(self, sim, action_):
