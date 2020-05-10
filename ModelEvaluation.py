@@ -330,7 +330,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
     # print ("State Length: ", len(model.getStateBounds()[0]) )
     
-    if (settings['train_forward_dynamics']):
+    if ("train_forward_dynamics" in settings and settings['train_forward_dynamics']):
         if (runLastModel == True):
             # createNewFDModel(settings, exp_val, model)
             forwardDynamicsModel = createNewFDModel(settings, exp, model)
@@ -342,7 +342,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         # forwardDynamicsModel.setActor(actor)
         masterAgent.setForwardDynamics(forwardDynamicsModel)
 
-    if ( settings['use_simulation_sampling'] ):
+    if ( "use_simulation_sampling" in settings and settings['use_simulation_sampling'] ):
         sampler = createSampler(settings, exp)
         ## This should be some kind of copy of the simulator not a network
         if (not settings['train_forward_dynamics']):
@@ -353,7 +353,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         # print ("thread together exp: ", masterAgent._exp)
         # sys.exit()
             
-    if ( settings["use_transfer_task_network"] ):
+    if ( "use_transfer_task_network" in settings and settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
         file_name=directory+getAgentName()+"_Best.pkl"
         f = open(file_name, 'rb')
@@ -367,7 +367,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     exp.getActor().init()   
     exp.init()
     expected_value_viz=None
-    if (settings['visualize_expected_value'] == True):
+    if ("visualize_expected_value" in settings and (settings['visualize_expected_value'] == True)):
         expected_value_viz = NNVisualize(title=str("Reward"), settings=settings, nice=True)
         expected_value_viz.setInteractive()
         expected_value_viz.init()

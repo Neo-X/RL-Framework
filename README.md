@@ -1,16 +1,9 @@
 # Learn
 
 This package contains all of the python code used for learning. The code is based
-on Lasagne which is based on Theano.
+on Keras which is based on Tensorflow.
 
-##### Create either venv or conda environment and activate it
-
-###### Virtualenv
-```
-pip install --upgrade virtualenv
-virtualenv <venv-name>
-source <venv-name>/bin/activate
-```
+##### Create conda environment and activate it
 
 ###### Anaconda 
 If not done yet, install [anaconda](https://www.anaconda.com/) by following the instructions [here](https://www.anaconda.com/download/#linux).

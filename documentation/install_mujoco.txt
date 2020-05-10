@@ -6,7 +6,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/gberseth/.mujoco/mujoco200/bin
 
 apt-get -y install freeglut3-dev build-essential libx11-dev libxmu-dev libxi-dev libgl1-mesa-glx libglu1-mesa libglu1-mesa-dev libglew1.6-dev mesa-utils 
 
-sudo apt-get install libosmesa6-dev
+sudo apt-get install libosmesa6-dev patchelf ffmpeg
 
 sudo apt install patchelf
 pip3 install --user Cython

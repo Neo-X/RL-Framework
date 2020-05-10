@@ -8,13 +8,18 @@ sys.setrecursionlimit(50000)
 # from sim.PendulumEnvState import PendulumEnvState
 # from sim.PendulumEnv import PendulumEnv
 from multiprocessing import Process, Queue
+import logging
+import multiprocessing
 # from pathos.multiprocessing import Pool
 import time
 import copy
 import json
+import os
+import queue
 # import memory_profiler
 # import resources
 
+log = logging.getLogger(os.path.basename(__file__))
 
 # class SimWorker(threading.Thread):
 class LoggingWorker(Process):
@@ -55,7 +60,7 @@ class LoggingWorker(Process):
             exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, render=True, index=0)
             vizData = exp.getEnvironment().render()
             # movie_writer.append_data(np.transpose(vizData))
-            print ("**********************************************sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
+#             print ("**********************************************sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
             if ("test_movie_rendering" in self._settings
                 and (self._settings["test_movie_rendering"] == True)):
                 return
@@ -71,7 +76,7 @@ class LoggingWorker(Process):
                     if data_[0] == "checkpoint_vid_rounds":
                         from ModelEvaluation import modelEvaluation
                         roundNum = data_[1]
-                        print('Creating video for checkpoint round', roundNum)
+#                         log.info('Creating video for checkpoint round {}'.format(roundNum))
                         settings_copy = copy.deepcopy(self._settings)
                         filename = settings_copy['save_video_to_file']
                         settings_copy['save_video_to_file'] = filename[:filename.rindex('.')] + '_round' + str(roundNum) + filename[filename.rindex('.'):]
@@ -80,7 +85,8 @@ class LoggingWorker(Process):
                     running = running and data_
                     if (not running):
                         break
-            except Exception as inst:
+            except (queue.Empty, OSError) as error:
+#                 log.warning("Caught error when attempting to evaluate model: {}".format(error))
                 pass
             time.sleep(1)
             # try:

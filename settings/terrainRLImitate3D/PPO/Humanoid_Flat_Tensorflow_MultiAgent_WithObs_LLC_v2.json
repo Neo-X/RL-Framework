@@ -15,8 +15,6 @@
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
 "sim_config_file": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_v0",
-    "comment__": "A different config file for the forward dynamics simulator",
-"forwardDynamics_config_file": "PD_Biped3D_LLC_Symetric_Step-v0",
     "comment__": "Exploration distance use when randomly generating new actions",
 "exploration_rate": 0.2,
     "comment__": "Number of rounds to perform before termination",
@@ -408,10 +406,22 @@
 "annealing_schedule": "linear",
 	"comment__": "Use the annealing schedule in on policy learning",
 "anneal_on_policy": true,
+	"comment__": "Use json network description",
+"network_description_type": "json",
 	"comment__": "A list describing the size of the layers for the NN",
-"critic_network_layer_sizes": [512, 256],
+"critic_network_layer_sizes": [ 
+							{"layer_type": "Dense", "units": 512, "use_bias": true},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dense", "units": 256, "use_bias": true},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" }
+							],
 	"comment__": "A list describing the size of the layers for the NN",
-"policy_network_layer_sizes": [512, 256],
+"policy_network_layer_sizes": [ 
+							{"layer_type": "Dense", "units": 512, "use_bias": true},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dense", "units": 256, "use_bias": true},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" }
+							],
 	"comment__": "Activation function to use for the std part of the policy",
 "_last_std_policy_layer_activation_type": "sigmoid",
 	"comment__": "type of activation to use",
@@ -472,7 +482,7 @@
 	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (no TD loss)",
 "dont_use_td_learning": false,
 	"comment__": "Add a negative reward when the robot falls",
-"use_fall_reward_shaping2": false,
+"use_fall_reward_shaping": false,
 	"comment__": "Data for using comet ML for logging learning experiments",
 "experiment_logging":
 	{"use_comet": true,

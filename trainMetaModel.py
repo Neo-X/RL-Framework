@@ -18,7 +18,7 @@ from simulation.LoggingWorker import LoggingWorker
 def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     import os
     import tarfile
-    from sendEmail import sendEmail
+#     from sendEmail import sendEmail
     from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
     from tools.PlotMetadataSimulation import plotMetaDataSimulation
     
@@ -71,9 +71,15 @@ def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     simData['sim_time'] = sim_time_
     contents_ = json.dumps(metaSettings, indent=4, sort_keys=True) + "\n" + json.dumps(simData, indent=4, sort_keys=True)
 #     try:
+<<<<<<< HEAD
+#         sendEmail(subject="Simulation Running: " + str(simData['sim_time']), contents=contents_, hyperSettings=metaSettings, 
+#                   simSettings=settings['configFile'], dataFile=tarFileName,
+#                   pictureFile=pictureFileName)    
+=======
 # #         sendEmail(subject="Simulation Running: " + str(simData['sim_time']), contents=contents_, hyperSettings=metaSettings, 
 # #                   simSettings=settings['configFile'], dataFile=tarFileName,
 # #                   pictureFile=pictureFileName)    
+>>>>>>> 7343478958b94f1992d4a48c981ecdc9f3050fa3
 #     except Exception as e:
 #         print("Error sending email this computer might not be authorized to use the email account.")
 #         print("Error: ", e)

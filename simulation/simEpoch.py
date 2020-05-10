@@ -8,6 +8,7 @@ import gc
 sys.setrecursionlimit(50000)
 # from sim.PendulumEnvState import PendulumEnvState
 # from sim.PendulumEnv import PendulumEnv
+import logging
 from multiprocessing import Process, Queue
 # from pathos.multiprocessing import Pool
 import threading
@@ -18,6 +19,7 @@ from util.utils import checkSetting, checkSettingExists
 # import memory_profiler
 # import resources
 
+log = logging.getLogger(__file__)
     
     
 # @profile(precision=5)
@@ -128,9 +130,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     i_ = 0
     while (i_ < settings['max_epoch_length']):
         
-        # state_ = exp.getState()
-        # print ("state_: ", repr(np.array(state_).shape))
-        # print ("state_: ", state_)
+#         state_ = [exp.getState()]
+#         print ("state_: ", repr(np.array(state_).shape))
+#         print ("state_: ", state_)
         action=None
             
         (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
@@ -138,11 +140,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 
         outside_bounds=False
         action_=None
-        if (settings["clamp_actions_to_stay_inside_bounds"] or (settings['penalize_actions_outside_bounds'])):
+        if (("clamp_actions_to_stay_inside_bounds" in settings and settings["clamp_actions_to_stay_inside_bounds"]) or 
+        ("penalize_actions_outside_bounds" in settings and (settings['penalize_actions_outside_bounds']))):
             (action_, outside_bounds) = clampActionWarn(action, action_bounds)
             if (settings['clamp_actions_to_stay_inside_bounds']):
                 action = action_
-        if (settings["visualize_forward_dynamics"] and settings['train_forward_dynamics']):
+        if ("visualize_forward_dynamics" in settings and settings["visualize_forward_dynamics"] and 
+            "train_forward_dynamics" in settings and settings['train_forward_dynamics']):
             predicted_next_state = model.getForwardDynamics().predict(np.array(state_), action)
             # exp.visualizeNextState(state_[0], [0,0]) # visualize current state
             exp.visualizeNextState(predicted_next_state, action)
@@ -355,7 +359,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 ob = ob.flatten()
                 resultState_[0][1] = ob
         ## For testing remove later
-        if (settings["use_back_on_track_forcing"] and (not evaluation)):
+        if (checkSettings(settings,"use_back_on_track_forcing") and (not evaluation)):
             exp.getControllerBackOnTrack()
         # print ("reward_: ", reward_)
         if print_data:
@@ -675,7 +679,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None, p=1):
     import numpy as np
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-        print ("Simulating epochs in Parallel:")
+        log.info("Simulating epochs in Parallel:")
     j=0
     timeout_ = 60 * 10 ### 10 min timeout
     if ("simulation_timeout" in settings):
@@ -721,8 +725,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         p_ = max(float(settings['anneal_exploration']), settings['epsilon'] * p)
         min_samples = min_samples * (1.0/p_)
     
-        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-            print("Updated min sample from collection is: ", min_samples)
+        log.info("Updated min sample from collection is: " + str(min_samples))
     samples__ = 0
     while ( (samples__ < (min_samples))
             ):

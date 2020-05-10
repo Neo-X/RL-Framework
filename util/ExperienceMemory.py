@@ -158,7 +158,8 @@ class ExperienceMemory(object):
                 traj_start = random.sample(set(inds), 1)[0]
         if ("shorter_smaller_rnn_batches" in self._settings
                 and (self._settings["shorter_smaller_rnn_batches"])):
-            inds = range(0, shortest_traj - self._settings["shorter_smaller_rnn_batches"])
+            ### plus so because of index count mismatch.
+            inds = range(0, shortest_traj - self._settings["shorter_smaller_rnn_batches"] + 1)
             traj_start = random.sample(set(inds), 1)[0]
             shortest_traj = traj_start + self._settings["shorter_smaller_rnn_batches"]
                 

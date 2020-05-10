@@ -1,16 +1,11 @@
 
 import copy
+import logging
 import sys
 from builtins import isinstance
 sys.setrecursionlimit(50000)
 import os
 import json
-sys.path.append("../")
-sys.path.append("../env")
-sys.path.append("../characterSimAdapter/")
-sys.path.append("../simbiconAdapter/")
-sys.path.append("../simAdapter/")
-
 from pydoc import locate
 import logging
 
@@ -59,7 +54,7 @@ def getGPUBusIndex(index=0):
     ### return BUS ID
     return raw_devices[index][6:]
 
-def saveData(settings, settingsFileName):
+def saveData(settings, settingsFileName, exp_logger):
     
     directory= getDataDirectory(settings)
     
@@ -72,6 +67,7 @@ def saveData(settings, settingsFileName):
     print ("Saving settings file with data: ", out_file_name)
     if ("logger_instance" in settings):
         exp_logger = settings["logger_instance"]
+        settings["logger_instance_key"] = exp_logger.get_key()
         settings["logger_instance"] = None
     out_file = open(out_file_name, 'w')
     out_file.write(json.dumps(settings, indent=4))
@@ -204,6 +200,23 @@ def setupEnvironmentVariable(settings, eval=False):
                     exp_config = json.loads(exp_config)
 
                 # Add the following code anywhere in your machine learning file
+<<<<<<< HEAD
+                print ("Tracking training via commet.ml")
+                if ("logger_instance_key" in settings):
+                    from comet_ml import ExistingExperiment
+                    experiment = ExistingExperiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu", previous_experiment=settings["logger_instance_key"],
+                                                 project_name=exp_config["project_name"], workspace="glenb")
+                    print(comet_logger)
+                else:
+                    
+                    experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",
+                                            project_name=exp_config["project_name"], workspace="glenb")
+                    experiment.log_parameters(settings)
+                    experiment.add_tag("comet_test")
+                    experiment.set_name(settings["data_folder"])
+                    # experiment.log_dependency(self, "terrainRLAdapter", version)
+                    experiment.set_filename(fname="cometML_test")
+=======
                 log.info("Tracking training via commet.ml")
                 # This is the key comet object with which to log things
                 experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",
@@ -213,6 +226,7 @@ def setupEnvironmentVariable(settings, eval=False):
                 experiment.set_name(settings["data_folder"])
                 # experiment.log_dependency(self, "terrainRLAdapter", version)
                 experiment.set_filename(fname="cometML_test")
+>>>>>>> 7343478958b94f1992d4a48c981ecdc9f3050fa3
                 return experiment
         except Exception as inst:
             print ("Not tracking training via commet.ml")
@@ -273,9 +287,9 @@ def processBounds(state_bounds, action_bounds, settings, sim):
         if ("perform_multiagent_training" in settings):
             settings['action_bounds'] = [settings['action_bounds']]
         action_bounds = settings['state_bounds']
-        
+
+    print ("Getting state bounds from environment")        
     if ("perform_multiagent_training" in settings):
-        print ("Getting state bounds from environment")
         state_bounds_ = []
         for i in range (settings["perform_multiagent_training"]):
             if (state_bounds[i] == "ask_env"):
@@ -302,7 +316,6 @@ def processBounds(state_bounds, action_bounds, settings, sim):
         print ("settings['state_bounds']: ", np.array(settings['state_bounds']).shape)
     elif ((state_bounds == "ask_env")
         or (state_bounds == ["ask_env"])):
-        print ("Getting state bounds from environment")
         s_min = sim.getEnvironment().observation_space.low.flatten()
         s_max = sim.getEnvironment().observation_space.high.flatten()
         print (sim.getEnvironment().observation_space.low)
@@ -755,76 +768,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = BallGame2D(conf)
         exp = BallGame2DEnv(exp, settings)
         return exp
-    elif env_type == 'ballgame_1d':
-        from rlsimenv.BallGame1D import BallGame1D
-        from sim.BallGame1DEnv import BallGame1DEnv
-        file = open(config_file)
-        conf = json.load(file)
-        # print ("Settings: " + str(json.dumps(conf)))
-        file.close()
-        conf['render'] = render
-        exp = BallGame1D(conf)
-        exp = BallGame1DEnv(exp, settings)
-        return exp
-    elif env_type == 'gapgame_1d':
-        from rlsimenv.GapGame1D import GapGame1D
-        from sim.GapGame1DEnv import GapGame1DEnv
-        file = open(config_file)
-        conf = json.load(file)
-        # print ("Settings: " + str(json.dumps(conf)))
-        file.close()
-        conf['render'] = render
-        exp = GapGame1D(conf)
-        exp = GapGame1DEnv(exp, settings)
-        return exp
-    elif env_type == 'gapgame_2d':
-        from rlsimenv.GapGame2D import GapGame2D
-        from sim.GapGame2DEnv import GapGame2DEnv
-        file = open(config_file)
-        conf = json.load(file)
-        # print ("Settings: " + str(json.dumps(conf)))
-        file.close()
-        conf.update( settings.items() )
-        conf['render'] = render
-        exp = GapGame2D(conf)
-        exp = GapGame2DEnv(exp, settings)
-        return exp
-    elif env_type == 'nav_Game':
-        from rlsimenv.NavGame import NavGame
-        from sim.NavGameEnv import NavGameEnv
-        # file = open(config_file)
-        # conf = json.load(file)
-        conf = copy.deepcopy(settings)
-        # print ("Settings: " + str(json.dumps(conf)))
-        # file.close()
-        conf['render'] = render
-        exp = NavGame(conf)
-        exp = NavGameEnv(exp, settings)
-        return exp
-    elif env_type == 'nav_Game_MultiAgent':
-        from rlsimenv.NavGameMultiAgent import NavGameMultiAgent
-        from sim.NavGameMultiAgentEnv import NavGameMultiAgentEnv
-        # file = open(config_file)
-        # conf = json.load(file)
-        conf = copy.deepcopy(settings)
-        # print ("Settings: " + str(json.dumps(conf)))
-        # file.close()
-        conf['render'] = render
-        exp = NavGameMultiAgent(conf)
-        exp = NavGameMultiAgentEnv(exp, settings)
-        return exp
-    elif env_type == 'Particle_Sim':
-        from rlsimenv.ParticleGame import ParticleGame
-        from sim.ParticleSimEnv import ParticleSimEnv
-        # file = open(config_file)
-        # conf = json.load(file)
-        conf = copy.deepcopy(settings)
-        # print ("Settings: " + str(json.dumps(conf)))
-        # file.close()
-        conf['render'] = render
-        exp = ParticleGame(conf)
-        exp = ParticleSimEnv(exp, settings)
-        return exp
+    
     
     elif env_type == 'open_AI_Gym':
         import gym
@@ -886,224 +830,9 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         conf['render'] = render
         exp = OpenAIGymEnv(env, conf)
         return exp
-
-    elif env_type == 'Multiworld':
-        import gym
-        import multiworld
-        from sim.MultiworldEnv import MultiworldEnv
-
-        multiworld.register_all_envs()
-        env_name = config_file
-        if "multiworld_kwargs" in settings:
-            multiworld_kwargs = settings["multiworld_kwargs"]
-        else:
-            multiworld_kwargs = {}
-        env = gym.make(env_name, **multiworld_kwargs)
-
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        image_key = "image_observation"
-        if "image_key" in conf:
-            image_key = conf["image_key"]
-        exp = MultiworldEnv(env, conf, image_key=image_key, state_key=conf['state_key'])
-
-        return exp
-
-    elif env_type == 'Metaworld':
-        import gym
-        import metaworld.envs.mujoco
-        from sim.OpenAIGymEnv import OpenAIGymEnv
-
-        metaworld.envs.mujoco.register_all_envs()
-        env_name = config_file
-        if "metaworld_kwargs" in settings:
-            metaworld_kwargs = settings["metaworld_kwargs"]
-        else:
-            metaworld_kwargs = {}
-        env = gym.make(env_name, **metaworld_kwargs)
-
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        if (env.getNumberofAgents() > 1):
-            exp = OpenAIGymEnv(env, conf, multiAgent=True)
-        else:
-            exp = OpenAIGymEnv(env, conf, multiAgent=False)
-        return exp
-
-    elif env_type == 'MultiworldHRL':
-        import gym
-        import multiworld
-        from sim.MultiworldHRLEnv import MultiworldHRLEnv
-
-        multiworld.register_all_envs()
-        env_name = config_file
-        if "multiworld_kwargs" in settings:
-            multiworld_kwargs = settings["multiworld_kwargs"]
-        else:
-            multiworld_kwargs = {}
-        env = gym.make(env_name, **multiworld_kwargs)
-
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        image_key = "image_observation"
-        if "image_key" in conf:
-            image_key = conf["image_key"]
-        exp = MultiworldHRLEnv(env, conf, image_key=image_key, state_key=conf['state_key'])
-
-        return exp
-
-    elif env_type == 'MetaworldHRL':
-        import gym
-        from sim.OpenAIGymHRLEnv import OpenAIGymHRLEnv
-
-        import metaworld.envs.mujoco
-        metaworld.envs.mujoco.register_all_envs()
-        env_name = config_file
-        if "metaworld_kwargs" in settings:
-            metaworld_kwargs = settings["metaworld_kwargs"]
-        else:
-            metaworld_kwargs = {}
-        env = gym.make(env_name, **metaworld_kwargs)
-
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        if (env.getNumberofAgents() > 1):
-            exp = OpenAIGymHRLEnv(env, conf, multiAgent=True)
-        else:
-            exp = OpenAIGymHRLEnv(env, conf, multiAgent=False)
-        return exp
-
-    elif env_type == 'MultiworldGoal':
-        import gym
-        import multiworld
-        from sim.MultiworldGoalEnv import MultiworldGoalEnv
-
-        multiworld.register_all_envs()
-        env_name = config_file
-        if "multiworld_kwargs" in settings:
-            multiworld_kwargs = settings["multiworld_kwargs"]
-        else:
-            multiworld_kwargs = {}
-        env = gym.make(env_name, **multiworld_kwargs)
-
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        image_key = "image_observation"
-        if "image_key" in conf:
-            image_key = conf["image_key"]
-        exp = MultiworldGoalEnv(env, conf,
-                                image_key=image_key, state_key=conf['state_key'],
-                                timeskip=conf["hlc_timestep"])
-
-        return exp
-
-    elif env_type == 'MultiworldGoalVAE':
-        import gym
-        import multiworld
-        from sim.MultiworldGoalVAEEnv import MultiworldGoalVAEEnv
-
-        multiworld.register_all_envs()
-        env_name = config_file
-        if "multiworld_kwargs" in settings:
-            multiworld_kwargs = settings["multiworld_kwargs"]
-        else:
-            multiworld_kwargs = {}
-        env = gym.make(env_name, **multiworld_kwargs)
-
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        image_key = "image_observation"
-        if "image_key" in conf:
-            image_key = conf["image_key"]
-        exp = MultiworldGoalVAEEnv(env, conf,
-                                image_key=image_key,
-                                timeskip=conf["hlc_timestep"])
-
-        return exp
-
-    elif env_type == 'MultiworldGoalRIGVAE':
-        import gym
-        import multiworld
-        from sim.MultiworldGoalRIGVAEEnv import MultiworldGoalRIGVAEEnv
-
-        multiworld.register_all_envs()
-        env_name = config_file
-        if "multiworld_kwargs" in settings:
-            multiworld_kwargs = settings["multiworld_kwargs"]
-        else:
-            multiworld_kwargs = {}
-        env = gym.make(env_name, **multiworld_kwargs)
-
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        image_key = "image_observation"
-        if "image_key" in conf:
-            image_key = conf["image_key"]
-        exp = MultiworldGoalRIGVAEEnv(env, conf,
-                                image_key=image_key,
-                                timeskip=conf["hlc_timestep"])
-
-        return exp
-
-    elif env_type == 'MetaworldGoal':
-        import gym
-        from sim.OpenAIGymGoalEnv import OpenAIGymGoalEnv
-
-        import metaworld.envs.mujoco
-        metaworld.envs.mujoco.register_all_envs()
-        env_name = config_file
-        if "metaworld_kwargs" in settings:
-            metaworld_kwargs = settings["metaworld_kwargs"]
-        else:
-            metaworld_kwargs = {}
-        env = gym.make(env_name, **metaworld_kwargs)
-
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        exp = OpenAIGymGoalEnv(env, conf, goal_key=conf['goal_key'],
-                                timeskip=conf["hlc_timestep"])
-
-        return exp
-
-    elif env_type == 'MultiworldFixedLLC':
-        import gym
-        import multiworld
-        from sim.MultiworldEnv import MultiworldEnv
-
-        multiworld.register_all_envs()
-        env_name = config_file
-        if "multiworld_kwargs" in settings:
-            multiworld_kwargs = settings["multiworld_kwargs"]
-        else:
-            multiworld_kwargs = {}
-        env = gym.make(env_name, **multiworld_kwargs)
-
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        exp = MultiworldEnv(env, conf, image_key=conf['image_key'], state_key=conf['state_key'])
-
-        return exp
-
-    elif env_type == 'MetaworldFixedLLC':
-        import gym
-        from sim.OpenAIGymEnv import OpenAIGymEnv
-
-        import metaworld.envs.mujoco
-        metaworld.envs.mujoco.register_all_envs()
-        env_name = config_file
-        if "metaworld_kwargs" in settings:
-            metaworld_kwargs = settings["metaworld_kwargs"]
-        else:
-            metaworld_kwargs = {}
-        env = gym.make(env_name, **metaworld_kwargs)
-
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        exp = OpenAIGymEnv(env, conf)
-
-        return exp
-
+    
     elif ((env_type == 'miniGrid')):
+        ### This code could be cleaned up to work better.
         sys.path.append('/home/gberseth/playground/BayesianSurpriseCode/')
         if (settings["sim_config_file"] == "simpleRoomLatent-v0"):
             from surprise.envs.minigrid.envs.simple_room_latent import SimpleEnemyEnv
@@ -1137,7 +866,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                 env.see_through_walls = True
                 return env
             env = env_factory()
-        else: ### simpleRoom-v0
+        elif settings["sim_config_file"] == "simpleRoom-v0":
             from surprise.envs.minigrid.envs.simple_room import SimpleEnemyEnv
             from surprise.buffers.buffers import BernoulliBuffer
             from surprise.wrappers.base_surprise import BaseSurpriseWrapper
@@ -1155,81 +884,33 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                     )
                 return env
             env = env_factory()
+        elif settings["sim_config_file"] == "simpleRoomVisual-v0":
+            from surprise.envs.minigrid.envs.simple_room_visual import SimpleRoomVisualEnv
+            from surprise.buffers.buffers import BernoulliBuffer
+            from surprise.wrappers.base_surprise import BaseSurpriseWrapper
+            from surprise.wrappers.visitation_count import VisitationCountWrapper
+            from sim.OpenAIGymEnv import OpenAIGymEnv
+            env_name = config_file
+            def env_factory():
+                #env = SimpleEnemyEnv(max_steps=500, agent_pos=(6,9))
+                env = SimpleRoomVisualEnv(max_steps=500)
+                env.see_through_walls = True
+                # env = BaseSurpriseWrapper(
+                #         env, 
+                #         BernoulliBuffer(49), 
+                #         env.max_steps
+                #     )
+                return env
+            env = env_factory()
+        else:
+            raise ValueError("Unknown minigrid sim config! {}".format(settings["sim_config_file"]))
         conf = copy.deepcopy(settings)
         conf['render'] = render
         exp = OpenAIGymEnv(env, conf, multiAgent=False)
         return exp
     
     
-    elif ((env_type == 'RLSimulations')):
-        from rlsimenv.EnvWrapper import getEnv
-        from sim.OpenAIGymEnv import OpenAIGymEnv
-        env_name = config_file
-        env = getEnv(env_name, render=render)
-        
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        if (env.getNumberofAgents() > 1):
-            exp = OpenAIGymEnv(env, conf, multiAgent=True)
-        else:
-            exp = OpenAIGymEnv(env, conf, multiAgent=False)
-        return exp
     
-    elif ((env_type == 'HRLSimulations')):
-        from rlsimenv.EnvWrapper import getEnv
-        from sim.OpenAIGymHRLEnv import OpenAIGymHRLEnv
-        env_name = config_file
-        env = getEnv(env_name, render=render)
-        
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        if (env.getNumberofAgents() > 1):
-            exp = OpenAIGymHRLEnv(env, conf, multiAgent=True)
-        else:
-            exp = OpenAIGymHRLEnv(env, conf, multiAgent=False)
-        return exp
-    
-    elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D') or 
-          (env_type == 'simbiconBiped2DTerrain') or (env_type == 'hopper_2D')):
-        import simbiconAdapter
-        from sim.SimbiconEnv import SimbiconEnv
-        c = simbiconAdapter.Configuration(config_file)
-        print ("Num state: ", c._NUMBER_OF_STATES)
-        c._RENDER = render
-        sim = simbiconAdapter.SimbiconWrapper(c)
-        print ("Using Environment Type: " + str(env_type))
-        exp = SimbiconEnv(sim, settings)
-        exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
-        return exp
-    elif ((env_type == 'mocapImitation2D') or (env_type == 'mocapImitation3D')):
-        import simbiconAdapter
-        from sim.MocapImitationEnv import MocapImitationEnv
-        c = simbiconAdapter.Configuration(config_file)
-        print ("Num state: ", c._NUMBER_OF_STATES)
-        c._RENDER = render
-        sim = simbiconAdapter.SimbiconWrapper(c)
-        print ("Using Environment Type: " + str(env_type))
-        exp = MocapImitationEnv(sim, settings)
-        exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
-        return exp
-    elif env_type == 'terrainRLSimOld':
-        # terrainRL_PATH = os.environ['TERRAINRL_PATH']
-        # sys.path.append(terrainRL_PATH+'/lib')
-        # from simAdapter import terrainRLAdapter
-        # from sim.TerrainRLEnv import TerrainRLEnv
-        from simAdapter import terrainRLSim
-        from sim.OpenAIGymEnv import OpenAIGymEnv
-        
-        env = terrainRLSim.getEnv(env_name=config_file, render=render)
-        print ("Using Environment Type: " + str(env_type) + ", " + str(config_file))
-        # sim.setRender(render)
-        # sim.init()
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        exp = OpenAIGymEnv(env, conf)
-        # env.getEnv().setRender(render)
-        # exp = TerrainRLEnv(env.getEnv(), settings)
-        return exp
     
     elif ( (env_type == 'GymMultiChar') 
         or (env_type == 'terrainRLSim')
@@ -1260,90 +941,6 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         # env.getEnv().setRender(render)
         # exp = TerrainRLEnv(env.getEnv(), settings)
         return exp
-        
-    elif env_type == 'terrainRLBiped2D':
-        terrainRL_PATH = os.environ['TERRAINRL_PATH']
-        sys.path.append(terrainRL_PATH+'/lib')
-        from simAdapter import terrainRLAdapter
-        from sim.TerrainRLEnv import TerrainRLEnv
-        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', terrainRL_PATH+'/'+config_file, '-relative_file_path=', terrainRL_PATH+'/'])
-        sim.setRender(render)
-        # sim.init(['train', '-arg_file=', config_file])
-        # print ("Num state: ", c._NUMBER_OF_STATES)
-        # sim = simbiconAdapter.SimbiconWrapper(c)
-        print ("Using Environment Type: " + str(env_type))
-        exp = TerrainRLEnv(sim, settings)
-        # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
-        return exp
-    elif env_type == 'terrainRLFlatBiped2D':
-        terrainRL_PATH = os.environ['TERRAINRL_PATH']
-        sys.path.append(terrainRL_PATH+'/lib')
-        from simAdapter import terrainRLAdapter
-        from sim.TerrainRLFlatEnv import TerrainRLFlatEnv
-        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', terrainRL_PATH+'/'+config_file, '-relative_file_path=', terrainRL_PATH+'/'])
-        sim.setRender(render)
-        # sim.init(['train', '-arg_file=', config_file])
-        # print ("Num state: ", c._NUMBER_OF_STATES)
-        # sim = simbiconAdapter.SimbiconWrapper(c)
-        print ("Using Environment Type: " + str(env_type))
-        exp = TerrainRLFlatEnv(sim, settings)
-        # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
-        return exp
-    elif (env_type == 'terrainRLImitateBiped2D' or (env_type == 'terrainRLImitateBiped3D')):
-        terrainRL_PATH = os.environ['TERRAINRL_PATH']
-        sys.path.append(terrainRL_PATH+'/lib')
-        from simAdapter import terrainRLAdapter
-        from sim.TerrainRLImitateEnv import TerrainRLImitateEnv
-        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', terrainRL_PATH+'/'+config_file, '-relative_file_path=', terrainRL_PATH+'/'])
-        sim.setRender(render)
-        # sim.init(['train', '-arg_file=', config_file])
-        # print ("Num state: ", c._NUMBER_OF_STATES)
-        # sim = simbiconAdapter.SimbiconWrapper(c)
-        print ("Using Environment Type: " + str(env_type))
-        exp = TerrainRLImitateEnv(sim, settings)
-        # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
-        return exp
-    elif ((env_type == 'terrainRLHLCBiped3D')):
-        terrainRL_PATH = os.environ['TERRAINRL_PATH']
-        sys.path.append(terrainRL_PATH+'/lib')
-        from simAdapter import terrainRLAdapter
-        from sim.TerrainRLHLCEnv import TerrainRLHLCEnv
-        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', terrainRL_PATH+'/'+config_file, '-relative_file_path=', terrainRL_PATH+'/'])
-        sim.setRender(render)
-        # sim.init(['train', '-arg_file=', config_file])
-        # print ("Num state: ", c._NUMBER_OF_STATES)
-        # sim = simbiconAdapter.SimbiconWrapper(c)
-        print ("Using Environment Type: " + str(env_type))
-        exp = TerrainRLHLCEnv(sim, settings)
-        # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
-        return exp
-    
-    import characterSim
-    c = characterSim.Configuration(config_file)
-    # print ("Num state: ", c._NUMBER_OF_STATES)
-    c._RENDER = render
-    exp = characterSim.Experiment(c)
-    # print ("Num state: ", exp._config._NUMBER_OF_STATES)
-    if env_type == 'pendulum_env_state':
-        from sim.PendulumEnvState import PendulumEnvState
-        print ("Using Environment Type: " + str(env_type))
-        exp = PendulumEnvState(exp, settings)
-    elif env_type == 'pendulum_env':
-        from sim.PendulumEnv import PendulumEnv
-        print ("Using Environment Type: " + str(env_type))
-        exp = PendulumEnv(exp, settings)
-    elif env_type == 'pendulum3D_env':
-        from sim.PendulumEnv import PendulumEnv
-        print ("Using Environment Type: " + str(env_type))
-        exp = PendulumEnv(exp, settings)
-    elif env_type == 'pendulum_3D_env':
-        from sim.PendulumEnv import PendulumEnv
-        print ("Using Environment Type: " + str(env_type))
-        exp = PendulumEnv(exp, settings)
-    elif env_type == 'paperGibbon_env':
-        from sim.PaperGibbonEnv import PaperGibbonEnv
-        print ("Using Environment Type: " + str(env_type))
-        exp = PaperGibbonEnv(exp, settings)
     else:
         print ("Invalid environment type: " + str(env_type))
         raise ValueError("Invalid environment type: " + str(env_type))
@@ -1354,85 +951,19 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
 def createActor(env_type, settings, experience):
     actor=None
-    if env_type == 'ballgame_2d':
-        from actor.BallGame2DActor import BallGame2DActor
-        actor = BallGame2DActor(settings, experience)
-    elif env_type == 'ballgame_1d':
-        from actor.BallGame1DActor import BallGame1DActor
-        actor = BallGame1DActor(settings, experience)
-    elif env_type == 'gapgame_1d':
-        from actor.GapGame1DActor import GapGame1DActor
-        actor = GapGame1DActor(settings, experience)
-    elif env_type == 'gapgame_2d':
-        from actor.GapGame2DActor import GapGame2DActor
-        actor = GapGame2DActor(settings, experience)
-    elif (env_type == 'nav_Game'):
-        from actor.NavGameActor import NavGameActor
-        actor = NavGameActor(settings, experience)
-    elif (env_type == 'nav_Game_MultiAgent'):
-        from actor.NavGameMultiAgentActor import NavGameMultiAgentActor
-        actor = NavGameMultiAgentActor(settings, experience)    
-    elif (env_type == 'Particle_Sim'):
-        from actor.ParticleSimActor import ParticleSimActor
-        actor = ParticleSimActor(settings, experience)
-    elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or
-          (env_type == 'simbiconBiped2DTerrain')):
-        from actor.SimbiconActor import SimbiconActor
-        actor = SimbiconActor(settings, experience)
-    elif ((env_type == 'mocapImitation2D') or (env_type == 'mocapImitation3D')):
-        from actor.MocapImitationActor import MocapImitationActor
-        actor = MocapImitationActor(settings, experience)
-    elif ((env_type == 'hopper_2D')):
-        from actor.Hopper2DActor import Hopper2DActor
-        actor = Hopper2DActor(settings, experience)
-    elif (env_type == 'Imitate3D') :
-        from actor.ImitationActor import ImitationActor
-        actor = ImitationActor(settings, experience)
-    elif env_type == 'terrainRLBiped2D' or (env_type == 'terrainRLFlatBiped2D'):
-        from actor.TerrainRLActor import TerrainRLActor
-        actor = TerrainRLActor(settings, experience)
-    elif ( env_type == 'terrainRLImitateBiped2D' or (env_type == 'terrainRLImitateBiped3D')
-          # or (env_type == 'terrainRLSim') 
-          ):
-        from actor.TerrainRLImitationActor import TerrainRLImitationActor
-        actor = TerrainRLImitationActor(settings, experience)
-    elif (env_type == 'terrainRLHLCBiped3D'):
-        from actor.TerrainRLHLCActor import TerrainRLHLCActor
-        actor = TerrainRLHLCActor(settings, experience)
-    elif (env_type == 'paperGibbon_env'):
-        from actor.PaperGibbonAgent import PaperGibbonAgent
-        actor = PaperGibbonAgent(settings, experience)
-    elif (env_type == 'pendulum'
-          or (env_type == 'pendulum_env')
-          ):
-        from actor.ActorInterface import ActorInterface
-        actor = ActorInterface(settings, experience)
-    elif (env_type == 'open_AI_Gym'
+   
+    if (env_type == 'open_AI_Gym'
           or (env_type == 'RLSimulations')
-          or (env_type == 'Multiworld')
-          or (env_type == 'MultiworldHRL')
-          or (env_type == 'MultiworldGoal')
-          or (env_type == 'MultiworldGoalVAE')
-          or (env_type == 'MultiworldGoalRIGVAE')
-          or (env_type == 'Metaworld')
-          or (env_type == 'MetaworldHRL')
-          or (env_type == 'MetaworldGoal')
           or (env_type == 'miniGrid')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
+    elif (env_type == 'terrainRLSim'):
+        from actor.OpenAIGymActorMARL import OpenAIGymActorMARL
+        actor = OpenAIGymActorMARL(settings, experience)
     elif (env_type == 'MultiworldFixedLLC') or (env_type == 'MetaworldFixedLLC'):
         from actor.MultiworldMultiCharActor import MultiworldMultiCharActor
         actor = MultiworldMultiCharActor(settings, experience)
-    elif ( (env_type == 'HRLSimulations')
-          ):
-        from actor.OpenAIGymHRLActor import OpenAIGymHRLActor
-        actor = OpenAIGymHRLActor(settings, experience)
-    elif (
-          (env_type == 'terrainRLSim')
-          ):
-        from actor.OpenAIGymActor2 import OpenAIGymActor2
-        actor = OpenAIGymActor2(settings, experience)
     elif (env_type == 'GymMultiChar'):
         from actor.GymMultiCharActor import GymMultiCharActor
         actor = GymMultiCharActor(settings, experience)
@@ -1629,7 +1160,7 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                                   action_bounds=action_bounds, settings_=settings,
                                   reward_bounds=reward_bounds, 
                                   print_info=print_info)
-                    print("Loaded FD algorithm: ", forwardDynamicsModel)
+                    log.info("Loaded FD algorithm: {}".format(forwardDynamicsModel))
                     # return model
                 else:
                     print ("Unknown learning algorithm type: " + str(algorihtm_type))
@@ -1659,69 +1190,22 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
 def createForwardDynamicsNetwork(state_bounds, action_bounds, settings, 
                                  stateName="State", resultStateName="ResultState",**kwargs):
     
-    if settings["forward_dynamics_model_type"] == "Deep_NN":
-        from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
-        print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-        forwardDynamicsNetwork = ForwardDynamicsNetwork(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings)
-    elif settings["forward_dynamics_model_type"] == "Deep_NN_Dropout":
-        from model.ForwardDynamicsNNDropout import ForwardDynamicsNNDropout
-        print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-        forwardDynamicsNetwork = ForwardDynamicsNNDropout(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings)
-    elif settings["forward_dynamics_model_type"] == "Deep_CNN":
-        from model.ForwardDynamicsCNN import ForwardDynamicsCNN
-        print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-        forwardDynamicsNetwork = ForwardDynamicsCNN(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings)
-    elif settings["forward_dynamics_model_type"] == "Deep_CNN_Tile":
-        from model.ForwardDynamicsCNNTile import ForwardDynamicsCNNTile
-        print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-        forwardDynamicsNetwork = ForwardDynamicsCNNTile(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings)
-    elif settings["forward_dynamics_model_type"] == "Deep_CNN2":
-        from model.ForwardDynamicsCNN2 import ForwardDynamicsCNN2
-        print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-        forwardDynamicsNetwork = ForwardDynamicsCNN2(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings)
-        
-    elif settings["forward_dynamics_model_type"] == "Deep_CNN3":
-        from model.ForwardDynamicsCNN3 import ForwardDynamicsCNN3
-        print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-        forwardDynamicsNetwork = ForwardDynamicsCNN3(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings)       
-    elif settings["forward_dynamics_model_type"] == "Deep_CNN_Dropout":
-        from model.ForwardDynamicsCNNDropout import ForwardDynamicsCNNDropout
-        print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-        forwardDynamicsNetwork = ForwardDynamicsCNNDropout(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings)   
-    elif settings["forward_dynamics_model_type"] == "Deep_Dense_NN_Dropout":
-        from model.ForwardDynamicsDenseNetworkDropout import ForwardDynamicsDenseNetworkDropout
-        print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-        forwardDynamicsNetwork = ForwardDynamicsDenseNetworkDropout(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings)   
-            
+    from model.ModelInterface import ModelInterface
+    # modelClass = my_import(path_)
+    fd_net_type = settings["forward_dynamics_model_type"]
+    if (fd_net_type == "SingleNet"):
+        ### Use adaptive instead
+        fd_net_type = "model.FDNNKerasAdaptive.FDNNKerasAdaptive"
+    print("Loading FD model type:", fd_net_type)
+    modelClass = locate(fd_net_type)
+    if ( issubclass(modelClass, ModelInterface)): ## Double check this load will work
+        model = modelClass(len(state_bounds[0]), len(action_bounds[0]), 
+                            state_bounds, action_bounds, settings_=settings, reward_bound=settings["reward_bounds"],
+                            stateName=stateName, resultStateName=stateName, **kwargs)
+        print("Created model: ", model)
+        return model
     else:
-        from model.ModelInterface import ModelInterface
-        # modelClass = my_import(path_)
-        fd_net_type = settings["forward_dynamics_model_type"]
-        if (fd_net_type == "SingleNet"):
-            ### Use adaptive instead
-            fd_net_type = "model.FDNNKerasAdaptive.FDNNKerasAdaptive"
-        print("Loading FD model type:", fd_net_type)
-        modelClass = locate(fd_net_type)
-        if ( issubclass(modelClass, ModelInterface)): ## Double check this load will work
-            model = modelClass(len(state_bounds[0]), len(action_bounds[0]), 
-                                state_bounds, action_bounds, settings_=settings, reward_bound=settings["reward_bounds"],
-                                stateName=stateName, resultStateName=stateName, **kwargs)
-            print("Created model: ", model)
-            return model
-        else:
-            print ("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-            raise ValueError("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-        # sys.exit()
-    import lasagne
-    print ("Number of Forward Dynamics network parameters", lasagne.layers.count_params(forwardDynamicsNetwork.getForwardDynamicsNetwork()))
-    print ("Number of Reward predictor network parameters", lasagne.layers.count_params(forwardDynamicsNetwork.getRewardNetwork()))
-    return forwardDynamicsNetwork
+        print ("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
+        raise ValueError("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
+    # sys.exit()
 

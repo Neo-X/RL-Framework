@@ -6,8 +6,6 @@ import dill
 import sys
 # from theano.compile.io import Out
 sys.setrecursionlimit(50000)
-from sim.PendulumEnvState import PendulumEnvState
-from sim.PendulumEnv import PendulumEnv
 from multiprocessing import Process, Queue
 # from pathos.multiprocessing import Pool
 import threading

@@ -19,14 +19,13 @@ from model.ModelUtil import *
 # import memory_profiler
 # import resources
 
-from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
+# from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
 from util.SimulationUtil import validateSettings, getFDStateSize
 from util.utils import rlPrint
 
         
 # @profile(precision=5)
-def collectExperience(actor, exp_val, model, settings, sim_work_queues=None, 
-                      eval_episode_data_queue=None):
+def collectExperience(actor, model, settings, sampler):
     from util.ExperienceMemory import ExperienceMemory
     import itertools
     
@@ -100,9 +99,9 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print ("Collecting bootstrap samples from simulation")
-        (states_, actions_, resultStates_, rewards_, falls_, G_ts_, exp_actions_, advantage_, data) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
-        
-                                                                                                                   eval_episode_data_queue=eval_episode_data_queue)
+        (states_, actions_, resultStates_, rewards_, falls_, G_ts_,\
+          exp_actions_, advantage_, data) = collectExperienceActionsContinuous(actor,  
+                                   model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sampler=sampler)
         """
         for e in range(len(states)):
             experience.insertTrajectory(states[e], actions[e], resultStates[e], rewards_[e], 
@@ -368,7 +367,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     return  experience, state_bounds, reward_bounds, action_bounds, data__, experiencefd
 
 # @profile(precision=5)
-def collectExperienceActionsContinuous(actor, exp, model, samples, settings, action_selection, sim_work_queues=None, eval_episode_data_queue=None):
+def collectExperienceActionsContinuous(actor, model, samples, settings, action_selection, sampler=None):
     i = 0
     states = []
     actions = []
@@ -382,24 +381,8 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     episode_ = 0
     while i < samples:
         ## Actor should be FIRST here
-        if ( ( sim_work_queues is None ) or (eval_episode_data_queue is None)): ## off-policy version
-            out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=episode_, 
-                               action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
-                                p=1.0, validation=settings['train_on_validation_set'], bootstrapping=True, epsilon=1.0)
-        else:
-            if (settings['on_policy'] == "fast"):
-                 
-                out = simModelMoreParrallel( sw_message_queues=sim_work_queues,
-                                     model=model, settings=settings, 
-                                     eval_episode_data_queue=eval_episode_data_queue, 
-                                     anchors=settings['epochs'],
-                                     type='bootstrapping')
-            else:
-                out = simModelParrallel( sw_message_queues=sim_work_queues,
-                                 model=model, settings=settings, 
-                                 eval_episode_data_queue=eval_episode_data_queue, 
-                                 anchors=settings['epochs'],
-                                 type='bootstrapping')
+        
+        out = sampler.obtainSamples(model, rollouts=settings['epochs'], p=1.0)
             
         # if self._p <= 0.0:
         #    self._output_queue.put(out)

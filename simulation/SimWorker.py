@@ -7,6 +7,7 @@ import gc
 sys.setrecursionlimit(50000)
 # from sim.PendulumEnvState import PendulumEnvState
 # from sim.PendulumEnv import PendulumEnv
+import logging
 from multiprocessing import Process, Queue
 # from pathos.multiprocessing import Pool
 import threading
@@ -18,6 +19,7 @@ from util.utils import current_mem_usage
 # import resources
 from simulation.simEpoch import simEpoch
 
+log = logging.getLogger(__file__)
 
 # class SimWorker(threading.Thread):
 class SimWorker(Process):
@@ -48,7 +50,7 @@ class SimWorker(Process):
         
     def createNewModel(self):
         from util.SimulationUtil import createRLAgent
-        print ("Creating new model with different session")
+        log.info("Creating new model with different session")
         model = createRLAgent(self._settings['agent_name'], self._settings['state_bounds'], self._settings['action_bounds'], 
                               self._settings['reward_bounds'], self._settings)
         print ("done creating model")
@@ -124,7 +126,7 @@ class SimWorker(Process):
             np.random.seed(self._process_random_seed)
             ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
-            print("Creating new policy in process:")
+            log.info("Creating new policy in process:")
             self._model.setPolicy(self.createNewModel())
             if ("train_forward_dynamics" in self._settings and
              (self._settings["train_forward_dynamics"])):
@@ -134,7 +136,8 @@ class SimWorker(Process):
                 settings_ = copy.deepcopy(self._settings)
                 settings_ = updateSettings(settings_, settings_["reward_metric_settings"])
                 self._model.setRewardModel(self.createNewFDModel(self._exp, settings_))
-            if ( self._settings['use_simulation_sampling'] ):
+            if ( "use_simulation_sampling" in self._settings
+                 and (self._settings['use_simulation_sampling'] )):
                 self._model.setSampler(self.createSampler(self._model.getPolicy(),
                                                           self._model.getForwardDynamics(), 
                                                           self._exp, self._actor))
@@ -165,12 +168,10 @@ class SimWorker(Process):
                 print ("First Message: ", message)
             data = episodeData['data']
             self.updateAgent(data)
-            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
-                print ("Sim worker:", os.getpid(), " State Bounds: ", self._model.getStateBounds())
-            print ("Initial policy ready:")
+            log.debug("Sim worker: {} State Bounds: {}".format(os.getpid(), self._model.getStateBounds()))
+            log.info("Initial policy ready:")
             # print ("sim worker p: " + str(self._p))
-        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-            print ('Worker: started')
+        log.info('Worker: started')
         # do some initialization here
         while True:
             eval=False

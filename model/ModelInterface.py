@@ -38,8 +38,8 @@ class ModelInterface(object):
             self._result_state_length = self._state_length
         self._settings = settings_
         # data types for model
-        self._dropout_p=settings_['dropout_p']
-        print("Model dropout: ", self._dropout_p)
+#         self._dropout_p=settings_['dropout_p']
+#         print("Model dropout: ", self._dropout_p)
         ### Get a type of activation to use
         self._activation_type=self.getActivationType("leaky_rectify")
         self._policy_activation_type=self.getActivationType("leaky_rectify")
