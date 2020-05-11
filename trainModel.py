@@ -224,6 +224,7 @@ def trainModelParallel(inputData):
     from util.SimulationUtil import getDataDirectory, getAgentNameString, getAgentName, getAgentNameString
     settings = inputData[1]
     settings["round"] = 0
+    settingsFileName = inputData[0]  
 
     # Tag_FullObserve_SLAC_mini.json: True (not in settings)
     if ("perform_multiagent_training" not in settings):
@@ -243,12 +244,41 @@ def trainModelParallel(inputData):
     print ("Number of agents: ", settings["perform_multiagent_training"])
     if (not validateSettings(settings)):
         return False
+    
+        ### Try and load previous data
+    if ( ((settings["load_saved_model"] == True)
+          or (settings["load_saved_model"] == 'last')) and
+        (settings["save_experience_memory"] == "continual")):
+        from util.SimulationUtil import getDataDirectory, getAgentNameString
+        ### load training data
+        directory = getDataDirectory(settings)
+        file_name_data = directory+"trainingData_" + str(getAgentNameString(settings['agent_name'])) + ".json"
+        file_name_settings=directory+os.path.basename(settingsFileName)
+        print ("loading previous training data: ", file_name_data)
+        if os.path.exists(file_name_data):
+            fp = open(file_name_data, 'r')
+            # print ("Train data: ", trainData)
+            trainData = json.load(fp)
+            fp.close()
+            
+            fp = open(file_name_settings, 'r')
+            # print ("Train data: ", trainData)
+            settings = json.load(fp)
+            fp.close()
+            
+            
+            if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                print ("Loading training data")
+                print ("Round: ", trainData["round"])
+                # sys.exit()
+        else:
+            print(" Actually this is the first run..")
+            settings["load_saved_model"] = False
 
     # Creates and stores the comet logger.
     exp_logger = setupEnvironmentVariable(settings)
     settings["logger_instance"] = None
     settings['sample_single_trajectories'] = True    
-    settingsFileName = inputData[0]    
     try:
         trainData = _initialize_train_data()
         rounds = settings["rounds"]
@@ -263,29 +293,6 @@ def trainModelParallel(inputData):
         train_on_validation_set=settings["train_on_validation_set"]
         
         
-        ### Try and load previous data
-        if ( ((settings["load_saved_model"] == True)
-              or (settings["load_saved_model"] == 'last')) and
-            (settings["save_experience_memory"] == "continual")):
-            from util.SimulationUtil import getDataDirectory, getAgentNameString
-            ### load training data
-            directory = getDataDirectory(settings)
-            file_name_ = directory+"trainingData_" + str(getAgentNameString(settings['agent_name'])) + ".json"
-            print ("loading previous settings file: ", file_name_)
-            if os.path.exists(file_name_):
-                fp = open(file_name_, 'r')
-                # print ("Train data: ", trainData)
-                trainData = json.load(fp)
-                fp.close()
-                
-                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                    print ("Loading training data")
-                    print ("Round: ", trainData["round"])
-                    # sys.exit()
-            else:
-                print(" Actually this is the first run..")
-                settings["load_saved_model"] = False
-               
         from simulation.Sampler import Sampler 
         sampler = Sampler(settings, log)
         

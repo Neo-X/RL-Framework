@@ -205,7 +205,7 @@ def setupEnvironmentVariable(settings, eval=False):
                     from comet_ml import ExistingExperiment
                     experiment = ExistingExperiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu", previous_experiment=settings["logger_instance_key"],
                                                  project_name=exp_config["project_name"], workspace="glenb")
-                    print(comet_logger)
+                    print("Continuing existing experiment: ", experiment)
                 else:
                     
                     experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",

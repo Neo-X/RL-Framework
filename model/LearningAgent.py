@@ -358,6 +358,9 @@ class LearningAgent(AgentInterface):
                 log.debug("Learner, Scaling Action params: ", self.getActionBounds())
                 log.debug("Learner, Scaling Reward params: ", self.getRewardBounds())
             
+            
+            logExperimentData({}, "experience_mem_samples", self._expBuff.samples(), self._settings)
+            
             batch_size_ = self._settings["batch_size"]        
             if (self._settings["batch_size"] == "all"):
                 batch_size_ = max(self._expBuff.samples(), 1)
