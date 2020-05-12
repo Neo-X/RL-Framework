@@ -130,7 +130,7 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
         masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
                                        _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
                                        _G_t=G_ts_, datas=datas, p=1.0, trainInfo={"epoch": i})
-        sampler.sendKeepAlive()
+        sampler.sendKeepAlive(masterAgent)
     ### back to normal settings
     masterAgent.setSettings(settings__2)
     masterAgent.getPolicy().setSettings(settings__2)
@@ -161,7 +161,7 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
         masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
                                        _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
                                        _G_t=G_ts_, datas=datas, p=1.0, trainInfo={"epoch": i})
-        sampler.sendKeepAlive()
+        sampler.sendKeepAlive(masterAgent)
 
     ### back to normal settings
     if ("logger_instance" in set):

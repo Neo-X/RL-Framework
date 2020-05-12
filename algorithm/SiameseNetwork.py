@@ -608,6 +608,7 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
             # print ("task_tr0[0][0] == task_tr1[0][0]", task_tr0[0][0], " == ", task_tr1[0][0])
             # print ("settings['worker_to_task_mapping'][task_tr0[0]] == settings['worker_to_task_mapping'][task_tr1[0]]", 
             #        settings["worker_to_task_mapping"][task_tr0[0][0]]," == ", settings["worker_to_task_mapping"][task_tr1[0][0]])
+            ### This logic is to make sure these batches are balanced wrt positives and negatives.
             if ("ask_env_for_multitask_id" in settings 
                 and (settings["ask_env_for_multitask_id"])):
                 if  (task_ids[i][0][0] == task_ids[j][0][0]):

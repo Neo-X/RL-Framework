@@ -65,7 +65,8 @@ def saveData(settings, settingsFileName, exp_logger):
     ### copy settings file
     out_file_name=directory+os.path.basename(settingsFileName)
     print ("Saving settings file with data: ", out_file_name)
-    if ("logger_instance" in settings):
+    if ("logger_instance" in settings 
+        and (settings["logger_instance"] is not None)):
 #         exp_logger = settings["logger_instance"]
         settings["logger_instance_key"] = exp_logger.get_key()
         settings["logger_instance"] = None
