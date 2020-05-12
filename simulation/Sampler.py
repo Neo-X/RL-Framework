@@ -141,9 +141,9 @@ class Sampler(object):
         
         ### Send keep alive to sim processes
         if (self.getSettings()['on_policy'] == "fast"):
-            out = simModelMoreParrallel( sw_message_queues=self._sim_work_queues
+            out = simModelMoreParrallel( sw_message_queues=self._input_anchor_queue
                                        ,model=masterAgent, settings=self.getSettings() 
-                                       ,eval_episode_data_queue=self._eval_episode_data_queue 
+                                       ,eval_episode_data_queue=self._eval_episode_data_queue
                                        ,anchors=self.getSettings()['num_on_policy_rollouts']
                                        ,type='keep_alive'
                                        ,p=1

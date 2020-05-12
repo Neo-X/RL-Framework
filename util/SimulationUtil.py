@@ -142,9 +142,10 @@ def logExperimentData(trainData, key, value, settings):
 
         # The log_metrics function requires a dictionary mapping strs to one of Float/Integer/Boolean/String
         if (isinstance(value, OrderedDict)):
-            logger.log_metrics(value)
+            for key in value.keys():
+                logger.log_metrics({key:np.mean(value[key])}, step=settings["round"])
         else:
-            logger.log_metrics({key:np.mean(value)})
+            logger.log_metrics({key:np.mean(value)}, step=settings["round"])
         
     if key in trainData:
         trainData[key].append(value)
