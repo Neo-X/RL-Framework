@@ -141,7 +141,7 @@ def logExperimentData(trainData, key, value, settings):
         logger.set_step(step=settings["round"])
 
         # The log_metrics function requires a dictionary mapping strs to one of Float/Integer/Boolean/String
-        if (isinstance(value, OrderedDict)):
+        if (isinstance(value, OrderedDict) or isinstance(value, dict)):
             for key in value.keys():
                 logger.log_metrics({key:np.mean(value[key])}, step=settings["round"])
         else:

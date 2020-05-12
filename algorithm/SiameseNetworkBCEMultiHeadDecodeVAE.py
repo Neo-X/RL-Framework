@@ -643,6 +643,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                     loss_.append(np.mean(score.history['loss']))
             
             return score.history
+#             return np.mean(loss_)
         else:
             te_pair1, te_pair2, te_y = create_pairs2(states_, self._settings)
         self._updates += 1
