@@ -233,7 +233,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         self._distance_fd_weighting_ = Model(inputs=[encode_input_fd_], outputs=distance_fd_weighted)
         self._distance_fd_weighting_.summary()
         distance_fd_weighted = self._distance_fd_weighting_(distance_fd)
-        distance_fd2_weighted = keras.layers.TimeDistributed(self._distance_fd_weighting_, input_shape=(None, None, self._state_length))(distance_fd2)
+        distance_fd2_weighted = keras.layers.TimeDistributed(self._distance_fd_weighting_, input_shape=(None, None, self._state_length), name="bce_time_dist")(distance_fd2)
         # distance_fd2_weighted = self._distance_fd_weighting_(distance_fd2)
         # distance_fd2_weighted = self._distance_fd_weighting_(distance_fd2)
         
@@ -242,7 +242,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         # encode_input_r_ = keras.layers.Input(shape=(self.getSettings()["encoding_vector_size"],)
         #                                                                   , name="encoding_r_2")
         # print ("encode_input_r_: ", repr(encode_input_r_))
-        distance_r_weighted = keras.layers.Dense(1, activation = 'sigmoid')(encode_input_fd_)
+        distance_r_weighted = keras.layers.Dense(1, activation = 'sigmoid', name="bce_rnn")(encode_input_fd_)
         self._distance_r_weighting_ = Model(inputs=[encode_input_fd_], outputs=distance_r_weighted)
         distance_r_weighted = self._distance_r_weighting_(distance_r)
         
@@ -270,14 +270,14 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         
         ### Decode sequences into images
         # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
-        decode_a = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_a_r)
+        decode_a = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67), name="auto_encoder_a_rnn")(decode_a_r)
         print ("decode_a: ", repr(decode_a))
-        decode_b = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_b_r)
+        decode_b = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67), name="auto_encoder_b_rnn")(decode_b_r)
         print ("decode_b: ", repr(decode_b))
-        decode_a_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_vae)
-        print ("decode_a: ", repr(decode_a))
-        decode_b_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_b_vae)
-        print ("decode_b: ", repr(decode_b))
+        decode_a_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67), name="vae_over_seq_a_rnn")(self._network_vae)
+        print ("decode_a_vae: ", repr(decode_a_vae))
+        decode_b_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67), name="vae_over_seq_b_rnn")(self._network_b_vae)
+        print ("decode_b_vae: ", repr(decode_b_vae))
 
         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
                                                           ,state_copy 
@@ -612,7 +612,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                                       batch_size=sequences0.shape[0],
                                       verbose=0
                                       )
-                        # print("score: ", score.history)
+#                         print("score: ", score.history)
                         if ("seperate_posandneg_pairs" in self._settings
                             and (self._settings["seperate_posandneg_pairs"] == True)):
                             less_ = np.less(targets__, 0.5)
@@ -642,7 +642,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                                       )
                     loss_.append(np.mean(score.history['loss']))
             
-            return np.mean(loss_)
+            return score.history
         else:
             te_pair1, te_pair2, te_y = create_pairs2(states_, self._settings)
         self._updates += 1

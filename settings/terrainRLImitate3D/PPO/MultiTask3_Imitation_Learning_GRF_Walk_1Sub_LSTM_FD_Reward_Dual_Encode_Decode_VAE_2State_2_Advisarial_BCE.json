@@ -196,8 +196,7 @@
          1.00000000e+00,  1.00000000e+00,  1.00000000e+00,
          1.00000000e+00,  1.00000000e+00,  1.00000000e+00]],
  "comment__": "abdoment                  neck,                   right_hip                 right_knee     right_ankle                right_shoulder          right_elbow, right_wrist,   left_hip                 left_knee  left_ankle,              left_shoulder            left_elbow,    right_wrist",	     
-"action_bounds": [[-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.57, -1.0, -1.0, -1.0, -2.57,  -3.14,        -1.0, -1.0, -1.0, -1.57,   -1.0, -1.0, -1.0, -2.57,  -3.14,       -0.1,          -1.0, -1.0, -1.0, -1.57,   -3.14,   -1.0, -1.0, -1.0, -2.57,  -1.0, -1.0, -1.0, -2.57, -3.14,        -0.1],
-				  [ 1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  2.57,  1.0,  1.0,  1.0,  2.57, 1.0,            1.0,  1.0,  1.0,  1.57,    1.0,  1.0,  1.0,  2.57,   1.00,        0.1,           1.0,  1.0,  1.0,  1.57,     1.0,    1.0,  1.0,  1.0,  2.57,   1.0,  1.0,  1.0,  2.57,  1.0,          0.1]],
+"action_bounds": "ask_env",
     "comment__": "Set of discrete actions that can be sampled from",				     
 "discrete_actions": [[-0.92, 2.8],
                     [0.02, 3.0],
@@ -225,9 +224,9 @@
     "comment__": "Number of steps ahead the actions should be sampled",
 "look_ahead_planning_steps": 2,
     "comment__": "How often to update the training data and plots wrt # of rounds",
-"plotting_update_freq_num_rounds": 5,
+"plotting_update_freq_num_rounds": 1,
     "comment__": "How often to save the training data and plotting data",
-"saving_update_freq_num_rounds": 5,
+"saving_update_freq_num_rounds": 1,
     "comment__": "Number of treads that can be run in parallel during training",
 "num_available_threads": 4,
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",
@@ -518,17 +517,15 @@
 							{"layer_type": "slice", "slice_index": 196, "slice_label": "grf" },
 							{"layer_type": "GaussianNoise", "stddev": 0.03},
 							{"layer_type": "Dense", "units": 128, "use_bias": false},
-							{"layer_type": "BatchNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Dense", "units": 32, "use_bias": false},
-							{"layer_type": "BatchNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.0, "recurrent_dropout": 0.0}
+							{"layer_type": "GRU", "units": 64, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.0, "recurrent_dropout": 0.0}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -611,22 +608,19 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [ 
 								{"layer_type": "Dense", "units": 128, "use_bias": false},
-								{"layer_type": "BatchNormalization"},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 196, "use_bias": false},
-								{"layer_type": "BatchNormalization"},
 								{"layer_type": "activation", "activation_type": "linear" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
-							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.0, "recurrent_dropout": 0.0, "activation": null},
+							{"layer_type": "GRU", "units": 64, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.0, "recurrent_dropout": 0.0, "activation": null},
 							{"layer_type": "LayerNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
 								{"layer_type": "Dense", "units": 32, "use_bias": false},
-								{"layer_type": "BatchNormalization"},
 								{"layer_type": "activation", "activation_type": "linear" }
 							]}
 							],

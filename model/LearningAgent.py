@@ -584,6 +584,7 @@ class LearningAgent(AgentInterface):
                                                           datas=datas_,
                                                           trainInfo=trainInfo)
                             log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
+                            logExperimentData({}, "fd_net_loss", dynamicsLoss, self._settings)
                                 
                         # Updates over Multi-task data
                         if type(self._settings["sim_config_file"]) == list:
@@ -610,6 +611,7 @@ class LearningAgent(AgentInterface):
                                                               datas=datas_,
                                                               trainInfo=trainInfo)
                                 log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
+                                logExperimentData({}, "fd_net_loss", dynamicsLoss, self._settings)
                     
                 # pass
                 # print("Not Falls: ", _falls)
