@@ -357,10 +357,10 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                                                  ,self.vae_loss_b
                                                   ], 
                                             optimizer=sgd
-                                            ,loss_weights=[0.7, 
-                                                           0.10, 
-                                                           0.05, 0.05, 
-                                                           0.05, 0.05]
+                                            ,loss_weights=[0.75, 
+                                                           0.05, 
+                                                           0.025, 0.025, 
+                                                           0.075, 0.075]
                                             )
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
@@ -562,7 +562,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             else:
                 # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
                 targets__ = np.mean(targets_, axis=1)
-                # print ("targets__: ", targets__)
+                print ("targets__: ", np.mean(targets__))
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
                     score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets__],

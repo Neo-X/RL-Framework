@@ -639,7 +639,7 @@
 	"comment__": "use Multi modal state",
 "fd_use_multimodal_state": true,
 	"comment__": "Use advisarial comparisons between agent and expert data",
-"include_agent_imitator_pairs": true,
+"include_agent_imitator_pairs": false,
 	"comment__": "Seperate the positive and negative pairs and perform two batches over the data.",
 "seperate_posandneg_pairs": true,
 	"comment__": "Add noise to the target noise values",
