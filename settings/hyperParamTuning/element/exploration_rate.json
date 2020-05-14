@@ -8,7 +8,7 @@
 	"comment__": "Name of the parameters that we want to tune",
 "param_to_tune": ["exploration_rate"],
 	"comment__": "Parameter bounds, for which values will be sampled",
-"param_bounds": [[0.2, 0.4]],
+"param_bounds": [[0.15, 0.3]],
 	"comment__": "parameter value type [int|float|bool]",
 "param_data_type": ["float"],
 	"comment__": "Number of samples to evaluation between the given bounds",
