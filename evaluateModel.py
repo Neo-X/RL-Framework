@@ -82,7 +82,7 @@ class SimContainer(object):
                 """
                 if (self._exp.needUpdatedAction()):
                     state_ = self._exp.getState()
-                    # print ("State: ", state_)
+                    print ("State: ", np.array(state_).shape)
                     ## Update value function visualization
                     if ( False  and (self._expected_value_viz is not None)):
                         self._viz_q_values_.extend(self._agent.q_value(state_)[0])
@@ -102,7 +102,7 @@ class SimContainer(object):
                     print("Root position: ", position_root)
                     print("Root orientation: ", root_orientation)
                     """
-                    self._action = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
+                    (self._action, exp_action, entropy_, state_) = self._agent.sample(state_, evaluation_=True)
                     # self._action = np.array([0.0, 0.0, 0.0, -1.0, 0.0], dtype='float64')
                     # grad_ = self._agent.getPolicy().getGrads(state_)[0]
                     grad_ = [0]

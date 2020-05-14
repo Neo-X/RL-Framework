@@ -137,7 +137,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             
         (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
                                                 epsilon=epsilon, sampling=sampling, time_step=i_, evaluation_=evaluation)
-
         outside_bounds=False
         action_=None
         if (("clamp_actions_to_stay_inside_bounds" in settings and settings["clamp_actions_to_stay_inside_bounds"]) or 

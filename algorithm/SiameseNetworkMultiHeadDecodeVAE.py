@@ -206,9 +206,9 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
         self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
         
         distance_fd = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-        distance_fd2 = keras.layers.Lambda(l1_distance_fd2, output_shape=eucl_dist_output_shape_fd2)([network_, network_b])
+        distance_fd2 = keras.layers.Lambda(l1_distance_fd2, output_shape=eucl_dist_output_shape_fd2, name="batch_spatial")([network_, network_b])
         print ("distance_fd2: ", repr(distance_fd2))
-        distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
+        distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape, name="rnn_time_distance")([processed_a_r, processed_b_r])
         
         ### Decoding models
         ### https://github.com/keras-team/keras/issues/7949
@@ -234,14 +234,14 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
         
         ### Decode sequences into images
         # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
-        decode_a = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_a_r)
+        decode_a = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67), name="rnn_autodecode_a")(decode_a_r)
         print ("decode_a: ", repr(decode_a))
-        decode_b = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_b_r)
+        decode_b = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67), name="rnn_autodecode_b")(decode_b_r)
         print ("decode_b: ", repr(decode_b))
-        decode_a_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_vae)
-        print ("decode_a: ", repr(decode_a))
-        decode_b_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_b_vae)
-        print ("decode_b: ", repr(decode_b))
+        decode_a_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67), name="batch_autodecode_a")(self._network_vae)
+        print ("decode_a_vae: ", repr(decode_a_vae))
+        decode_b_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67), name="batch_autodecode_b")(self._network_b_vae)
+        print ("decode_b_vae: ", repr(decode_b_vae))
 
         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
                                                           ,state_copy 
@@ -327,10 +327,10 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                                  ,self.vae_loss_b
                                                   ], 
                                             optimizer=sgd
-                                            ,loss_weights=[0.7, 
-                                                           0.10, 
-                                                           0.05, 0.05, 
-                                                           0.05, 0.05]
+                                            ,loss_weights=[0.75, 
+                                                           0.05, 
+                                                           0.025, 0.025, 
+                                                           0.075, 0.075]
                                             )
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
@@ -433,7 +433,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
     def updateTargetModel(self):
         pass
                 
-    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True, datas=None):
+    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True, datas=None, trainInfo=None):
         """
             states will come for the agent and
             results_states can come from the imitation agent
@@ -607,7 +607,8 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                       )
                     loss_.append(np.mean(score.history['loss']))
             
-            return np.mean(loss_)
+#             return np.mean(loss_)
+            return score.history
         else:
             te_pair1, te_pair2, te_y = create_pairs2(states_, self._settings)
         self._updates += 1
