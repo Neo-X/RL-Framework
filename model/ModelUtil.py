@@ -208,8 +208,8 @@ def norm_action(action_, action_bounds_):
         raise e
     except AssertionError as e:
         s = "Caught assertion error when enforcing action/state shape bounds: {}. Actions: {}, Bounds: {}".format(e,
-                                                                                                                  action_bounds_,
-                                                                                                                  action_)
+                                                                                                                  np.array(action_bounds_).shape,
+                                                                                                                  np.array(action_).shape)
         print(s)
         raise Exception(e)
     
