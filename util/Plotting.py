@@ -160,6 +160,40 @@ class Plotter(object):
                 print ("Error to big: ")
                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                     print (states, actions, rewards, result_states)
+                    
+        if (self.getSettings()['debug_actor']):
+            
+            masterAgent.reset()
+            loss__ = [p_.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage) for p_ in masterAgent.getAgents() ]
+            actorLosses.append(np.mean(loss__))
+            regularizationCost__ = [p_.getPolicy().get_actor_regularization() for p_ in masterAgent.getAgents() ]
+            actorRegularizationCosts.append(np.mean(regularizationCost__))
+            
+            mean_actorLosses = np.mean([np.mean(acL) for acL in actorLosses])
+            std_actorLosses = np.mean([np.std(acl) for acl in actorLosses])
+            logExperimentData(trainData, "mean_actor_loss", mean_actorLosses, self._settings)
+            logExperimentData(trainData, "std_actor_loss", std_actorLosses, self._settings)
+            
+            
+            if (self._settings['visualize_learning']):
+                self._actor_loss_viz.updateLoss(np.array(trainData["mean_actor_loss"]), np.array(trainData["std_actor_loss"]))
+                self._actor_loss_viz.redraw()
+                self._actor_loss_viz.setInteractiveOff()
+                self._actor_loss_viz.saveVisual(directory+"actorLossGraph")
+                self._actor_loss_viz.setInteractive()
+            
+            mean_actorRegularizationCosts = np.mean(actorRegularizationCosts)
+            std_actorRegularizationCosts = np.std(actorRegularizationCosts)
+            logExperimentData(trainData, "mean_actor_regularization_cost", mean_actorRegularizationCosts, self._settings)
+            logExperimentData(trainData, "std_actor_regularization_cost", std_actorRegularizationCosts, self._settings)
+            actorRegularizationCosts = []
+            if (self._settings['visualize_learning']):
+                self._actor_regularization_viz.updateLoss(np.array(trainData["mean_actor_regularization_cost"]), np.array(trainData["std_actor_regularization_cost"]))
+                self._actor_regularization_viz.redraw()
+                self._actor_regularization_viz.setInteractiveOff()
+                self._actor_regularization_viz.saveVisual(directory+"actorRegularizationGraph")
+                self._actor_regularization_viz.setInteractive()
+                
                 
         if (self._settings['train_forward_dynamics']):
             if ( 'keep_seperate_fd_exp_buffer' in self._settings 
@@ -420,39 +454,6 @@ class Plotter(object):
                 self._critic_regularization_viz.saveVisual(directory+"criticRegularizationGraph")
                 self._critic_regularization_viz.setInteractive()
             
-        if (self.getSettings()['debug_actor']):
-            
-            masterAgent.reset()
-            loss__ = [p_.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage) for p_ in masterAgent.getAgents() ]
-            actorLosses.append(np.mean(loss__))
-            regularizationCost__ = [p_.getPolicy().get_actor_regularization() for p_ in masterAgent.getAgents() ]
-            actorRegularizationCosts.append(np.mean(regularizationCost__))
-            
-            mean_actorLosses = np.mean([np.mean(acL) for acL in actorLosses])
-            std_actorLosses = np.mean([np.std(acl) for acl in actorLosses])
-            logExperimentData(trainData, "mean_actor_loss", mean_actorLosses, self._settings)
-            logExperimentData(trainData, "std_actor_loss", std_actorLosses, self._settings)
-            
-            
-            if (self._settings['visualize_learning']):
-                self._actor_loss_viz.updateLoss(np.array(trainData["mean_actor_loss"]), np.array(trainData["std_actor_loss"]))
-                self._actor_loss_viz.redraw()
-                self._actor_loss_viz.setInteractiveOff()
-                self._actor_loss_viz.saveVisual(directory+"actorLossGraph")
-                self._actor_loss_viz.setInteractive()
-            
-            mean_actorRegularizationCosts = np.mean(actorRegularizationCosts)
-            std_actorRegularizationCosts = np.std(actorRegularizationCosts)
-            logExperimentData(trainData, "mean_actor_regularization_cost", mean_actorRegularizationCosts, self._settings)
-            logExperimentData(trainData, "std_actor_regularization_cost", std_actorRegularizationCosts, self._settings)
-            actorRegularizationCosts = []
-            if (self._settings['visualize_learning']):
-                self._actor_regularization_viz.updateLoss(np.array(trainData["mean_actor_regularization_cost"]), np.array(trainData["std_actor_regularization_cost"]))
-                self._actor_regularization_viz.redraw()
-                self._actor_regularization_viz.setInteractiveOff()
-                self._actor_regularization_viz.saveVisual(directory+"actorRegularizationGraph")
-                self._actor_regularization_viz.setInteractive()
-                
                 
         if (trainData["round"] % self.getSettings()['saving_update_freq_num_rounds']) == 0:
         

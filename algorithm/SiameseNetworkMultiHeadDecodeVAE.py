@@ -545,6 +545,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                         
                         sequences0_ = sequences0
                         sequences1_ = sequences1
+                        ### This should not be done in the dense state case.
                         if ("remove_character_state_features" in self._settings):
                             sequences0_ = sequences0_[:, :, :-self._settings["remove_character_state_features"]]
                             sequences1_ = sequences1_[:, :, :-self._settings["remove_character_state_features"]]

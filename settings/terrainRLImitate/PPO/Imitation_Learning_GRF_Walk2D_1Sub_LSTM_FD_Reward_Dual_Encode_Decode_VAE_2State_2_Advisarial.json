@@ -519,8 +519,6 @@
 "using_encoder_decoder_fd": false,
 	"comment__": "Inform the system that a encoder decoder model is being used",
 "use_decoder_fd": false,
-	"comment__": "Remove the GRF character features from the dense state",
-"remove_character_state_features": 4,
 	"comment__": "Use advisarial comparisons between agent and expert data",
 "include_agent_imitator_pairs": true,
 	"comment__": "Seperate the positive and negative pairs and perform two batches over the data.",
