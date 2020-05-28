@@ -2,7 +2,7 @@
 	"comment__": "Type of model/network to use for the actor and critic",
 "model_type": "model.DeepNNKerasAdaptive.DeepNNKerasAdaptive",
     "comment__": "Learning algorithm to use",
-"agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
+"agent_name": "algorithm.TD3_KERAS.TD3_KERAS",
     "comment__": "Folder to store the training data in.",
 "data_folder": "PD_Humanoid_2D_GRF_Viz3D_32x32_1Sub_Imitate_30FPS_DualState_v1/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128__12",
 	"comment": "initial probability of selecting a random action",
@@ -12,7 +12,7 @@
     "comment__": "Batch size used for learning",
 "batch_size": 256,
     "comment__": "Learning rate for the actor/policy",
-"learning_rate": 0.0001,
+"learning_rate": 0.00005,
     "comment__": "Config file for the simulator",
 "sim_config_file": "PD_Humanoid_2D_GRF_Viz3D_32x32_1Sub_Imitate_30FPS_DualState_v1",
     "comment__": "Exploration distance use when randomly generating new actions",
@@ -34,7 +34,7 @@
     "comment__": "Bounds used for scaling rewards for networks",
 "reward_bounds": [[0.0],[1.0]],
     "comment__": "Max length of the Experience memory",
-"experience_length": 5000,
+"experience_length": 50000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [[ 
 				0.06586086, -0.33134258, -0.22473772, -0.08842427, -0.24940665,
@@ -297,6 +297,7 @@
 								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "integrate_actor_part"},
 								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 128, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -334,7 +335,7 @@
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
 "train_critic_with_fd_data": true,
 	"comment__": "Additional on-policy training updates",
-"additional_on_policy_training_updates": 1,
+"additional_on_policy_training_updates": 4,
 	"comment__": "Use average of policy std as mbae learning rate",
 "use_std_avg_as_mbae_learning_rate": true,
 	"comment__": "Use the on-policy value function to compute state gradients instead of off-policy one for SMBAE.",
@@ -524,5 +525,6 @@
 	"comment__": "Seperate the positive and negative pairs and perform two batches over the data.",
 "seperate_posandneg_pairs": false,
 	"comment__": "Add noise to the target noise values",
-"target_noise_scale": 0.05
+"target_noise_scale": 0.05,
+"rnn_updates": 64
 }
