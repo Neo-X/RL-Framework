@@ -237,6 +237,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 image_[row] = vizData[len(vizData)-row - 1]
             image_ = np.array(image_, dtype="uint8")
             movieWriter.append_data(image_)
+            
         if ("use_learned_reward_function" in settings
             and (settings["use_learned_reward_function"])
             and not ("return_rnn_sequence" in settings
@@ -265,7 +266,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     ):    
                     reward__0 = exp.computeImitationReward(rewmodel.predict)
                     reward__1 = exp.computeImitationReward(rewmodel.predict_reward)
-                    reward__ = ((reward__0 * 0.5) + (reward__1 * 0.5))
+#                     reward__ = ((reward__0 * 0.5) + (reward__1 * 0.5))
+                    reward__ = reward__0
 #                     print ("reward__: ", reward__, " reward__spatial: ", reward__0, " reward__time: ", reward__1)
                 elif ( (("train_LSTM_Reward" in settings)
                         and (settings["train_LSTM_Reward"] == True))
