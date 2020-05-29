@@ -562,7 +562,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             else:
                 # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
                 targets__ = np.mean(targets_, axis=1)
-                print ("targets__: ", np.mean(targets__))
+#                 print ("targets__: ", np.mean(targets__))
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
                     score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets__],
@@ -655,11 +655,6 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
         # dist = np.mean(dist_)
         te_y = np.array(te_y)
-        # print("Distance: ", dist)
-        # print("targets: ", te_y)
-        # print("pairs: ", te_pair1)
-        # print("Distance.shape, targets.shape: ", dist_.shape, te_y.shape)
-        # print("Distance, targets: ", np.concatenate((dist_, te_y), axis=1))
         # if ( dist > 0):
         score = self._model._forward_dynamics_net.fit([te_pair1, te_pair2], te_y,
           epochs=updates, batch_size=batch_size_,

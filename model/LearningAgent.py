@@ -583,7 +583,8 @@ class LearningAgent(AgentInterface):
                                                           rewards=reward_,
                                                           datas=datas_,
                                                           trainInfo=trainInfo)
-                            log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                             logExperimentData({}, "fd_net_loss", dynamicsLoss, self._settings)
                                 
                         # Updates over Multi-task data
@@ -610,7 +611,8 @@ class LearningAgent(AgentInterface):
                                                               falls=fall_,
                                                               datas=datas_,
                                                               trainInfo=trainInfo)
-                                log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
+                                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                    log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))    
                                 logExperimentData({}, "fd_net_loss", dynamicsLoss, self._settings)
                     
                 # pass
