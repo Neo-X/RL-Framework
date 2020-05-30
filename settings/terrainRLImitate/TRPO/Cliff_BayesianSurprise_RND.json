@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Biped2D_Cliff_v0/_ICM_6",
+"data_folder": "PD_Biped2D_Cliff_v0/_ICM_7",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -352,7 +352,7 @@
 	"comment__": "Include sufficient stats in policy state",
 "include_suffstate_in_state": false,
 	"comment__": "specify the learning algorithm to use for the fd model",
-"fd_algorithm" : "algorithm.ForwardDynamicsKeras.ForwardDynamicsKeras",
+"fd_algorithm" : "algorithm.RND.RND",
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [ 
 							{"layer_type": "Dense", "units": 256, "use_bias": true},
@@ -372,7 +372,7 @@
 	"comment__": "Use learned reward function",
 "use_learned_reward_function": false,
 	"comment__": "Replace entropy state with VAE state",
-"replace_entropy_state_with_vae": "ICM",
+"replace_entropy_state_with_vae": "RND",
 	"comment__": "VAE state length",
 "vae_state_length": 49
 }

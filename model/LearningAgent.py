@@ -758,6 +758,7 @@ class LearningAgent(AgentInterface):
                             if ("fd_algorithm" in self._settings
                                 and (self._settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")):
                                 rewards__ = (rewards__ * 0) + 1
+                            print ("self._fd:", self._fd)
                             dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__, lstm=False, datas=datas__, trainInfo=trainInfo)
                             log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                             
