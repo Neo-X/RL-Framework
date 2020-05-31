@@ -5,13 +5,14 @@ docker build -f Dockerfile_trl -t rlframe_trl:latest .
 
 ### Not using nvidia/cuda for now
 docker build -f Dockerfile_trl -t rlframe_trl:latest .
-
+echo "RL_FRAMEWORK_PATH"
+echo "$RL_FRAMEWORK_PATH"
 echo "arg 1 $1"
 # cmd='python3 trainModel.py --config=settings/MiniGrid/TagEnv/PPO/Tag_Dual_FullObserve_SLAC_mini.json  -p 2 --bootstrap_samples=10000 --max_epoch_length=32 --rollouts=32 --pretrain_fd=0 --plot=false --save_video_to_file=eval.mp4 --metaConfig=settings/hyperParamTuning/element/exploration_rate.json --experiment_logging="{\"use_comet\": true, \"project_name\": \"ic2\"}"'
 cmd=$1
 fullcmd="pushd /root/playground/TerrainRLSim; git pull origin master; popd; pushd /root/playground/RLSimulationEnvironments; git pull origin master; popd; pushd /root/playground/RL-Framework; git pull origin master; ${cmd}"
 echo $fullcmd
-command=(docker run --rm -v /home/gberseth/playground/RL-Framework:/root/playground/RL-Framework -it rlframe_trl:latest /bin/bash -c "$fullcmd" )
+command=(docker run --rm -v $RL_FRAMEWORK_PATH:/root/playground/RL-Framework -it rlframe_trl:latest /bin/bash -c "$fullcmd" )
 echo "${command[@]}"
 # eval $command
 "${command[@]}"
