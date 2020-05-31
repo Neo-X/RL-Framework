@@ -111,7 +111,7 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
     rlv.setLength(min_length)
     # rlv.setLength(64)
     rlv.setBinSize(subsample)
-    rlv.updateRewards(trainingDatas, otherDatas, mean_key="mean_reward", std_key="std_reward")
+    rlv.updateRewards(trainingDatas, otherDatas, mean_key="mean_eval", std_key="std_reward")
     rlv.init()
     rlv.saveVisual(folder+"Training_curves")
     # rlv.show()
