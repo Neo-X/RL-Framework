@@ -61,21 +61,15 @@ RUN chmod 600 ~/.ssh/id_rsa
 RUN touch /root/.ssh/known_hosts
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 
-COPY id_rsa_remote_client /root/.ssh/id_rsa
-RUN chmod 600 ~/.ssh/id_rsa
-# make sure your domain is accepted
-RUN touch /root/.ssh/known_hosts
-RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
-
-RUN ls
+# RUN ls
 # RUN git clone https://github.com/rll/rllab.git /root/playground/rllab
-RUN git clone git@github.com:FracturedPlane/RLSimulationEnvironments.git /root/playground/RLSimulationEnvironments
-RUN pip install -r /root/playground/RLSimulationEnvironments/requirements.txt
-ENV RLSIMENV_PATH /root/playground/RLSimulationEnvironments
+# RUN git clone git@github.com:FracturedPlane/RLSimulationEnvironments.git /root/playground/RLSimulationEnvironments
+# RUN pip install -r /root/playground/RLSimulationEnvironments/requirements.txt
+# ENV RLSIMENV_PATH /root/playground/RLSimulationEnvironments
 
-RUN ls
-RUN git clone git@github.com:Neo-X/RL-Framework.git /root/playground/RL-Framework
-RUN pip install -r /root/playground/RL-Framework/requirements.txt
+# RUN ls
+# RUN git clone git@github.com:Neo-X/RL-Framework.git /root/playground/RL-Framework
+# RUN pip install -r /root/playground/RL-Framework/requirements.txt
 # RUN popd
 
 ### Add OpenGL libraries to LD path.
@@ -99,7 +93,7 @@ WORKDIR /root/playground/TerrainRLSim/
 RUN ls -la
 # RUN chmod +x ./premake4_linux && ./premake4_linux --file=premake4_openglES.lua gmake
 RUN chmod +x ./premake4_linux 
-RUN ./premake4_linux gmake
+RUN ./premake4_linux --file=premake4_openglES.lua gmake
 ### RUN cd gmake 
 WORKDIR /root/playground/TerrainRLSim/gmake
 RUN make config=release64 -j 8

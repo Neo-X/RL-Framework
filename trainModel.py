@@ -219,13 +219,18 @@ def _initialize_train_data():
     trainData["round"]=0
     return trainData
 
-def trainModelParallel(inputData):
+def trainModelParallel_(input):
+    return trainModelParallel(input[0], input[1])
+
+def trainModelParallel(settingsFileName, settings):
     # TODO this function is way too long
-    # (sys.argv[1], settings)
     from util.SimulationUtil import getDataDirectory, getAgentNameString, getAgentName, getAgentNameString
-    settings = inputData[1]
+#     settings = inputData[1]
     settings["round"] = 0
-    settingsFileName = inputData[0]  
+#     settingsFileName = inputData[0]  
+    print (settingsFileName)
+    print (settings)
+    settingsFileName=settings['settingsFileName']
 
     # Tag_FullObserve_SLAC_mini.json: True (not in settings)
     if ("perform_multiagent_training" not in settings):
@@ -837,7 +842,8 @@ def main():
     simData = []
     if ( (metaSettings is None)
         or ((metaSettings is not None) and (not metaSettings['testing'])) ):
-        simData = trainModelParallel((sys.argv[1], settings))
+        settings['settingsFileName'] = sys.argv[1]
+        simData = trainModelParallel(sys.argv[1], settings)
     t1 = time.time()
     sim_time_ = datetime.timedelta(seconds=(t1-t0))
     print ("Model training complete in " + str(sim_time_) + " seconds")

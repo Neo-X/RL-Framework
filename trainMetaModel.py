@@ -129,7 +129,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         # print ("Settings: " + str(json.dumps(settings)))
         file.close()
     
-    from trainModel import trainModelParallel
+    from trainModel import trainModelParallel_ as trainModelParallel
         
     print ( "Running ", samples, " simulation(s) over ", numThreads, " Thread(s)")
     settings_original = copy.deepcopy(settings)
@@ -174,7 +174,8 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         
         sim_settings.append(copy.deepcopy(settings))
         sim_settingFileNames.append(settingsFileName)
-        sim_data.append((settingsFileName,copy.deepcopy(settings)))
+        settings['settingsFileName']=settingsFileName
+        sim_data.append(copy.deepcopy(settings))
         sim_data_files.append(getDataDirectory(settings)+os.path.basename(settingsFileName))
         
         ## Create data directory and copy any desired files to these folders .
@@ -210,7 +211,9 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     if ( (hyperSettings is not None) and ('testing' in hyper_settings and (hyper_settings['testing']))):
         print("Not simulating, this is a testing run:")
     else:
-        result = p.map(trainModelParallel, sim_data)
+        print (sim_settingFileNames)
+        print (sim_data)
+        result = p.map(trainModelParallel, [(x, y) for x, y in zip(sim_settingFileNames, sim_data)])
         if ("save_video_to_file" in settings):
             print ("Creating videos of final policies results")
             # p.map(_modelEvaluation, sim_data)
