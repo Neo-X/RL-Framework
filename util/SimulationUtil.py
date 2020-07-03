@@ -151,6 +151,24 @@ def logExperimentData(trainData, key, value, settings):
         trainData[key].append(value)
     else:
         trainData[key] = [value]
+        
+def logExperimentImage(path, overwrite=True, image_format="mp4", settings=None):
+    """This function logs scalar metrics info, possibly to comet
+
+    :param trainData: 
+    :param key: str key to log (optional, not used if type(value) == OrderDict)
+    :param value: OrderedDict or value to log
+    :param settings: settings object
+    :returns: None
+    """
+    import numpy as np
+    from collections import OrderedDict
+    
+    if ("logger_instance" in settings
+        and (settings["logger_instance"] is not None)):
+        logger = settings["logger_instance"] 
+        logger.set_step(step=settings["round"])
+        logger.log_image(path, overwrite=overwrite, image_format=image_format)
 
 def setupEnvironmentVariable(settings, eval=False):
     import os    

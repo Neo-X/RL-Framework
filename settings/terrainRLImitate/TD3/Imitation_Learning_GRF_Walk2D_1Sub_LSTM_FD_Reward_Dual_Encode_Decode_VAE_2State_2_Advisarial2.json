@@ -34,7 +34,7 @@
     "comment__": "Bounds used for scaling rewards for networks",
 "reward_bounds": [[0.0],[1.0]],
     "comment__": "Max length of the Experience memory",
-"experience_length": 50000,
+"experience_length": 100000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [[ 
 				0.06586086, -0.33134258, -0.22473772, -0.08842427, -0.24940665,
@@ -261,7 +261,7 @@
 	"comment__": "Whether or not to take a couple of on policy updates",
 "use_multiple_policy_updates": false,	
 	"comment__": "Whether or not to clear the experience memory after each update is done, for pure on policy methods",
-"clear_exp_mem_on_poli": true,
+"clear_exp_mem_on_poli": false,
 	"comment__": "Disable scaling for inputs and outputs of networks",
 "disable_parameter_scaling": false,
 	"comment__": "Train a state encoding as well.",
@@ -526,5 +526,11 @@
 "seperate_posandneg_pairs": false,
 	"comment__": "Add noise to the target noise values",
 "target_noise_scale": 0.05,
-"rnn_updates": 64
+"rnn_updates": 64,	
+	"comment__": "Data for using comet ML for logging learning experiments",
+"experiment_logging":
+	{"use_comet": true,
+	"project_name": "vizimitation"},
+	"comment__": "Save a video from the evaluation runs",
+"save_eval_video": true
 }

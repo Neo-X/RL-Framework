@@ -228,6 +228,19 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print ("state_: ", state_)
         # print ("resultState_: ", resultState_)
         
+        if ("save_eval_video" in settings  
+            and (settings['save_eval_video'] == True)):
+            ### If the sim does not have it's own writing support
+            from skimage.transform import rescale, resize, downscale_local_mean
+            vizData = exp.getEnvironment().render(mode="rgb_array")
+            image_ = np.zeros((vizData.shape))
+            for row in range(len(vizData)):
+                image_[row] = vizData[len(vizData)-row - 1]
+            image_ = np.array(image_, dtype="uint8")
+#             image_ = resize(image_, (64, 64, 3),
+#                            anti_aliasing=True)
+            info["rendering"] = image_
+            
         if (movieWriter is not None
             and (not exp.movieWriterSupport())):
             ### If the sim does not have it's own writing support
@@ -236,6 +249,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             for row in range(len(vizData)):
                 image_[row] = vizData[len(vizData)-row - 1]
             image_ = np.array(image_, dtype="uint8")
+            
             movieWriter.append_data(image_)
             
         if ("use_learned_reward_function" in settings

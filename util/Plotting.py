@@ -7,6 +7,44 @@ from util.SimulationUtil import getDataDirectory, getAgentNameString, getAgentNa
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize
 
+def display_paths_gif(paths, logdir, fps=10, max_outputs=8, counter=0):
+    import moviepy.editor as mpy
+    import numpy as np
+    images = []
+    for i in range(len(paths)):
+        images_ = paths[i]['rendering']
+#         images_ = images_[:max_outputs]
+    #     images = np.clip(images, 0.0, 1.0)
+    #     images = (images * 255.0).astype(np.uint8)
+        images.append(images_)
+    images = np.concatenate(images, axis=-3) ## concatenate the images into one row.
+    clip = mpy.ImageSequenceClip(list(images), fps=fps)
+        # clip.write_videofile(logdir+str(global_counter)+".mp4", fps=fps)
+    
+#     clip.write_gif(logdir+"all"+".gif", fps=fps)
+    clip.write_videofile(logdir+"all"+".mp4", fps=fps)
+#     clip.write_videofile(logdir+"all"+".webm", fps=fps)
+    
+def display_gif(paths, logdir, fps=10, max_outputs=8, counter=0):
+    import moviepy.editor as mpy
+    import numpy as np
+    images = []
+    for i in range(len(paths)):
+        images_ = paths[i]['rendering']
+#         images_ = images_[:max_outputs]
+    #     images = np.clip(images, 0.0, 1.0)
+    #     images = (images * 255.0).astype(np.uint8)
+        images.append(images_)
+    images = images[:max_outputs]
+    images = np.concatenate(images, axis=-2)
+    clip = mpy.ImageSequenceClip(list(images), fps=fps)
+    # clip.write_videofile(logdir+str(global_counter)+".mp4", fps=fps)
+    
+    #     os.makedirs(video_dir, exist_ok = True)
+#     clip.write_gif(logdir+str(counter)+".gif", fps=fps)
+#     clip.write_videofile(logdir+str(counter)+".webm", fps=fps)
+    clip.write_videofile(logdir+str(counter)+".mp4", fps=fps)
+
 class Plotter(object):
     
     def __init__(self, settings):
@@ -101,7 +139,7 @@ class Plotter(object):
         
     def updatePlots(self, masterAgent, trainData, sampler, out, p, settings):
         ### Lets always save a figure for the learning...
-        from util.SimulationUtil import createEnvironment, logExperimentData, saveData
+        from util.SimulationUtil import createEnvironment, logExperimentData, saveData, logExperimentImage
         from util.utils import current_mem_usage
         self._settings = settings
         
@@ -315,13 +353,17 @@ class Plotter(object):
                     
                     
 #                     logExperimentData(trainData, "falls", np.mean([met["falls"] for met in otherMetrics]), self._settings)
-                for key in otherMetrics[0]:
+                for key in otherMetrics[0].keys() - ['rendering']:
                     ### Put all info data in the logs
                     # print ("attempting to log metrics: ", key, " values: ", [met[key] for met in otherMetrics])
                     
                     logExperimentData(trainData, key, np.mean([met[key] for met in otherMetrics]), self._settings)
                     # pass
 #                     logExperimentData(trainData, "mem_usage_sim", np.mean([met["mem_usage_sim"] for met in otherMetrics]), self._settings)
+
+                if ("save_eval_video" in settings):
+                    display_gif(paths=otherMetrics, logdir=directory, fps=20, max_outputs=32, counter=0)
+                    logExperimentImage(path=directory+str(0)+".mp4", overwrite=True, image_format="mp4", settings=self._settings)
                 logExperimentData(trainData, "mem_usage_train", np.mean(current_mem_usage()), self._settings)
                 logExperimentData(trainData, "mean_reward", mean_reward, self._settings)
                 # print ("__rewards: " , reward_over_epocs)
