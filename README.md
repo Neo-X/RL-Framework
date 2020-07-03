@@ -8,6 +8,7 @@ on Keras which is based on Tensorflow.
 ###### Anaconda 
 If not done yet, install [anaconda](https://www.anaconda.com/) by following the instructions [here](https://www.anaconda.com/download/#linux).
 Then reate a anaconda environment, activate it and install the requirements in [`requirements.txt`](requirements.txt).
+
 ```
 conda create -n <env-name> python=3.6
 source activate <env-name>
