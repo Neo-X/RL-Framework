@@ -200,6 +200,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                                                                           , name="encoding_2"
                                                                           )
             last_dense = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid')(encode_input__)
+            last_dense = keras.layers.Dropout(rate=0.25)(last_dense)
             self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
             
             processed_a_r = self._last_dense(processed_a_r)
@@ -214,6 +215,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                                                                           , name="encoding_2"
                                                                           )
             last_dense = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid')(encode_input__)
+            last_dense = keras.layers.Dropout(rate=0.25)(last_dense)
             self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
             processed_a_r = self._last_dense(processed_a_r)
             processed_b_r = self._last_dense(processed_b_r)
