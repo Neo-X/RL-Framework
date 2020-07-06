@@ -15,6 +15,7 @@ from keras.models import Sequential, Model
 from algorithm.SiameseNetwork import *
 from util.SimulationUtil import createForwardDynamicsNetwork
 from keras.losses import mse, binary_crossentropy
+from util.SimulationUtil import logExperimentData
 
 def l2_distance_fd_(vects):
     x, y = vects
@@ -565,6 +566,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                 # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
                 targets__ = np.mean(targets_, axis=1)
 #                 print ("targets__: ", np.mean(targets__))
+                logExperimentData({}, "virl_target_mean", np.mean(targets__), self._settings)
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
                     score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets__],
