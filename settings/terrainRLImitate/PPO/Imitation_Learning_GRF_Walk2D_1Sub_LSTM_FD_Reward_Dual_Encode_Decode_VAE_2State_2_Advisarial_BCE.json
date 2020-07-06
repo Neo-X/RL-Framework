@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_2D_GRF_Viz3D_48x48_1Sub_Imitate_30FPS_DualState_v1/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128__12",
+"data_folder": "PD_Humanoid_2D_GRF_Viz3D_48x48_1Sub_Imitate_30FPS_DualState_v1/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128_BCE_12",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
