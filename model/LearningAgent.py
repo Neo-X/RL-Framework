@@ -520,7 +520,7 @@ class LearningAgent(AgentInterface):
                              G_ts_,
                              exp_actions,
                              advantage_,
-                             datas_) = self.getFDExperience().get_multitask_trajectory_batch(
+                             datas_) = self.getFDmultitask_trajectory_batch(
                                  batch_size=min(batch_size_lstm_fd, self.getFDExperience().samplesTrajectory()),
                                  randomLength=use_random_sequence_length_for_lstm,
                                  randomStart=use_random_sequence_length_for_lstm)
@@ -545,7 +545,7 @@ class LearningAgent(AgentInterface):
                                  G_ts_,
                                  exp_actions,
                                  advantage_,
-                                 datas_) = self.getFDExperience().get_multitask_trajectory_batch(
+                                 datas_) = self.getFDmultitask_trajectory_batch(
                                      batch_size=min(batch_size_lstm_fd*2, self.getFDExperience().samplesTrajectory()),
                                      randomLength=use_random_sequence_length_for_lstm,
                                      randomStart=use_random_sequence_length_for_lstm)
@@ -571,7 +571,7 @@ class LearningAgent(AgentInterface):
                              G_ts_,
                              exp_actions,
                              advantage_,
-                             datas_) = self.getFDExperience().get_multitask_trajectory_batch(
+                             datas_) = self.getFDmultitask_trajectory_batch(
                                  batch_size=min(batch_size_lstm_fd, self.getFDExperience().samplesTrajectory()), 
                                  randomLength=use_random_sequence_length_for_lstm,
                                  randomStart=use_random_sequence_length_for_lstm)
@@ -599,7 +599,7 @@ class LearningAgent(AgentInterface):
                                  G_ts_,
                                  exp_actions,
                                  advantage_,
-                                 datas_) = self.getFDExperience().get_multitask_trajectory_batch(
+                                 datas_) = self.getFDmultitask_trajectory_batch(
                                      batch_size=min(batch_size_lstm_fd*2, self.getFDExperience().samplesTrajectory()),
                                      randomLength=use_random_sequence_length_for_lstm,
                                      randomStart=use_random_sequence_length_for_lstm)
@@ -1579,8 +1579,17 @@ class LearningAgent(AgentInterface):
     
     def getFDBatch(self, batch_size):
         return self.getFDExperience().get_batch(batch_size)
-    def getFDmultitask_trajectory_batch(self, batch_size):
-        return self.getFDExperience().get_multitask_trajectory_batch(batch_size)
+    def getFDmultitask_trajectory_batch(self, batch_size, randomStart = False, randomLength = False):
+                
+        if ("shorter_smaller_rnn_batches" in self._settings
+                and (self._settings["shorter_smaller_rnn_batches"] == True)):
+            randomStart = True
+        if ("use_random_sequence_length_for_lstm" in self._settings
+            and (self._settings["use_random_sequence_length_for_lstm"] == True)):
+            use_random_sequence_length_for_lstm = True
+            randomStart = True
+            randomLength = True
+        return self.getFDExperience().get_multitask_trajectory_batch(batch_size, randomStart=randomStart, randomLength=randomLength)
     
     def loadExperience(self, filename):
         self.getExperience().loadFromFile(filename+"_expBufferInit.hdf5")

@@ -705,6 +705,23 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         # print("state_ shape: ", np.array(state_).shape)
         return state_
     
+    def predict_seq(self, state, state2):
+        
+        (distance_r_weighted, 
+         distance_fd2_weighted, 
+         decode_a, 
+         decode_b,
+         decode_a_vae,
+         decode_b_vae) = self._model._reward_net.predict([state, state2])
+         
+        return (distance_r_weighted, 
+         distance_fd2_weighted, 
+         decode_a, 
+         decode_b,
+         decode_a_vae,
+         decode_b_vae)
+                                                                     
+    
     def predictWithDropout(self, state, action):
         # "dropout"
         state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])

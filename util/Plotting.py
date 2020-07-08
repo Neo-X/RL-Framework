@@ -262,7 +262,8 @@ class Plotter(object):
 #                     if ("lstm_batch_size" in self._settings):
 #                         batch_size_lstm_fd = self._settings["lstm_batch_size"][0]
                     ### This can consume a lot of memory if trajectories are long...
-                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=batch_size_lstm_fd)
+                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm_fd, 
+                                                                                                                                                                        randomStart = False, randomLength = False)
                     dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
                     
                     if ("compute_model_metrics" in self._settings 
@@ -282,9 +283,28 @@ class Plotter(object):
                                 nlv_.redraw()
                                 nlv_.saveVisual(directory+key+str(d))
                                 nlv_.finish()
-#                                 logExperimentData(trainData, key+str(d), np.mean([met[key] for met in otherMetrics]), self._settings)
+#                                 (trainData, key+str(d), np.mean([met[key] for met in otherMetrics]), self._settings)
+                    if ("log_model_gen_seq_output" in self._settings):
+                        data = masterAgent.getForwardDynamics().predict_seq(state_, resultState_)
+                        (distance_r_weighted, 
+                         distance_fd2_weighted, 
+                         decode_a, 
+                         decode_b,
+                         decode_a_vae,
+                         decode_b_vae) = data
+                        ## Need to reshape the data dn cut out the image data only
+                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in state_], logdir=directory, fps=20, max_outputs=32, counter="state_")
+                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in resultState_], logdir=directory, fps=20, max_outputs=32, counter="resultState_")
+                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in decode_a], logdir=directory, fps=20, max_outputs=32, counter="decode_a")
+                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in decode_b], logdir=directory, fps=20, max_outputs=32, counter="decode_b")
+                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in decode_a_vae], logdir=directory, fps=20, max_outputs=32, counter="decode_a_vae")
+                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in decode_b_vae], logdir=directory, fps=20, max_outputs=32, counter="decode_b_vae")
+                        logExperimentImage(path=directory+"a_seq.mp4", overwrite=True, image_format="mp4", settings=self._settings)
+#                         logExperimentImage(path=directory+"b_seq.mp4", overwrite=True, image_format="mp4", settings=self._settings)
+#                         logExperimentImage(path=directory+"a_vae.mp4", overwrite=True, image_format="mp4", settings=self._settings)
+#                         logExperimentImage(path=directory+"b_.mp4", overwrite=True, image_format="mp4", settings=self._settings)
                 else:
-                    dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
+                    dynamicsRewardLoss = masterAgent.getForwardDnamics().reward_error(states, actions, result_states, rewards)
                 
                 if (type(dynamicsRewardLoss) == 'list'):
                     dynamicsRewardLoss = np.mean([np.mean(np.fabs(drl)) for drl in dynamicsRewardLoss])

@@ -139,39 +139,34 @@ class ExperienceMemory(object):
             if len(state_[t]) < shortest_traj:
                 shortest_traj = len(state_[t])
                 
-        use_random_sequence_length_for_lstm = False
-        if ("use_random_sequence_length_for_lstm" in self._settings
-            and (self._settings["use_random_sequence_length_for_lstm"] == True)):
-            use_random_sequence_length_for_lstm = True
-            randomStart = True
-            randomLength = True
-                
-        if ( randomStart == True 
-             and (shortest_traj > min_seq_length)):
-            inds = range(0, shortest_traj)
-            if ("shorter_smaller_rnn_batches" in self._settings
-                and (self._settings["shorter_smaller_rnn_batches"] == True)):
-                ### Make earlier start time more probable
-                traj_start = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
-                # print ("From traj_start: ", traj_start)
-            else:
-                traj_start = random.sample(set(inds), 1)[0]
-        if ("shorter_smaller_rnn_batches" in self._settings
-                and (self._settings["shorter_smaller_rnn_batches"])):
-            ### plus so because of index count mismatch.
-            inds = range(0, shortest_traj - self._settings["shorter_smaller_rnn_batches"] + 1)
+        ### This logic is very confusing
+        ### Pick a random start time is desired.
+#         if ( randomStart == True 
+#              and (shortest_traj > min_seq_length)):
+#             inds = range(0, shortest_traj)
+#             if ("shorter_smaller_rnn_batches" in self._settings
+#                 and (self._settings["shorter_smaller_rnn_batches"] == True)):
+#                 ### Make earlier start time more probable
+#                 traj_start = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
+#                 # print ("From traj_start: ", traj_start)
+#             else:
+#                 traj_start = random.sample(set(inds), 1)[0]
+        ### Choose a random time to start
+        if (randomStart == True):
+            ### plus one so because of index count mismatch.
+            inds = range(0, shortest_traj + 1)
             traj_start = random.sample(set(inds), 1)[0]
-            shortest_traj = traj_start + self._settings["shorter_smaller_rnn_batches"]
-                
-        if ( randomLength == True 
-            and (shortest_traj > traj_start + min_seq_length)):  ### shortest_traj Must be at least 2 for this to return 1
-            inds = range(traj_start + min_seq_length, shortest_traj)
-            if ("shorter_smaller_rnn_batches" in self._settings
-                and (self._settings["shorter_smaller_rnn_batches"] == True)):
-                ### Make shorter sequence more probable
-                shortest_traj = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
-            else:
-                shortest_traj = random.sample(set(inds), 1)[0]
+#             shortest_traj = traj_start + self._settings["shorter_smaller_rnn_batches"]
+             
+        ### Choose a random time for trajectory to end
+        inds = range(traj_start + min_seq_length, shortest_traj)
+        if ( randomLength == True ):
+#             if (shortest_traj > traj_start + min_seq_length):  
+#                 ### shortest_traj Must be at least 2 for this to return 1
+#                 ### Make shorter sequence more probable
+#                 shortest_traj = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
+#             else:
+            shortest_traj = random.sample(set(inds), 1)[0]
                 # print ("To shortest_traj:", shortest_traj)
         
         
