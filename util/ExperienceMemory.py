@@ -154,14 +154,14 @@ class ExperienceMemory(object):
         ### Choose a random time to start
         if (randomStart == True):
             ### plus one so because of index count mismatch.
-            inds = range(0, shortest_traj + 1)
+            inds = range(0, shortest_traj)
             traj_start = random.sample(set(inds), 1)[0]
 #             shortest_traj = traj_start + self._settings["shorter_smaller_rnn_batches"]
              
         ### Choose a random time for trajectory to end
         inds = range(traj_start + min_seq_length, shortest_traj)
-        if ( randomLength == True ):
-#             if (shortest_traj > traj_start + min_seq_length):  
+        if ( ( randomLength == True )
+            and (shortest_traj > traj_start + min_seq_length)):  
 #                 ### shortest_traj Must be at least 2 for this to return 1
 #                 ### Make shorter sequence more probable
 #                 shortest_traj = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
@@ -170,7 +170,7 @@ class ExperienceMemory(object):
                 # print ("To shortest_traj:", shortest_traj)
         
         
-        # print ("shortest_traj: ", shortest_traj, " traj_start: ", traj_start)    
+#         print ("shortest_traj: ", shortest_traj, " traj_start: ", traj_start)    
         ### Make all trajectories as long as the shortest one...
         for t in range(len(state_)):
             state_[t] = state_[t][traj_start:shortest_traj]

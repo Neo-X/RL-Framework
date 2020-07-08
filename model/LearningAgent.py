@@ -485,9 +485,9 @@ class LearningAgent(AgentInterface):
                 
                 if self._settings.get("train_LSTM_FD", False) or self._settings.get("train_LSTM_Reward", False):
                     use_random_sequence_length_for_lstm = False
-                    if ("use_random_sequence_length_for_lstm" in self._settings
-                        and (self._settings["use_random_sequence_length_for_lstm"] == True)):
-                        use_random_sequence_length_for_lstm = True
+#                     if ("use_random_sequence_length_for_lstm" in self._settings
+#                         and (self._settings["use_random_sequence_length_for_lstm"] == True)):
+#                         use_random_sequence_length_for_lstm = True
                     if ("lstm_batch_size" in self._settings):
                         batch_size_lstm_fd = self._settings["lstm_batch_size"][0]
                     for e in range(len(_states_fd)):
@@ -1587,7 +1587,7 @@ class LearningAgent(AgentInterface):
         if ("use_random_sequence_length_for_lstm" in self._settings
             and (self._settings["use_random_sequence_length_for_lstm"] == True)):
             use_random_sequence_length_for_lstm = True
-            randomStart = True
+#             randomStart = True
             randomLength = True
         return self.getFDExperience().get_multitask_trajectory_batch(batch_size, randomStart=randomStart, randomLength=randomLength)
     
