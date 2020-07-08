@@ -44,6 +44,26 @@ def display_gif(paths, logdir, fps=10, max_outputs=8, counter=0):
 #     clip.write_gif(logdir+str(counter)+".gif", fps=fps)
 #     clip.write_videofile(logdir+str(counter)+".webm", fps=fps)
     clip.write_videofile(logdir+str(counter)+".mp4", fps=fps)
+    
+def create_filmStrip(paths, logdir, fps=10, max_outputs=8, counter=0):
+    import moviepy.editor as mpy
+    import numpy as np
+    images = []
+    for i in range(len(paths)):
+        images_ = paths[i]['rendering']
+#         images_ = images_[:max_outputs]
+    #     images = np.clip(images, 0.0, 1.0)
+    #     images = (images * 255.0).astype(np.uint8)
+        images.append(images_)
+    images = images[:max_outputs]
+    images = np.concatenate(images, axis=-2)
+    clip = mpy.ImageSequenceClip(list(images), fps=fps)
+    # clip.write_videofile(logdir+str(global_counter)+".mp4", fps=fps)
+    
+    #     os.makedirs(video_dir, exist_ok = True)
+#     clip.write_gif(logdir+str(counter)+".gif", fps=fps)
+#     clip.write_videofile(logdir+str(counter)+".webm", fps=fps)
+    clip.write_videofile(logdir+str(counter)+".mp4", fps=fps)
 
 class Plotter(object):
     
@@ -262,7 +282,7 @@ class Plotter(object):
 #                     if ("lstm_batch_size" in self._settings):
 #                         batch_size_lstm_fd = self._settings["lstm_batch_size"][0]
                     ### This can consume a lot of memory if trajectories are long...
-                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm_fd, 
+                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDExperience()[0].get_multitask_trajectory_batch(batch_size=batch_size_lstm_fd, 
                                                                                                                                                                         randomStart = False, randomLength = False)
                     dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
                     
@@ -285,6 +305,7 @@ class Plotter(object):
                                 nlv_.finish()
 #                                 (trainData, key+str(d), np.mean([met[key] for met in otherMetrics]), self._settings)
                     if ("log_model_gen_seq_output" in self._settings):
+                        from model.ModelUtil import scale_state
                         data = masterAgent.getForwardDynamics().predict_seq(state_, resultState_)
                         (distance_r_weighted, 
                          distance_fd2_weighted, 
@@ -293,12 +314,14 @@ class Plotter(object):
                          decode_a_vae,
                          decode_b_vae) = data
                         ## Need to reshape the data dn cut out the image data only
-                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in state_], logdir=directory, fps=20, max_outputs=32, counter="state_")
-                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in resultState_], logdir=directory, fps=20, max_outputs=32, counter="resultState_")
-                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in decode_a], logdir=directory, fps=20, max_outputs=32, counter="decode_a")
-                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in decode_b], logdir=directory, fps=20, max_outputs=32, counter="decode_b")
-                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in decode_a_vae], logdir=directory, fps=20, max_outputs=32, counter="decode_a_vae")
-                        display_gif(paths=[{'rendering': np.reshape(traj[:,:self._settings["fd_num_terrain_features"]], (len(traj),) + tuple(self._settings["terrain_shape"]))} for traj in decode_b_vae], logdir=directory, fps=20, max_outputs=32, counter="decode_b_vae")
+                        def fix_shape(data):
+                            return np.moveaxis(np.repeat(np.reshape(np.array(scale_state(data, masterAgent.getFDExperience()[0].getStateBounds())[:,:self._settings["fd_num_terrain_features"]] * 255, dtype='uint8'), (len(data),) + (1, 48, 48)), 3, axis=1), 1, -1)
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in state_], logdir=directory, fps=20, max_outputs=32, counter="state_")
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in resultState_], logdir=directory, fps=20, max_outputs=32, counter="resultState_")
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_a], logdir=directory, fps=20, max_outputs=32, counter="decode_a")
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_b], logdir=directory, fps=20, max_outputs=32, counter="decode_b")
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_a_vae], logdir=directory, fps=20, max_outputs=32, counter="decode_a_vae")
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_b_vae], logdir=directory, fps=20, max_outputs=32, counter="decode_b_vae")
                         logExperimentImage(path=directory+"a_seq.mp4", overwrite=True, image_format="mp4", settings=self._settings)
 #                         logExperimentImage(path=directory+"b_seq.mp4", overwrite=True, image_format="mp4", settings=self._settings)
 #                         logExperimentImage(path=directory+"a_vae.mp4", overwrite=True, image_format="mp4", settings=self._settings)

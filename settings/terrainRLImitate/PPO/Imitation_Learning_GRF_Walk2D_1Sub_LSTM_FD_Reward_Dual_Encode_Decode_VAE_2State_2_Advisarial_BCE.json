@@ -235,7 +235,7 @@
 	"comment__": "KL divergence threshold between policy updates",
 "kl_divergence_threshold": 0.1,
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy [true|fast]",
-"on_policy": true,
+"on_policy": "fast",
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
 "use_stochastic_policy": false,
 	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
