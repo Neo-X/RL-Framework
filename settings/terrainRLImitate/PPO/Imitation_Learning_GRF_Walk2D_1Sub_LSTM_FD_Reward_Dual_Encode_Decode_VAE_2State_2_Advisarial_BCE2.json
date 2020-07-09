@@ -461,7 +461,7 @@
 	"comment__": "Add label noise to Discriminator/Simease network training",
 "add_label_noise": 0.025,
 	"comment__": "Make earlier and shorter lstm training batches more probable.",
-"shorter_smaller_rnn_batches": false,
+"shorter_smaller_rnn_batches": true,
 	"comment__": "When the agent falls give it a bad reward 1/(1-discount_fator)",
 "use_fall_reward_shaping": true,
 	"comment__": "Run some initial training steps to pretrain the fd before starting policy training",
