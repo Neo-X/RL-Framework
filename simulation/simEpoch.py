@@ -533,16 +533,16 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                               "image_char": resultState_[0][1],
                               "state_char": copy.deepcopy(resultState_)}
                 state_dicts.append(state_dict)
-                import matplotlib
-                matplotlib.use('Agg')
-                import matplotlib.pyplot as plt
-                # img_ = viewData
-                img_ = np.reshape(state_[0][1][:2304], (48,48))
-                img__ = np.reshape(resultState_[0][1][:2304], (48, 48))
-                fig1 = plt.figure(1)
-                img__ = np.concatenate((img_, img__), axis=1)
-                plt.imshow(img__, origin='lower')
-                fig1.savefig("char_viz_imitation_states_"+str(i_)+".png")
+#                 import matplotlib
+#                 matplotlib.use('Agg')
+#                 import matplotlib.pyplot as plt
+#                 # img_ = viewData
+#                 img_ = np.reshape(state_[0][1][:2304], (48,48))
+#                 img__ = np.reshape(resultState_[0][1][:2304], (48, 48))
+#                 fig1 = plt.figure(1)
+#                 img__ = np.concatenate((img_, img__), axis=1)
+#                 plt.imshow(img__, origin='lower')
+#                 fig1.savefig("char_viz_imitation_states_"+str(i_)+".png")
         ### Don't reset during evaluation...
         if (((exp.endOfEpoch() and settings['reset_on_fall'] and ((not evaluation)))
              and (reset_prop_tmp <= reset_prop) ) ### Allow option to collect some full trajectories  
@@ -646,16 +646,16 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         else:
             tmp_res_states.extend(result_states___[s])
        
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-        # img_ = viewData
-        img_ = np.reshape(tmp_states[s][1][:2304], (48,48))
-        img__ = np.reshape(tmp_res_states[s][1][:2304], (48, 48))
-        fig1 = plt.figure(1)
-        img__ = np.concatenate((img_, img__), axis=1)
-        plt.imshow(img__, origin='lower')
-        fig1.savefig("char_viz_imitation_states_end"+str(s)+".png")
+#         import matplotlib
+#         matplotlib.use('Agg')
+#         import matplotlib.pyplot as plt
+#         # img_ = viewData
+#         img_ = np.reshape(tmp_states[s][1][:2304], (48,48))
+#         img__ = np.reshape(tmp_res_states[s][1][:2304], (48, 48))
+#         fig1 = plt.figure(1)
+#         img__ = np.concatenate((img_, img__), axis=1)
+#         plt.imshow(img__, origin='lower')
+#         fig1.savefig("char_viz_imitation_states_end"+str(s)+".png")
         
         tmp_rewards.extend(rewards[s])
         tmp_discounted_sum.extend(discounted_sum[s])
