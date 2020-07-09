@@ -126,6 +126,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     infos = []
     bad_sim_state = False
     entropy_ = 0
+    state_dicts = []
     
     i_ = 0
     while (i_ < settings['max_epoch_length']):
@@ -134,6 +135,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 #         print ("state_: ", repr(np.array(state_).shape))
 #         print ("state_: ", state_)
         action=None
+#         import matplotlib
+#         matplotlib.use('Agg')
+#         import matplotlib.pyplot as plt
+#         img_ = np.reshape(state_[0][1][:2304], (48,48))
+#         fig1 = plt.figure(1)
+#         plt.imshow(img_, origin='lower')
+#         fig1.savefig("char_state_"+str(i_)+".png")
             
         (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
                                                 epsilon=epsilon, sampling=sampling, time_step=i_, evaluation_=evaluation)
@@ -216,11 +224,20 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_ = reward_ + settings['reward_lower_bound']  
 
         resultState_ = exp.getState()
+#         import matplotlib
+#         matplotlib.use('Agg')
+#         import matplotlib.pyplot as plt
+#         img_ = np.reshape(resultState_[0][1][:2304], (48,48))
+#         fig1 = plt.figure(1)
+#         plt.imshow(img_, origin='lower')
+#         fig1.savefig("char_state_"+str(i_)+".png")
         # if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
         #      and (settings["use_hrl_logic"]) ):
         #     resultState_ = resultState_.tolist()
         #     resultState_[1] = np.concatenate([resultState_[1], action[0]], axis=-1)
         if (i_ > 0):
+#             if ("replace_next_state_with_imitation_viz_state" in settings
+#                 and (settings["replace_next_state_with_imitation_viz_state"] == True)):
             result_states___.append(state_)
         states.append(state_)
         states__.extend(state_)
@@ -278,6 +295,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     and 
                         (settings["use_learned_reward_function"] == "dual")
                     ):    
+                    ## How does this work without passing the state??
                     reward__0 = exp.computeImitationReward(rewmodel.predict)
                     reward__1 = exp.computeImitationReward(rewmodel.predict_reward)
                     if "anneal_dual_reward" in settings:
@@ -350,32 +368,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             else:
                 reward_ = [[reward_]]
         
-        # print ("reward_: ", reward_)
-        if ("replace_next_state_with_imitation_viz_state" in settings
-            and (settings["replace_next_state_with_imitation_viz_state"] == True)):
-            ### This only works properly in the dual state rep case.
-            if ("replace_next_state_with_pose_state" in settings and
-                  (settings["replace_next_state_with_pose_state"] == True)):
-                ob = np.asarray(exp.getEnvironment().getImitationState())
-                ob = ob.flatten()
-                resultState_[0][1] = ob
-            elif ("use_dual_viz_state_representations" in settings
-                  and (settings["use_dual_viz_state_representations"] == True)):
-                ### Need agent data for simease net
-                state_[0][1] = resultState_[0][0]
-            elif ("use_dual_dense_state_representations" in settings
-                and (settings["use_dual_dense_state_representations"] == True)):
-                pass 
-            elif ("fd_use_multimodal_state" in settings and
-                  (settings["fd_use_multimodal_state"] == True)):
-                # print ("Replacing result state data with multi model imitation data")
-                ob = np.asarray(exp.getEnvironment().getMultiModalImitationState())
-                ob = ob.flatten()
-                resultState_[0][1] = ob
-            else:
-                ob = np.asarray(exp.getEnvironment().getImitationVisualState())
-                ob = ob.flatten()
-                resultState_[0][1] = ob
         ## For testing remove later
         if (checkSettings(settings,"use_back_on_track_forcing") and (not evaluation)):
             exp.getControllerBackOnTrack()
@@ -457,9 +449,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         ### I can't just unpack the vector of states here in a multi char sim because the 
         ### Order needs to be preserved for computing the advantage.
         actions.append(action)
-        # print ("reward_: ", reward_)
         rewards.append(reward_)
-        # result_states___.append(resultState_)
         if (worker_id is not None):
             # Pushing working id as fall value for multi task training
             if ("ask_env_for_multitask_id" in settings 
@@ -509,7 +499,50 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         state_num += 1
         pa = None
         i_ += 1
-        state_ = resultState_
+        state_ = copy.deepcopy(resultState_)
+#         state_ = resultState_
+        
+        # print ("reward_: ", reward_)
+        if ("replace_next_state_with_imitation_viz_state" in settings
+            and (settings["replace_next_state_with_imitation_viz_state"] == True)):
+            ### This only works properly in the dual state rep case.
+            if ("replace_next_state_with_pose_state" in settings and
+                  (settings["replace_next_state_with_pose_state"] == True)):
+                ob = np.asarray(exp.getEnvironment().getImitationState())
+                ob = ob.flatten()
+                resultState_[0][1] = ob
+            elif ("use_dual_viz_state_representations" in settings
+                  and (settings["use_dual_viz_state_representations"] == True)):
+                ### Need agent data for simease net
+                state_[0][1] = resultState_[0][0]
+            elif ("use_dual_dense_state_representations" in settings
+                and (settings["use_dual_dense_state_representations"] == True)):
+                pass 
+            elif ("fd_use_multimodal_state" in settings and
+                  (settings["fd_use_multimodal_state"] == True)):
+                # print ("Replacing result state data with multi model imitation data")
+                ob = np.asarray(exp.getEnvironment().getMultiModalImitationState())
+                ob = ob.flatten()
+                resultState_[0][1] = ob
+            else:
+                ob = np.asarray(exp.getEnvironment().getImitationVisualState())
+                ob = ob.flatten()
+                resultState_[0][1] = ob
+                state_dict = {"pose_agent": state_[0][0],
+                              "image_agent": state_[0][1],
+                              "image_char": resultState_[0][1],
+                              "state_char": copy.deepcopy(resultState_)}
+                state_dicts.append(state_dict)
+                import matplotlib
+                matplotlib.use('Agg')
+                import matplotlib.pyplot as plt
+                # img_ = viewData
+                img_ = np.reshape(state_[0][1][:2304], (48,48))
+                img__ = np.reshape(resultState_[0][1][:2304], (48, 48))
+                fig1 = plt.figure(1)
+                img__ = np.concatenate((img_, img__), axis=1)
+                plt.imshow(img__, origin='lower')
+                fig1.savefig("char_viz_imitation_states_"+str(i_)+".png")
         ### Don't reset during evaluation...
         if (((exp.endOfEpoch() and settings['reset_on_fall'] and ((not evaluation)))
              and (reset_prop_tmp <= reset_prop) ) ### Allow option to collect some full trajectories  
@@ -606,7 +639,24 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     for s in range(len(states)):
         tmp_states.extend(states[s])
         tmp_actions.extend(actions[s])
-        tmp_res_states.extend(result_states___[s])
+        if ("replace_next_state_with_imitation_viz_state" in settings
+            and (settings["replace_next_state_with_imitation_viz_state"] == True)):
+            state_dicts[s]['state_char']
+            tmp_res_states.extend(state_dicts[s]['state_char'])
+        else:
+            tmp_res_states.extend(result_states___[s])
+       
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        # img_ = viewData
+        img_ = np.reshape(tmp_states[s][1][:2304], (48,48))
+        img__ = np.reshape(tmp_res_states[s][1][:2304], (48, 48))
+        fig1 = plt.figure(1)
+        img__ = np.concatenate((img_, img__), axis=1)
+        plt.imshow(img__, origin='lower')
+        fig1.savefig("char_viz_imitation_states_end"+str(s)+".png")
+        
         tmp_rewards.extend(rewards[s])
         tmp_discounted_sum.extend(discounted_sum[s])
         tmp_G_ts.extend(G_ts[s])

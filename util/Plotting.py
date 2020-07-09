@@ -316,21 +316,18 @@ class Plotter(object):
                         ## Need to reshape the data dn cut out the image data only
                         def fix_shape(data):
                             return np.moveaxis(np.repeat(np.reshape(np.array(scale_state(data, masterAgent.getFDExperience()[0].getStateBounds())[:,:self._settings["fd_num_terrain_features"]] * 255, dtype='uint8'), (len(data),) + (1, 48, 48)), 3, axis=1), 1, -1)
-                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in state_], logdir=directory, fps=20, max_outputs=32, counter="state_")
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in state_], logdir=directory, fps=30, max_outputs=32, counter="state_")
                         logExperimentImage(path=directory+"state_.mp4", overwrite=True, image_format="mp4", settings=self._settings)
-                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in resultState_], logdir=directory, fps=20, max_outputs=32, counter="resultState_")
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in resultState_], logdir=directory, fps=30, max_outputs=32, counter="resultState_")
                         logExperimentImage(path=directory+"resultState_.mp4", overwrite=True, image_format="mp4", settings=self._settings)
-                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_a], logdir=directory, fps=20, max_outputs=32, counter="decode_a")
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_a], logdir=directory, fps=30, max_outputs=32, counter="decode_a")
                         logExperimentImage(path=directory+"decode_a.mp4", overwrite=True, image_format="mp4", settings=self._settings)
-                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_b], logdir=directory, fps=20, max_outputs=32, counter="decode_b")
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_b], logdir=directory, fps=30, max_outputs=32, counter="decode_b")
                         logExperimentImage(path=directory+"decode_b.mp4", overwrite=True, image_format="mp4", settings=self._settings)
-                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_a_vae], logdir=directory, fps=20, max_outputs=32, counter="decode_a_vae")
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_a_vae], logdir=directory, fps=30, max_outputs=32, counter="decode_a_vae")
                         logExperimentImage(path=directory+"decode_a_vae.mp4", overwrite=True, image_format="mp4", settings=self._settings)
-                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_b_vae], logdir=directory, fps=20, max_outputs=32, counter="decode_b_vae")
+                        display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_b_vae], logdir=directory, fps=30, max_outputs=32, counter="decode_b_vae")
                         logExperimentImage(path=directory+"decode_b_vae.mp4", overwrite=True, image_format="mp4", settings=self._settings)
-#                         logExperimentImage(path=directory+"b_seq.mp4", overwrite=True, image_format="mp4", settings=self._settings)
-#                         logExperimentImage(path=directory+"a_vae.mp4", overwrite=True, image_format="mp4", settings=self._settings)
-#                         logExperimentImage(path=directory+"b_.mp4", overwrite=True, image_format="mp4", settings=self._settings)
                 else:
                     dynamicsRewardLoss = masterAgent.getForwardDnamics().reward_error(states, actions, result_states, rewards)
                 
