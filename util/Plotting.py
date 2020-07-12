@@ -46,24 +46,10 @@ def display_gif(paths, logdir, fps=10, max_outputs=8, counter=0):
     clip.write_videofile(logdir+str(counter)+".mp4", fps=fps)
     
 def create_filmStrip(paths, logdir, fps=10, max_outputs=8, counter=0):
-    import moviepy.editor as mpy
-    import numpy as np
-    images = []
-    for i in range(len(paths)):
-        images_ = paths[i]['rendering']
-#         images_ = images_[:max_outputs]
-    #     images = np.clip(images, 0.0, 1.0)
-    #     images = (images * 255.0).astype(np.uint8)
-        images.append(images_)
-    images = images[:max_outputs]
-    images = np.concatenate(images, axis=-2)
-    clip = mpy.ImageSequenceClip(list(images), fps=fps)
-    # clip.write_videofile(logdir+str(global_counter)+".mp4", fps=fps)
-    
-    #     os.makedirs(video_dir, exist_ok = True)
-#     clip.write_gif(logdir+str(counter)+".gif", fps=fps)
-#     clip.write_videofile(logdir+str(counter)+".webm", fps=fps)
-    clip.write_videofile(logdir+str(counter)+".mp4", fps=fps)
+   """
+   Create a filmstrip of the video
+   """
+   pass
 
 class Plotter(object):
     
