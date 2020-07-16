@@ -557,7 +557,8 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                         # print ("targets_ shape: ", targets_.shape)
                         ### separate data into positive and negative batches
                         # for k in range(len(sequences0)):
-                        indecies_ = list(range(len(targets__)))
+#                         indecies_ = list(range(len(targets__)))
+                        indecies_ = np.random.choice(range(len(sequences0)), size=self._settings["lstm_batch_size"][1])
                         # print ("targets__: ", targets__)
                         # print("indecies_: ", indecies_)
                         if ("seperate_posandneg_pairs" in self._settings

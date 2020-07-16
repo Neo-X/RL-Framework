@@ -587,13 +587,16 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                         if ("remove_character_state_features" in self._settings):
                             sequences0_ = sequences0_[:, :, :-self._settings["remove_character_state_features"]]
                             sequences1_ = sequences1_[:, :, :-self._settings["remove_character_state_features"]]
-                        # print ("sequences0 shape: ", sequences0.shape)
-                        # print ("sequences1 shape: ", sequences1.shape)
+                        ### Randomly sample the data to reduce the batch size
+                        indecies_ = np.random.choice(range(len(sequences0)), size=self._settings["lstm_batch_size"][1])
+                        
+#                         print ("sequences0 shape: ", sequences0.shape)
+#                         print ("sequences1 shape: ", sequences1.shape)
                         # print ("targets__ shape: ", targets__.shape)
                         # print ("targets_ shape: ", targets_.shape)
                         ### separate data into positive and negative batches
                         # for k in range(len(sequences0)):
-                        indecies_ = list(range(len(targets__)))
+#                         indecies_ = list(range(len(targets__)))
                         # print ("targets__: ", targets__)
                         # print("indecies_: ", indecies_)
                         if ("seperate_posandneg_pairs" in self._settings
