@@ -439,7 +439,7 @@
 	"comment__": "Use a stateful LSTM",
 "train_LSTM_FD_stateful": false,
 	"comment__": "batch size for lstm fd models",
-"lstm_batch_size": [4, 32],
+"lstm_batch_size": [16, 64],
 	"comment__": "experience size for fd network",
 "fd_experience_length": 2500,
 	"comment__": "A mapping from working_id to task id",
