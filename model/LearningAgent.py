@@ -439,7 +439,7 @@ class LearningAgent(AgentInterface):
                                                                     tmp_falls[e], tmp_G_t[e], tmp_advantage[e], tmp_exp_action[e], tmp_datas[e])
                     batch_size_lstm = 4
                     if ("lstm_batch_size" in self._settings):
-                        batch_size_lstm = self._settings["lstm_batch_size"][1]
+                        batch_size_lstm = self._settings["lstm_batch_size"][0]
                     updates___ = max(1, int((len(_states)/batch_size_lstm) * self._settings["additional_on_policy_training_updates"]))
                     print ("Performing lstm policy training")
                     if (("train_LSTM_Critic" in self._settings)
@@ -1423,7 +1423,7 @@ class LearningAgent(AgentInterface):
             # _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage, _datas = model.getExperience().get_batch(batch_size)
             batch_size_lstm = 4
             if ("lstm_batch_size" in self.getSettings()):
-                batch_size_lstm = self.getSettings()["lstm_batch_size"][1]
+                batch_size_lstm = self.getSettings()["lstm_batch_size"][0]
             state, action, result_state, reward, fall, G_ts_, exp_actions_, advantages_, datas = self.get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, self.getExperience().samplesTrajectory()))
         else:
             state, action, result_state, reward, fall, _G_ts, exp_actions, advantage, datas = self.get_batch(batch_size)
