@@ -522,7 +522,7 @@
 	"comment__": "Use advisarial comparisons between agent and expert data",
 "include_agent_imitator_pairs": true,
 	"comment__": "Seperate the positive and negative pairs and perform two batches over the data.",
-"seperate_posandneg_pairs": false,
+"seperate_posandneg_pairs": true,
 	"comment__": "Add noise to the target noise values",
 "target_noise_scale": 0.05,
 "rnn_updates": 32,	
