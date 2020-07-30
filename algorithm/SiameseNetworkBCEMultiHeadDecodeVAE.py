@@ -795,19 +795,27 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
     
     def predict_reward_(self, states, states2):
         """
-            This data should already be normalized
+            Predict reward which is inverse of distance metric
         """
-        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
-        # states[0, ...] = state
-        states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
-        actions = np.array(norm_state(states2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
-        h_a = self._model.processed_a_r_seq.predict([states])
-        h_b = self._model.processed_b_r_seq.predict([states2])
-        # print ("h_b shape: ", h_b.shape) 
-        predicted_reward = np.array([self._distance_func_np((np.array([h_a_]), np.array([h_b_])))[0] for h_a_, h_b_ in zip(h_a[0], h_b[0])])
-        # print ("predicted_reward_: ", predicted_reward)
-        # predicted_reward = self._model._reward_net_seq.predict([states, actions], batch_size=1)[0]
-        return predicted_reward
+        # print ("state bounds length: ", self.getStateBounds())
+        # print ("fd: ", self)
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        state2 = np.array(norm_state(state2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        if (("train_LSTM_Reward" in self._settings)
+            and (self._settings["train_LSTM_Reward"] == True)):
+            ### Used because we need to keep two separate RNN networks and not mix the hidden states
+            # print ("State shape: ", np.array([np.array([state])]).shape)
+            # h_a = self._model.processed_a_r.predict([np.array([state])])
+            # h_b = self._model.processed_b_r.predict([np.array([state2])])
+            # reward_ = self._distance_func_np((h_a, h_b))[0]
+            # reward_ = [0]
+            reward_ = self._model._reward_net.predict([state, state2])
+            # print ("siamese dist: ", state_)
+            # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
+        else:
+            predicted_reward = self._model._reward_net.predict([state, state2])[0]
+            # reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            reward_ = predicted_reward
 
     def bellman_error(self, states, actions, result_states, rewards):
         self.reset()

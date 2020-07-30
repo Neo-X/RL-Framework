@@ -205,7 +205,7 @@ class Plotter(object):
                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                     print (states, actions, rewards, result_states)
                     
-        if (self.getSettings()['debug_actor']):
+        if (self.getSettings()['debug_actor'] and self.getSettings()['train_actor']):
             
             masterAgent.reset()
             loss__ = [p_.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage) for p_ in masterAgent.getAgents() ]
@@ -392,7 +392,8 @@ class Plotter(object):
                     # pass
 #                     logExperimentData(trainData, "mem_usage_sim", np.mean([met["mem_usage_sim"] for met in otherMetrics]), self._settings)
 
-                if ("save_eval_video" in settings):
+                if ("save_eval_video" in settings and 
+                    (settings["save_eval_video"] == True)):
                     display_gif(paths=otherMetrics, logdir=directory, fps=20, max_outputs=32, counter=0)
                     logExperimentImage(path=directory+str(0)+".mp4", overwrite=True, image_format="mp4", settings=self._settings)
                 logExperimentData(trainData, "mem_usage_train", np.mean(current_mem_usage()), self._settings)
@@ -487,7 +488,7 @@ class Plotter(object):
                 self._rewardlv.setInteractiveOff()
                 self._rewardlv.saveVisual(directory+"rewardTrainingGraph")
                 self._rewardlv.setInteractive()
-        if (self._settings['debug_critic']):
+        if (self._settings['debug_critic'] and self.getSettings()['train_critic']):
             
             masterAgent.reset()
             if ((("train_LSTM" in self._settings)

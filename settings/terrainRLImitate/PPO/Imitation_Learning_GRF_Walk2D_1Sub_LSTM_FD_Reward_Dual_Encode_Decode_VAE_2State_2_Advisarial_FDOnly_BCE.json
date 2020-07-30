@@ -531,7 +531,7 @@
 	{"use_comet": true,
 	"project_name": "vizimitation"},
 	"comment__": "Save a video from the evaluation runs",
-"save_eval_video": true,
+"save_eval_video": false,
 "anneal_dual_reward": true,
 "log_model_gen_seq_output": true
 }

@@ -125,8 +125,8 @@ class LearningAgent(AgentInterface):
                     # timestep, agent, state
                     path["terminated"] = False
                 
-                    # print ("imitation_traj shape: ", imitation_traj.shape)
-                    # print ("previous reward__: ", reward__)
+                    print ("imitation_traj shape: ", imitation_traj.shape)
+                    print ("previous reward__: ", reward__)
 
                     # This is where we can use the forward dynamics to "relable" rewards, i.e. set the reward function. E.g. for SLAC
                     if self._settings.get("use_learned_reward_function", None) == "ic2":
@@ -143,7 +143,9 @@ class LearningAgent(AgentInterface):
                             [np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
                         
                         imitation_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in next_state__])])
+#                         reward__0 = exp.computeImitationReward(rewmodel.predict)
                         reward__ = -self.getForwardDynamics().predict_reward_(agent_traj, imitation_traj)
+#                         reward__1 = exp.computeImitationReward(rewmodel.predict_reward)
                     w_d = -2.0
                     if ("learned_reward_function_norm_weight" in self._settings):
                         w_d = self._settings["learned_reward_function_norm_weight"]
@@ -619,10 +621,10 @@ class LearningAgent(AgentInterface):
                 # print("Not Falls: ", _falls)
                 # print("Rewards: ", _rewards)
                 # print("Actions after: ", _actions)
-            if self._settings.get("refresh_rewards", None) == "lstm_fd":
-                rlPrint(self._settings, "train", "Refreshing rewards.")
-                self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
-                                      __exp_actions, __G_t, __datas)
+#             if self._settings.get("refresh_rewards", None) == "lstm_fd":
+#                 rlPrint(self._settings, "train", "Refreshing rewards.")
+#                 self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
+#                                       __exp_actions, __G_t, __datas)
             loss = 0
             additional_on_poli_training_updates = 1
             if self._settings.get("additional_on_policy_training_updates", False) != False:
