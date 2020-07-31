@@ -379,7 +379,13 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             #self._model._reward_net.add_loss(mse(self._model.getResultStateSymbolicVariable(), decode_a))
             #self._model._reward_net.add_loss(mse(self._result_state_copy, decode_b))
             # VAE loss = mse_loss or xent_loss + kl_loss
-            
+            loss_weights=[0.75, 
+                                                           0.05, 
+                                                           0.025, 0.025, 
+                                                           0.075, 0.075]
+            if ("virl_loss_weights" in self._settings):
+                loss_weights = self._settings["virl_loss_weights"]
+                print("Updating model optimization weights")
             self._model._reward_net.compile(
                                             loss=["binary_crossentropy"
                                                   ,"binary_crossentropy"
@@ -392,10 +398,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                                                  ,self.vae_loss_b
                                                   ], 
                                             optimizer=sgd
-                                            ,loss_weights=[0.75, 
-                                                           0.05, 
-                                                           0.025, 0.025, 
-                                                           0.075, 0.075]
+                                            ,loss_weights=loss_weights
                                             )
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)

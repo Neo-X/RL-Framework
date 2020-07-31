@@ -532,5 +532,6 @@
 "save_eval_video": false,
 "anneal_dual_reward": true,
 "log_model_gen_seq_output": true,
-"refresh_rewards": false
+"refresh_rewards": false,
+"virl_loss_weights": [0.001, 0.001, 0.5, 0.5, 0.001, 0.001]
 }
