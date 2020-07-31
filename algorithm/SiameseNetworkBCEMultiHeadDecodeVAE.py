@@ -291,9 +291,9 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         decoder_lstm = LSTM(128, return_sequences=True, return_state=True)
         decode_a_r, _, _ = decoder_lstm(encoder_a_outputs, initial_state=encoder_state_a)
         decode_b_r, _, _ = decoder_lstm(encoder_b_outputs, initial_state=encoder_state_b)
-        decoder_dense = Dense(64, activation='tanh')
-        decode_a_r = decoder_dense(decode_a_r)
-        decode_b_r = decoder_dense(decode_b_r)
+#         decoder_dense = Dense(64, activation='tanh')
+#         decode_a_r = decoder_dense(decode_a_r)
+#         decode_b_r = decoder_dense(decode_b_r)
         
         ### Decode sequences into images
         # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
