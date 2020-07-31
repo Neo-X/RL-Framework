@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_2D_GRF_Viz3D_48x48_1Sub_Imitate_30FPS_DualState_v1/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128_BCE_anneal_15",
+"data_folder": "PD_Humanoid_2D_GRF_Viz3D_48x48_1Sub_Imitate_30FPS_DualState_v1/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128_BCE_anneal_FDOnly_15",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -402,7 +402,7 @@
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 64]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
+							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -419,7 +419,7 @@
 	"comment__": "Dropout for fd network",
 "fd_network_dropout": 0.0,
 	"comment__": "Use learned reward function",
-"use_learned_reward_function": "dual",
+"use_learned_reward_function": false,
 	"comment__": "Mix different state description types, used for debugging visual imitation learning",
 "use_dual_state_representations": true,
 	"comment__": "Use vis state for policy instead of dense state",
@@ -477,7 +477,7 @@
 	"comment__": "Return sequences from lstm training",
 "return_rnn_sequence": false,
 	"comment__": "condition siamese network on RNN internal state as well.",
-"condition_on_rnn_internal_state": true,
+"condition_on_rnn_internal_state": false,
 	"comment__": "Train the fd network as well",
 "train_lstm_fd_and_reward_together": false,
 	"comment__": "Train the fd network as well",
@@ -504,9 +504,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [
 							{"layer_type": "Input", "shape": ["none", "none", 64]},
-							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
-							{"layer_type": "LayerNormalization"},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": "tanh"},
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
@@ -525,7 +523,7 @@
 "seperate_posandneg_pairs": true,
 	"comment__": "Add noise to the target noise values",
 "target_noise_scale": 0.05,
-"rnn_updates": 32,	
+"rnn_updates": 8,	
 	"comment__": "Data for using comet ML for logging learning experiments",
 "experiment_logging":
 	{"use_comet": true,
@@ -533,5 +531,6 @@
 	"comment__": "Save a video from the evaluation runs",
 "save_eval_video": false,
 "anneal_dual_reward": true,
-"log_model_gen_seq_output": true
+"log_model_gen_seq_output": true,
+"refresh_rewards": false
 }

@@ -119,8 +119,8 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             inputs_ = [self._model.getResultStateSymbolicVariable()]
         print ("******** self._model._State_: ", repr(inputs_))
         print ("self._model._reward_net: ", self._model._reward_net)
-        self._encoder_outputs_a, self._state_h_a, self._state_c_a = self._model._reward_net
-        self._encoder_outputs_b, self._state_h_b, self._state_c_b = self._model._reward_net
+#         self._encoder_outputs_a, self._state_h_a, self._state_c_a = self._model._reward_net
+#         self._encoder_outputs_b, self._state_h_b, self._state_c_b = self._model._reward_net
         self._model._reward_net = Model(inputs=self._model._State_, outputs=self._model._reward_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -161,7 +161,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         # the weights of the network
         # will be shared across the two branches
         state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
-#         result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getResultStateSymbolicVariable())[1:]
+#         result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getResultStateSymbolicVariable())[1:])
 #                                                                               , name="ResultState_2"
 #                                                                               )
         print ("*** self._model.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getStateSymbolicVariable())))
@@ -219,6 +219,9 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             processed_a_r = self._last_dense(processed_a_r)
             processed_b_r = self._last_dense(processed_b_r)
             
+            self._model.processed_a_r_seq = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r_seq)
+            self._model.processed_b_r_seq = Model(inputs=[self._result_state_copy], outputs=processed_b_r_seq)
+            
         else:
             
             processed_a_r_seq, processed_a_r = self._model._reward_net(network_)
@@ -234,6 +237,11 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
             processed_a_r = self._last_dense(processed_a_r)
             processed_b_r = self._last_dense(processed_b_r)
+            
+            self._model.processed_a_r_seq = keras.layers.TimeDistributed(self._last_dense, input_shape=(None, None, 128), name="bce_time_dist")(processed_a_r_seq)
+            self._model.processed_a_r_seq = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=self._model.processed_a_r_seq)
+            self._model.processed_b_r_seq = keras.layers.TimeDistributed(self._last_dense, input_shape=(None, None, 128), name="bce_time_dist")(processed_b_r_seq)
+            self._model.processed_b_r_seq = Model(inputs=[self._result_state_copy], outputs=self._model.processed_b_r_seq)
         
         self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
         self._model.processed_b_r = Model(inputs=[self._result_state_copy], outputs=processed_b_r)
@@ -287,11 +295,11 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
 #         print ("decode_b_r: ", repr(decode_b_r))
 #         # self._model.decode_b_r = Model(inputs=[encoder_b_outputs], outputs=decode_b_r)
         
-        from keras.layers import LSTM, Dense
-        decoder_lstm = LSTM(128, return_sequences=True, return_state=True)
-        decode_a_r, _, _ = decoder_lstm(encoder_a_outputs, initial_state=encoder_state_a)
-        decode_b_r, _, _ = decoder_lstm(encoder_b_outputs, initial_state=encoder_state_b)
-#         decoder_dense = Dense(64, activation='tanh')
+        from keras.layers import LSTM, Dense, GRU
+        decoder_lstm = GRU(128, return_sequences=True, return_state=True)
+        decode_a_r, _ = decoder_lstm(encoder_a_outputs, initial_state=encoder_state_a)
+        decode_b_r, _ = decoder_lstm(encoder_b_outputs, initial_state=encoder_state_b)
+#         decoder_dense = Dense(64, activation='sigmoid')
 #         decode_a_r = decoder_dense(decode_a_r)
 #         decode_b_r = decoder_dense(decode_b_r)
         
@@ -817,31 +825,23 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         predicted_reward = self.reward([states, actions, 0])[0]
         return predicted_reward
     
-    def predict_reward_(self, state, state2):
+    def predict_reward_(self, states, states2):
         """
-            Predict reward which is inverse of distance metric
+            This data should NOT be normalized
+            This does a fancy trick to compute the reward over the entire sequence
         """
-        # print ("state bounds length: ", self.getStateBounds())
-        # print ("fd: ", self)
-        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
-        state2 = np.array(norm_state(state2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
-        if (("train_LSTM_Reward" in self._settings)
-            and (self._settings["train_LSTM_Reward"] == True)):
-            ### Used because we need to keep two separate RNN networks and not mix the hidden states
-            # print ("State shape: ", np.array([np.array([state])]).shape)
-            # h_a = self._model.processed_a_r.predict([np.array([state])])
-            # h_b = self._model.processed_b_r.predict([np.array([state2])])
-            # reward_ = self._distance_func_np((h_a, h_b))[0]
-            # reward_ = [0]
-            reward_ = self._model._reward_net.predict([state, state2])
-            # print ("siamese dist: ", state_)
-            # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
-        else:
-            predicted_reward = self._model._reward_net.predict([state, state2])[0]
-            # reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
-            reward_ = predicted_reward
-            
-        return reward_
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        actions = np.array(norm_state(states2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        h_a = self._model.processed_a_r_seq.predict([states])
+        h_b = self._model.processed_b_r_seq.predict([states2])
+        # print ("h_b shape: ", h_b.shape) 
+        predicted_reward = np.array([self._distance_func_np((np.array([h_a_]), np.array([h_b_])))[0] for h_a_, h_b_ in zip(h_a[0], h_b[0])])
+        # print ("predicted_reward_: ", predicted_reward)
+        predicted_reward = np.log(predicted_reward)
+        # predicted_reward = self._model._reward_net_seq.predict([states, actions], batch_size=1)[0]
+        return predicted_reward
 
     def bellman_error(self, states, actions, result_states, rewards):
         self.reset()
