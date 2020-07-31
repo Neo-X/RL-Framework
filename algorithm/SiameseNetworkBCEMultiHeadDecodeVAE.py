@@ -21,6 +21,22 @@ def l2_distance_fd_(vects):
     x, y = vects
     return K.square(x - y)
 
+def euclidean_distance_np_(vects):
+    x, y = vects
+    print(x.shape)
+    print(y.shape)
+    z = np.square(x - y)
+    print(z.shape)
+    return z
+
+def l1_distance_np_(vects):
+    x, y = vects
+    print(x.shape)
+    print(y.shape)
+    z = np.abs(x - y)
+    print(z.shape)
+    return z
+
 def l1_distance_fd_(vects):
     x, y = vects
     return K.abs(x - y)
@@ -82,12 +98,12 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         self._regularization_weight = 1e-6
         
         self._distance_func = l2_distance_fd_
-        self._distance_func_np = euclidean_distance_np
+        self._distance_func_np = euclidean_distance_np_
         if ( "fd_distance_function" in self.getSettings()
              and (self.getSettings()["fd_distance_function"] == "l1")):
             print ("Using ", self.getSettings()["fd_distance_function"], " distance metric for siamese network.")
             self._distance_func = l1_distance_fd_
-            self._distance_func_np = l1_distance_np
+            self._distance_func_np = l1_distance_np_
             
         self._distance_func = l2_distance_fd_
         
@@ -259,6 +275,9 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         self._distance_fd_weighting_.summary()
         distance_fd_weighted = self._distance_fd_weighting_(distance_fd)
         distance_fd2_weighted = keras.layers.TimeDistributed(self._distance_fd_weighting_, input_shape=(None, None, self._state_length), name="bce_time_dist")(distance_fd2)
+        self._distance_fd2_weighted = Model(inputs=[self._model.getResultStateSymbolicVariable()
+                                                          ,self._result_state_copy], 
+                                                   outputs=distance_fd2_weighted )
         # distance_fd2_weighted = self._distance_fd_weighting_(distance_fd2)
         # distance_fd2_weighted = self._distance_fd_weighting_(distance_fd2)
         
@@ -270,6 +289,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         distance_r_weighted = keras.layers.Dense(1, activation = 'sigmoid', name="bce_rnn")(encode_input_fd_)
         self._distance_r_weighting_ = Model(inputs=[encode_input_fd_], outputs=distance_r_weighted)
         distance_r_weighted = self._distance_r_weighting_(distance_r)
+        
         
         ### Decoding models
         ### https://github.com/keras-team/keras/issues/7949
@@ -836,13 +856,25 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
         states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
-        actions = np.array(norm_state(states2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        states2 = np.array(norm_state(states2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         h_a = self._model.processed_a_r_seq.predict([states])
         h_b = self._model.processed_b_r_seq.predict([states2])
-        # print ("h_b shape: ", h_b.shape) 
-        predicted_reward = np.array([self._distance_func_np((np.array([h_a_]), np.array([h_b_])))[0] for h_a_, h_b_ in zip(h_a[0], h_b[0])])
-        # print ("predicted_reward_: ", predicted_reward)
-        predicted_reward = np.log(predicted_reward)
+#         print ("h_b shape: ", h_b.shape) 
+        self._distance_r_weighting_
+        predicted_reward = self._distance_func_np([h_a, h_b])[0]
+#         predicted_reward = np.array([self._distance_func_np((np.array([h_a_]), np.array([h_b_]))) for h_a_, h_b_ in zip(h_a[0], h_b[0])])
+#         predicted_reward = np.log(predicted_reward)
+#         print ("predicted_reward_: ", predicted_reward)
+        predicted_reward = self._distance_r_weighting_.predict([predicted_reward])
+        # predicted_reward = self._model._reward_net_seq.predict([states, actions], batch_size=1)[0]
+        return predicted_reward
+    
+    def predict_reward_fd(self, states, states2):
+        states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        states2 = np.array(norm_state(states2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        predicted_reward = self._distance_fd2_weighted.predict([states,states2])[0]
+#         predicted_reward = np.log(predicted_reward)
+        print ("predicted_reward_fd: ", predicted_reward)
         # predicted_reward = self._model._reward_net_seq.predict([states, actions], batch_size=1)[0]
         return predicted_reward
 

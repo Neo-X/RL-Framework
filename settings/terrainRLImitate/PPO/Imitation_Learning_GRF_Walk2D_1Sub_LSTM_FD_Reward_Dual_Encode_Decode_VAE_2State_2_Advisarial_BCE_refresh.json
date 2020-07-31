@@ -132,7 +132,7 @@
     "comment__": "What method to use to select actions during bootstrapping",
 "bootsrap_with_discrete_policy": true,
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
-"max_epoch_length": 16,
+"max_epoch_length": 32,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
 "reward_lower_bound": -300.5,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
@@ -245,7 +245,7 @@
 	"comment__": "Whether or not to collects tuples in batches, this can be good for multi-threading or computing furture discounted reward",
 "collect_tuples_in_batches":false,
 	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
-"reset_on_fall": false,
+"reset_on_fall": true,
 	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
 "train_reward_predictor": true,
 	"comment__": "How many gradient steps model based action exploration should take",
@@ -271,7 +271,7 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy rollouts to perform per epoch",
-"num_on_policy_rollouts": 128,
+"num_on_policy_rollouts": 64,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": false,
 	"comment__": "PPO should use seperate networks for the value and policy functions",
@@ -455,7 +455,7 @@
 	"comment__": "Episode simulation time out",
 "simulation_timeout": 1800,
 	"comment__": "Include some randomly sized sequences when training lstms",
-"use_random_sequence_length_for_lstm": false,
+"use_random_sequence_length_for_lstm": true,
 	"comment__": "Use a sparse sequence based reward",
 "use_sparse_sequence_based_reward": false,
 	"comment__": "Add label noise to Discriminator/Simease network training",
@@ -523,7 +523,7 @@
 "seperate_posandneg_pairs": true,
 	"comment__": "Add noise to the target noise values",
 "target_noise_scale": 0.05,
-"rnn_updates": 8,	
+"rnn_updates": 32,	
 	"comment__": "Data for using comet ML for logging learning experiments",
 "experiment_logging":
 	{"use_comet": true,
@@ -532,5 +532,6 @@
 "save_eval_video": false,
 "anneal_dual_reward": true,
 "log_model_gen_seq_output": true,
-"refresh_rewards": true
+"refresh_rewards": true,
+"virl_loss_weights": [0.5, 0.3, 0.075, 0.075, 0.025, 0.025]
 }

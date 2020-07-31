@@ -89,7 +89,7 @@ class LearningAgent(AgentInterface):
         return self._expBuff_FD  
     
     def putDataInExpMem(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
-              _exp_actions=None, _G_t=None, datas=None, recomputeRewards=False):
+              _exp_actions=None, _G_t=None, datas=None, recomputeRewards=False, p=1.0):
         import numpy as np
         num_samples_ = 0
         tmp_states = []
@@ -143,10 +143,13 @@ class LearningAgent(AgentInterface):
                         imitation_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in next_state__])])
 #                         reward__0 = exp.computeImitationReward(rewmodel.predict)
                         ##Don't need - for BCE reward
-                        print ("imitation_traj shape: ", imitation_traj.shape)
-                        print ("agent_traj shape: ", agent_traj.shape)
-                        reward__ = self.getForwardDynamics().predict_reward_(agent_traj, imitation_traj)
-                        print ("previous reward__: ", len(reward__), reward__)
+#                         print ("imitation_traj shape: ", imitation_traj.shape)
+#                         print ("agent_traj shape: ", agent_traj.shape)
+                        reward__r = self.getForwardDynamics().predict_reward_(agent_traj, imitation_traj)
+                        reward__fd = self.getForwardDynamics().predict_reward_fd(agent_traj, imitation_traj)
+                        reward___ = ((reward__r * p ) + (reward__fd * (1 + (1-p)))) / 2.0
+#                         print ("Refreshed reward origin, reward refresh, diff: ", np.concatenate((reward__, reward___, reward__ - reward___), axis=1))
+                        reward__ = reward___
 #                         reward__1 = exp.computeImitationReward(rewmodel.predict_reward)
                     w_d = -2.0
                     if ("learned_reward_function_norm_weight" in self._settings):
@@ -210,11 +213,11 @@ class LearningAgent(AgentInterface):
         return ( num_samples_, (tmp_states, tmp_actions, tmp_result_states, tmp_rewards, tmp_falls, tmp_G_t, tmp_advantage, tmp_exp_action, tmp_datas))
         
     def recomputeRewards(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
-              _exp_actions, _G_t, datas):
+              _exp_actions, _G_t, datas, p=1):
         """
             While learning a reward function re compute the rewards after performing critic and fd updates before policy update
         """
-        self.putDataInExpMem(_states, _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, datas, recomputeRewards=True)
+        self.putDataInExpMem(_states, _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, datas, recomputeRewards=True, p=p)
         
     def applyHER(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t, datas):
@@ -885,7 +888,7 @@ class LearningAgent(AgentInterface):
                      and (self._settings["refresh_rewards"] == True)):
                     rlPrint(self._settings, "train", "Refreshing rewards.")
                     self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
-                                          __exp_actions, __G_t, __datas)
+                                          __exp_actions, __G_t, __datas, p=p)
                 
                 if (self._settings['train_critic']
                     and (not (("train_LSTM_Critic" in self._settings)
