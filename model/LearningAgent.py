@@ -637,6 +637,12 @@ class LearningAgent(AgentInterface):
 #                 rlPrint(self._settings, "train", "Refreshing rewards.")
 #                 self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
 #                                       __exp_actions, __G_t, __datas)
+
+            if ( "refresh_rewards" in self._settings
+                     and (self._settings["refresh_rewards"] == True)):
+                    rlPrint(self._settings, "train", "Refreshing rewards.")
+                    self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
+                                          __exp_actions, __G_t, __datas, p=p)
             loss = 0
             additional_on_poli_training_updates = 1
             if self._settings.get("additional_on_policy_training_updates", False) != False:
@@ -891,12 +897,6 @@ class LearningAgent(AgentInterface):
                     
                     logExperimentData({}, "reward_net_loss", dynamicsLoss, self._settings)
                     
-                if ( "refresh_rewards" in self._settings
-                     and (self._settings["refresh_rewards"] == True)):
-                    rlPrint(self._settings, "train", "Refreshing rewards.")
-                    self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
-                                          __exp_actions, __G_t, __datas, p=p)
-                
                 if (self._settings['train_critic']
                     and (not (("train_LSTM_Critic" in self._settings)
                     and (self._settings["train_LSTM_Critic"] == True)))):
