@@ -459,7 +459,7 @@
 	"comment__": "Use a sparse sequence based reward",
 "use_sparse_sequence_based_reward": false,
 	"comment__": "Add label noise to Discriminator/Simease network training",
-"add_label_noise": 0.025,
+"add_label_noise": 0.05,
 	"comment__": "Make earlier and shorter lstm training batches more probable.",
 "shorter_smaller_rnn_batches": false,
 	"comment__": "When the agent falls give it a bad reward 1/(1-discount_fator)",
@@ -533,5 +533,6 @@
 "anneal_dual_reward": true,
 "log_model_gen_seq_output": true,
 "refresh_rewards": true,
-"virl_loss_weights": [0.5, 0.3, 0.075, 0.075, 0.025, 0.025]
+"virl_loss_weights": [0.5, 0.3, 0.075, 0.075, 0.025, 0.025],
+"virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00]
 }

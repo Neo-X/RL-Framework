@@ -314,6 +314,15 @@ class Plotter(object):
                         logExperimentImage(path=directory+"decode_a_vae.mp4", overwrite=True, image_format="mp4", settings=self._settings)
                         display_gif(paths=[{'rendering': fix_shape(traj)} for traj in decode_b_vae], logdir=directory, fps=30, max_outputs=32, counter="decode_b_vae")
                         logExperimentImage(path=directory+"decode_b_vae.mp4", overwrite=True, image_format="mp4", settings=self._settings)
+                        
+                        reward__r_1 = masterAgent.getForwardDynamics().predict_reward_(state_, state_)
+                        logExperimentData(trainData, "reward_self_agreement_agent", np.mean(reward__r_1), self._settings)
+                        reward__fd_1 = masterAgent.getForwardDynamics().predict_reward_fd(state_, state_)
+                        logExperimentData(trainData, "reward_self_agreement_agent_fd", np.mean(reward__fd_1), self._settings)
+                        reward__r_1 = masterAgent.getForwardDynamics().predict_reward_(resultState_, resultState_)
+                        logExperimentData(trainData, "reward_self_agreement_expert", np.mean(reward__r_1), self._settings)
+                        reward__fd_1 = masterAgent.getForwardDynamics().predict_reward_fd(resultState_, resultState_)
+                        logExperimentData(trainData, "reward_self_agreement_expert_fd", np.mean(reward__fd_1), self._settings)
                 else:
                     dynamicsRewardLoss = masterAgent.getForwardDnamics().reward_error(states, actions, result_states, rewards)
                 

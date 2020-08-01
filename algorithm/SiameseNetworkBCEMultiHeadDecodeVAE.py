@@ -23,18 +23,18 @@ def l2_distance_fd_(vects):
 
 def euclidean_distance_np_(vects):
     x, y = vects
-    print(x.shape)
-    print(y.shape)
+#     print(x.shape)
+#     print(y.shape)
     z = np.square(x - y)
-    print(z.shape)
+#     print(z.shape)
     return z
 
 def l1_distance_np_(vects):
     x, y = vects
-    print(x.shape)
-    print(y.shape)
+#     print(x.shape)
+#     print(y.shape)
     z = np.abs(x - y)
-    print(z.shape)
+#     print(z.shape)
     return z
 
 def l1_distance_fd_(vects):
@@ -573,8 +573,9 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             sequences0 = np.array(sequences0)
             # print ("sequences0 shape: ", sequences0.shape)
             sequences1 = np.array(sequences1)
-            ### Invert targets to make 1 mean an positive pair
-            targets_ = 1.0 - np.array(targets_)
+            ### Invert targets to make 1 means an positive pair
+#             targets_ = 1.0 - np.array(targets_)
+            targets_ = np.array(targets_)
             
             if ( "add_label_noise" in self._settings):
                 if (np.random.rand() < self._settings["add_label_noise"]):
@@ -874,7 +875,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         states2 = np.array(norm_state(states2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         predicted_reward = self._distance_fd2_weighted.predict([states,states2])[0]
 #         predicted_reward = np.log(predicted_reward)
-        print ("predicted_reward_fd: ", predicted_reward)
+#         print ("predicted_reward_fd: ", predicted_reward)
         # predicted_reward = self._model._reward_net_seq.predict([states, actions], batch_size=1)[0]
         return predicted_reward
 
