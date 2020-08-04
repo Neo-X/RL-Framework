@@ -403,8 +403,8 @@ class Plotter(object):
 
                 if ("save_eval_video" in settings and 
                     (settings["save_eval_video"] == True)):
-                    display_gif(paths=otherMetrics, logdir=directory, fps=20, max_outputs=32, counter=0)
-                    logExperimentImage(path=directory+str(0)+".mp4", overwrite=True, image_format="mp4", settings=self._settings)
+                    display_gif(paths=otherMetrics, logdir=directory, fps=20, max_outputs=32, counter=int(trainData["round"]))
+                    logExperimentImage(path=directory+str(trainData["round"])+".mp4", overwrite=True, image_format="mp4", settings=self._settings)
                 logExperimentData(trainData, "mem_usage_train", np.mean(current_mem_usage()), self._settings)
                 logExperimentData(trainData, "mean_reward", mean_reward, self._settings)
                 # print ("__rewards: " , reward_over_epocs)
