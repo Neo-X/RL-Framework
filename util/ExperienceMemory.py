@@ -724,8 +724,12 @@ class ExperienceMemory(object):
         grp_d = hf.create_group('datas')
         for key in self._data:
             # print ("key: ", key, " value: ", self._data[key])
-            grp_d.create_dataset(str(key),data=np.array(self._data[key]))
-        
+            try: 
+                grp_d.create_dataset(str(key),data=np.array(self._data[key]))
+            except:
+                print ("Can not convert string object to numpy array, skipping storing data for key ", str(key))
+                pass
+            
         
         ### Save a variable length list of data
         # data = np.array(self._trajectory_history, dtype=object)
