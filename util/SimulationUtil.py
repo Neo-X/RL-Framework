@@ -859,7 +859,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                                         enable_rendering=render)
         # print(envs.registry.all())
         conf = copy.deepcopy(settings)
-        conf['render'] = render
+        conf['render'] = False
         exp = OpenAIGymEnv(env, conf)
         return exp
     
