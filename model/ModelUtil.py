@@ -208,8 +208,8 @@ def norm_action(action_, action_bounds_):
         raise e
     except AssertionError as e:
         s = "Caught assertion error when enforcing action/state shape bounds: {}. Actions: {}, Bounds: {}".format(e,
-                                                                                                                  np.array(action_bounds_).shape,
-                                                                                                                  np.array(action_).shape)
+                                                                                                                  np.array(action_).shape,
+                                                                                                                  np.array(action_bounds_).shape)
         print(s)
         raise Exception(e)
     
@@ -960,11 +960,13 @@ def validBounds(bounds):
         valid = np.all(np.less(bounds__[0], bounds__[1]))
         if (not valid):
             less_ = np.less(bounds__[0], bounds__[1])
-            bad_indecies = np.where(less_ == False)
+            bad_indecies = list(np.where(less_ == False))[0]
+            print ("Invalid bounds, bounds to small: ", bad_indecies )
             bad_values_low = bounds__[0][bad_indecies]
             bad_values_high = bounds__[1][bad_indecies]
             print ("Invalid bounds: ", bad_indecies )
             print ("Bad Values:", bad_values_low, bad_values_high)
+#             sys.exit()
             
         ##  bounds not too close to each other
         epsilon = 0.01
@@ -973,10 +975,10 @@ def validBounds(bounds):
         valid = valid and np.all(np.greater(diff, epsilon))
         if (not valid):
             less_ = np.greater(diff, epsilon)
-            bad_indecies = np.where(less_ == False)
+            bad_indecies = list(np.where(less_ == False))[0]
+            print ("Invalid bounds, bounds to small: ", bad_indecies )
             bad_values_low = bounds__[0][bad_indecies]
             bad_values_high = bounds__[1][bad_indecies]
-            print ("Invalid bounds, bounds to small: ", bad_indecies )
             print ("Bad Values:", bad_values_low, bad_values_high)
             print ("Bounds to small:", np.greater(diff, epsilon))
         
