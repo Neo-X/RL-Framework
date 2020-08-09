@@ -845,6 +845,24 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = OpenAIGymEnv(env, conf)
         return exp
     
+    elif env_type == 'UniTree':
+        import gym
+        from gym import wrappers
+        from gym import envs
+        from sim.OpenAIGymEnv import OpenAIGymEnv
+        import envs.env_builder as env_builder
+        motion_file="/home/gberseth/playground/motion_imitation/motion_imitation/data/motions/dog_pace.txt"
+        env = env_builder.build_imitation_env(motion_files=[motion_file],
+                                        num_parallel_envs=1,
+                                        mode="train",
+                                        enable_randomizer=True,
+                                        enable_rendering=render)
+        # print(envs.registry.all())
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = OpenAIGymEnv(env, conf)
+        return exp
+    
     elif ((env_type == 'miniGrid')):
         ### This code could be cleaned up to work better.
         sys.path.append('/home/gberseth/playground/BayesianSurpriseCode/')
@@ -969,6 +987,7 @@ def createActor(env_type, settings, experience):
     if (env_type == 'open_AI_Gym'
           or (env_type == 'RLSimulations')
           or (env_type == 'miniGrid')
+          or (env_type == 'UniTree')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
