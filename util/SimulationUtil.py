@@ -855,7 +855,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         env = env_builder.build_imitation_env(motion_files=[motion_file],
                                         num_parallel_envs=1,
                                         mode="train",
-                                        enable_randomizer=True,
+                                        enable_randomizer=False, ## Don't perform dynamic randomization
                                         enable_rendering=render, 
                                         dual_state = settings["use_dual_state_representations"])
         # print(envs.registry.all())
