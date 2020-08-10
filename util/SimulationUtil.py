@@ -856,7 +856,8 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                                         num_parallel_envs=1,
                                         mode="train",
                                         enable_randomizer=True,
-                                        enable_rendering=render)
+                                        enable_rendering=render, 
+                                        dual_state = settings["use_dual_state_representations"])
         # print(envs.registry.all())
         conf = copy.deepcopy(settings)
         conf['render'] = False
