@@ -351,6 +351,10 @@ def getOptions(_args=None):
            action="store", dest="checkpoint_vid_rounds", metavar="INTEGER", default=None,
            help="""Controls the number of simulation rounds to perform before saving a video generated from the policy.""")
     
+    parser.add_option("--random_seed",
+           action="store", dest="random_seed", metavar="INTEGER", default=1234,
+           help="""Random seed.""")
+    
     parser.add_option("--log_comet",
           action="store", dest="log_comet", default='false',
           type='choice',
