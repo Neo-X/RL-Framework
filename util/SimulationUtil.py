@@ -389,7 +389,7 @@ def getBaseDataDirectory(settings):
             return getRootDataDirectory(settings)+"/"+settings["data_folder"]+settings["folder_instance_name"]+"/"
     else:
     """
-    return getRootDataDirectory(settings)+"/"+settings["data_folder"]+"/"
+    return getRootDataDirectory(settings)+"/"+settings["data_folder"]+"/"+str(settings["random_seed"])+"/"
 
 def getRootDataDirectory(settings):
     from launchers.config import LOCAL_LOG_DIR
