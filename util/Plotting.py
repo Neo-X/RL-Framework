@@ -145,7 +145,7 @@ class Plotter(object):
         
     def updatePlots(self, masterAgent, trainData, sampler, out, p, settings):
         ### Lets always save a figure for the learning...
-        from util.SimulationUtil import createEnvironment, logExperimentData, saveData, logExperimentImage
+        from util.SimulationUtil import createEnvironment, logExperimentData, saveData, logExperimentImage, logExperimentFile
         from util.utils import current_mem_usage
         self._settings = settings
         
@@ -324,7 +324,7 @@ class Plotter(object):
                         reward__fd_1 = masterAgent.getForwardDynamics().predict_reward_fd(resultState_, resultState_)
                         logExperimentData(trainData, "reward_self_agreement_expert_fd", np.mean(reward__fd_1), self._settings)
                 else:
-                    dynamicsRewardLoss = masterAgent.getForwardDnamics().reward_error(states, actions, result_states, rewards)
+                    dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
                 
                 if (type(dynamicsRewardLoss) == 'list'):
                     dynamicsRewardLoss = np.mean([np.mean(np.fabs(drl)) for drl in dynamicsRewardLoss])
@@ -433,8 +433,7 @@ class Plotter(object):
                     if (self._settings['train_reward_predictor']):
                         logExperimentData(trainData, "mean_forward_dynamics_reward_loss", mean_dynamicsRewardLosses, self._settings)
                         logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_dynamicsRewardLosses, self._settings)
-                        
-                        
+                   
             ## Visulaize some stuff if you want to
             if (int(self._settings["num_available_threads"]) == -1 
                 # or (int(self._settings["num_available_threads"]) == 1)
@@ -564,6 +563,7 @@ class Plotter(object):
             # print ("trainData: ", trainData)
             json.dump(trainData, fp, cls=NumpyEncoder)
             fp.close()
+            logExperimentFile(path=directory+"trainingData_" + str(getAgentNameString(self.getSettings()['agent_name'])) + ".json", fileName="progress.json", settings=self._settings)
             # draw data
 
         if "checkpoint_vid_rounds" in self.getSettings() and self.getSettings()["checkpoint_vid_rounds"] is not None \

@@ -2,6 +2,7 @@
 
 import logging
 log = logging.getLogger(__file__)
+from launchers.config import *
 
 def main():
     
@@ -15,6 +16,7 @@ def main():
     from util.simOptions import getOptions
     from trainModel import trainModelParallel
     from doodad.easy_launch.python_function import run_experiment
+    from util.tuneParams import run_sweep
     
     options = getOptions(sys.argv)
     options = vars(options)
@@ -56,33 +58,31 @@ def main():
         else:
             log.warning("Unhandled else statement!")
 
-#     t0 = time.time()
-    simData = []
-    if ( (metaSettings is None)
-        or ((metaSettings is not None) and (not metaSettings['testing'])) ):
-#         simData = trainModelParallel((sys.argv[1], settings))
-        settings['settingsFileName'] = sys.argv[1]
-        run_experiment(
-        trainModelParallel,
-        exp_name='test-doodad-easy-launch_rlframe',
-#         mode='local_docker',
-        mode='local',
-#         mode='ec2',
-        variant=settings,
-#         region='us-east-2',
-    )
+    settings["exp_name"] = settings["data_folder"]
+    settings['settingsFileName'] = sys.argv[1]
+    
+    sweep_ops={}
+    if ( 'tuningConfig' in settings):
+        sweep_ops = json.load(open(settings['tuningConfig'], "r"))
+
+    run_sweep(trainModelParallel, sweep_ops=sweep_ops, variant=settings, repeats=settings['meta_sim_samples'],
+              meta_threads=settings['meta_sim_threads'])
+#     if ( (metaSettings is None)
+#         or ((metaSettings is not None) and (not metaSettings['testing'])) ):
+#         run_experiment(
+#         trainModelParallel,
+#         exp_name='test-doodad-easy-launch_rlframe',
+# #         mode='local_docker',
+#         mode='local',
+# #         mode='ec2',
+#         variant=settings,
+# #         region='us-east-2',
+#     )
 #     t1 = time.time()
 #     sim_time_ = datetime.timedelta(seconds=(t1-t0))
 #     print ("Model training complete in " + str(sim_time_) + " seconds")
-    print ("simData", simData)
     
     ### If a metaConfig is supplied email out the results
-    if ( (metaSettings is not None) ):
-        settings["email_log_data_periodically"] = True
-        settings.pop('save_video_to_file', None)
-        settings.pop("experiment_logging", None)
-        collectEmailData(settings, metaSettings, sim_time_, simData)
-
     print("All Done.")
     sys.exit(0)
 

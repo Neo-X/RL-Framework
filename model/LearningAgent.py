@@ -778,9 +778,10 @@ class LearningAgent(AgentInterface):
                             if ("fd_algorithm" in self._settings
                                 and (self._settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")):
                                 rewards__ = (rewards__ * 0) + 1
-                            print ("self._fd:", self._fd)
+#                             print ("self._fd:", self._fd)
                             dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__, lstm=False, datas=datas__, trainInfo=trainInfo)
-                            log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                             
                                 # loss = self.getPolicy().trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                             if (self._settings['train_critic_on_fd_output'] and 
@@ -831,7 +832,8 @@ class LearningAgent(AgentInterface):
                                                           lstm=False,
                                                           datas=datas__,
                                                           trainInfo=trainInfo)
-                        log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                            log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                                 
                         if (self._settings['train_critic_on_fd_output'] and 
                             (( self.getPolicy().numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
@@ -1051,7 +1053,8 @@ class LearningAgent(AgentInterface):
                                                   rewards=_rewards,
                                                   datas=_datas,
                                                   trainInfo=trainInfo)
-                    log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                     
                     if ( 'give_mbae_actions_to_critic' in self._settings and 
                          (self._settings['give_mbae_actions_to_critic'] == False)):

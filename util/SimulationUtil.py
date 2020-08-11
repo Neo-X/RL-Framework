@@ -60,8 +60,8 @@ def saveData(settings, settingsFileName, exp_logger):
     
     ### Put git versions in settings file before save
     from util.utils import get_git_revision_hash, get_git_revision_short_hash
-    settings['git_revision_hash'] = get_git_revision_hash()
-    settings['git_revision_short_hash'] = get_git_revision_short_hash()     
+#     settings['git_revision_hash'] = get_git_revision_hash()
+#     settings['git_revision_short_hash'] = get_git_revision_short_hash()     
     ### copy settings file
     out_file_name=directory+os.path.basename(settingsFileName)
     print ("Saving settings file with data: ", out_file_name)
@@ -77,51 +77,51 @@ def saveData(settings, settingsFileName, exp_logger):
 #         settings["logger_instance"] = exp_logger
     
     
-    ### Try and save algorithm and model files for reference
-    if "." in settings['model_type']:
-        ### convert . to / and copy file over
-        file_name = settings['model_type']
-        k = file_name.rfind(".")
-        file_name = file_name[:k]
-        file_name_read = file_name.replace(".", "/")
-        file_name_read = file_name_read + ".py"
-        print ("model file name:", file_name)
-        print ("os.path.basename(file_name): ", os.path.basename(file_name))
-        file = open(file_name_read, 'r')
-        out_file = open(directory+file_name+".py", 'w')
-        out_file.write(file.read())
-        file.close()
-        out_file.close()
-    if "." in settings['agent_name']:
-        ### convert . to / and copy file over
-        file_name = settings['agent_name']
-        k = file_name.rfind(".")
-        file_name = file_name[:k]
-        file_name_read = file_name.replace(".", "/")
-        file_name_read = file_name_read + ".py"
-        print ("model file name:", file_name)
-        print ("os.path.basename(file_name): ", os.path.basename(file_name))
-        file = open(file_name_read, 'r')
-        out_file = open(directory+file_name+".py", 'w')
-        out_file.write(file.read())
-        file.close()
-        out_file.close()
-        
-    if (settings['train_forward_dynamics']):
-        if "." in settings['forward_dynamics_model_type']:
-            ### convert . to / and copy file over
-            file_name = settings['forward_dynamics_model_type']
-            k = file_name.rfind(".")
-            file_name = file_name[:k]
-            file_name_read = file_name.replace(".", "/")
-            file_name_read = file_name_read + ".py"
-            print ("model file name:", file_name)
-            print ("os.path.basename(file_name): ", os.path.basename(file_name))
-            file = open(file_name_read, 'r')
-            out_file = open(directory+file_name+".py", 'w')
-            out_file.write(file.read())
-            file.close()
-            out_file.close()
+#     ### Try and save algorithm and model files for reference
+#     if "." in settings['model_type']:
+#         ### convert . to / and copy file over
+#         file_name = settings['model_type']
+#         k = file_name.rfind(".")
+#         file_name = file_name[:k]
+#         file_name_read = file_name.replace(".", "/")
+#         file_name_read = file_name_read + ".py"
+#         print ("model file name:", file_name)
+#         print ("os.path.basename(file_name): ", os.path.basename(file_name))
+#         file = open(file_name_read, 'r')
+#         out_file = open(directory+file_name+".py", 'w')
+#         out_file.write(file.read())
+#         file.close()
+#         out_file.close()
+#     if "." in settings['agent_name']:
+#         ### convert . to / and copy file over
+#         file_name = settings['agent_name']
+#         k = file_name.rfind(".")
+#         file_name = file_name[:k]
+#         file_name_read = file_name.replace(".", "/")
+#         file_name_read = file_name_read + ".py"
+#         print ("model file name:", file_name)
+#         print ("os.path.basename(file_name): ", os.path.basename(file_name))
+#         file = open(file_name_read, 'r')
+#         out_file = open(directory+file_name+".py", 'w')
+#         out_file.write(file.read())
+#         file.close()
+#         out_file.close()
+#         
+#     if (settings['train_forward_dynamics']):
+#         if "." in settings['forward_dynamics_model_type']:
+#             ### convert . to / and copy file over
+#             file_name = settings['forward_dynamics_model_type']
+#             k = file_name.rfind(".")
+#             file_name = file_name[:k]
+#             file_name_read = file_name.replace(".", "/")
+#             file_name_read = file_name_read + ".py"
+#             print ("model file name:", file_name)
+#             print ("os.path.basename(file_name): ", os.path.basename(file_name))
+#             file = open(file_name_read, 'r')
+#             out_file = open(directory+file_name+".py", 'w')
+#             out_file.write(file.read())
+#             file.close()
+#             out_file.close()
 
 def logExperimentData(trainData, key, value, settings):
     """This function logs scalar metrics info, possibly to comet
@@ -169,6 +169,24 @@ def logExperimentImage(path, overwrite=True, image_format="mp4", settings=None):
         logger = settings["logger_instance"] 
         logger.set_step(step=settings["round"])
         logger.log_image(path, overwrite=overwrite, image_format=image_format)
+        
+def logExperimentFile(path, fileName, overwrite=True, image_format="mp4", settings=None):
+    """This function logs scalar metrics info, possibly to comet
+
+    :param trainData: 
+    :param key: str key to log (optional, not used if type(value) == OrderDict)
+    :param value: OrderedDict or value to log
+    :param settings: settings object
+    :returns: None
+    """
+    import numpy as np
+    from collections import OrderedDict
+    
+    if ("logger_instance" in settings
+        and (settings["logger_instance"] is not None)):
+        logger = settings["logger_instance"] 
+        logger.set_step(step=settings["round"])
+        logger.log_asset(path, file_name=fileName, overwrite=True)
 
 def setupEnvironmentVariable(settings, eval=False):
     import os    
@@ -211,7 +229,7 @@ def setupEnvironmentVariable(settings, eval=False):
             ### This will only start if experiment logging settings are specified and a meta log file is specified
             ### This is to avoid this logging from occuring when just debugging and coding. 
             if ("experiment_logging" in settings 
-                and "metaConfigFile" in settings
+                and settings["log_comet"]
                 and (not eval)):
                 from comet_ml import Experiment
                 exp_config = settings["experiment_logging"]

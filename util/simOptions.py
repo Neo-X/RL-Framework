@@ -193,7 +193,7 @@ def getOptions(_args=None):
               metavar="INTEGER", help="Run some initial training steps to pretrain the fd before starting policy training.")
     
     parser.add_option("--meta_sim_samples", "--mp",
-              action="store", dest="meta_sim_samples", default=None,
+              action="store", dest="meta_sim_samples", default=1,
               type=int,
               metavar="INTEGER", 
               help="Number of simulation samples to compute to use for Meta simulation, running a number of simulations and taking the average of them")
@@ -205,7 +205,7 @@ def getOptions(_args=None):
               help="Number of on policy rollouts to perform per epoch.")
     
     parser.add_option("--meta_sim_threads", "--mt",
-              action="store", dest="meta_sim_threads", default=None,
+              action="store", dest="meta_sim_threads", default=1,
               type=int,
               metavar="INTEGER", 
               help="Number of threads to use for Meta simulation, running a number of simulations and taking the average of them")
@@ -215,6 +215,13 @@ def getOptions(_args=None):
               type=int,
               metavar="INTEGER", 
               help="Number of threads to use for hyper parameter tuning")
+    
+    parser.add_option("--run_mode",
+              action="store", dest="doodad_run_mode", default='local',
+              type='choice',
+              choices=['local', 'local_docker', 'ssh', 'ec2'],
+              metavar="STRING", 
+              help="Method for running code for doodad")
     
 
     parser.add_option("--num_param_samples", "--nps",
@@ -343,6 +350,13 @@ def getOptions(_args=None):
     parser.add_option("--checkpoint_vid_rounds",
            action="store", dest="checkpoint_vid_rounds", metavar="INTEGER", default=None,
            help="""Controls the number of simulation rounds to perform before saving a video generated from the policy.""")
+    
+    parser.add_option("--log_comet",
+          action="store", dest="log_comet", default='false',
+          type='choice',
+          choices=['true', 'false'],
+          metavar="STRING", 
+          help="Whether or not to log data to comet")
     
     if _args is None:
         (options, args) = parser.parse_args()
