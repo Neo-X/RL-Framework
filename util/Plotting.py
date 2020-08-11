@@ -7,6 +7,7 @@ from util.SimulationUtil import getDataDirectory, getAgentNameString, getAgentNa
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize
 
+
 def display_paths_gif(paths, logdir, fps=10, max_outputs=8, counter=0):
     import moviepy.editor as mpy
     import numpy as np
@@ -560,10 +561,23 @@ class Plotter(object):
             # print ("Train data: ", trainData)
             from util.utils import NumpyEncoder 
             import json
+            import pandas as pd
             # print ("trainData: ", trainData)
             json.dump(trainData, fp, cls=NumpyEncoder)
             fp.close()
+            ## Create csv
+#             fp = open(directory+"progress.csv", 'w')
+            keys_ = trainData.keys() - ["round"]
+            tmpData = {}
+            for key in keys_:
+                tmpData[key] = trainData[key]
+            df = pd.DataFrame.from_dict(data=tmpData, orient='columns')
+            df.to_csv(directory+"progress.csv", header=True)               
+                
+            
             logExperimentFile(path=directory+"trainingData_" + str(getAgentNameString(self.getSettings()['agent_name'])) + ".json", fileName="progress.json", settings=self._settings)
+            logExperimentFile(path=directory+"params.json", fileName="params.json", settings=self._settings)
+            logExperimentFile(path=directory+"progress.csv", fileName="progress.csv", settings=self._settings)
             # draw data
 
         if "checkpoint_vid_rounds" in self.getSettings() and self.getSettings()["checkpoint_vid_rounds"] is not None \

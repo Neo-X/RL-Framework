@@ -195,27 +195,6 @@ def createLearningAgent(settings, output_experience_queue, print_info=False):
 # def trainModelParallel(settingsFileName, settings):
 def _initialize_train_data():
     trainData = {}
-    trainData["mean_reward"]=[]
-    trainData["std_reward"]=[]
-    trainData["mean_bellman_error"]=[]
-    trainData["std_bellman_error"]=[]
-    trainData["mean_discount_error"]=[]
-    trainData["std_discount_error"]=[]
-    trainData["mean_forward_dynamics_loss"]=[]
-    trainData["std_forward_dynamics_loss"]=[]
-    trainData["mean_forward_dynamics_reward_loss"]=[]
-    trainData["std_forward_dynamics_reward_loss"]=[]
-    trainData["mean_eval"]=[]
-    trainData["std_eval"]=[]
-    trainData["mean_critic_loss"]=[]
-    trainData["std_critic_loss"]=[]
-    trainData["mean_critic_regularization_cost"]=[]
-    trainData["std_critic_regularization_cost"]=[]
-    trainData["mean_actor_loss"]=[]
-    trainData["std_actor_loss"]=[]
-    trainData["mean_actor_regularization_cost"]=[]
-    trainData["std_actor_regularization_cost"]=[]
-    trainData["anneal_p"]=[]
     trainData["round"]=0
     return trainData
 

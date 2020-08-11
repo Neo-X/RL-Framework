@@ -73,6 +73,9 @@ def saveData(settings, settingsFileName, exp_logger):
     out_file = open(out_file_name, 'w')
     out_file.write(json.dumps(settings, indent=4))
     out_file.close()
+    out_file = open(directory+"params.json", 'w')
+    out_file.write(json.dumps(settings, indent=4))
+    out_file.close()
 #     if ("logger_instance" in settings):
 #         settings["logger_instance"] = exp_logger
     
@@ -147,6 +150,12 @@ def logExperimentData(trainData, key, value, settings):
         else:
             logger.log_metrics({key:np.mean(value)}, step=settings["round"])
         
+#     if key in trainData:
+#         trainData[key].append(np.mean(value))
+#     elif (isinstance(value, OrderedDict) or isinstance(value, dict)):
+#         pass
+#     else:
+#         trainData[key] = [np.mean(value)]
     if key in trainData:
         trainData[key].append(value)
     else:
