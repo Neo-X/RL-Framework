@@ -356,7 +356,7 @@ def getOptions(_args=None):
            help="""Random seed.""")
     
     parser.add_option("--log_comet",
-          action="store", dest="log_comet", default='false',
+          action="store", dest="log_comet", default='true',
           type='choice',
           choices=['true', 'false'],
           metavar="STRING", 
