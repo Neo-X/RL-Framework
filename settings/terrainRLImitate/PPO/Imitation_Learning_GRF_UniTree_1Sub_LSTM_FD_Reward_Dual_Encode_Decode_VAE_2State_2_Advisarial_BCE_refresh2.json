@@ -447,7 +447,7 @@
 	"comment__": "The shortest sequence the RNN network will be trained on",
 "min_sequece_length": 3,
 	"comment__": "The type of distance function the fd learning model should use to compute differences.",
-"fd_distance_function": "l1",
+"fd_distance_function": true,
 	"comment__": "image noise factor that is added to the frames captured from the simulations",
 "image_noise_scale": 0.00,
 	"comment__": "Return sequences from lstm training",
