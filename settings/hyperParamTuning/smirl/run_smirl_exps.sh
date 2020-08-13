@@ -20,17 +20,17 @@ declare -a simConfigs=(
 #	"settings/terrainRLImitate/TRPO/Precipice_BayesianSurprise_IncludeStats.json"
 #	"settings/terrainRLImitate/TRPO/Precipice_BayesianSurprise_IncludeStats_VAE2.json"
 #
- 	"settings/terrainRLImitate/TRPO/Treadmill_NoPhase_ICM.json"
- 	"settings/terrainRLImitate/TRPO/Treadmill_NoPhase_RND.json"
-	"settings/terrainRLImitate/TRPO/Treadmill_NoPhase_BayesianSurprise.json"
- 	"settings/terrainRLImitate/TRPO/Treadmill_BayesianSurprise_IncludeStats_VAE.json"
+# 	"settings/terrainRLImitate/TRPO/Treadmill_NoPhase_ICM.json"
+# 	"settings/terrainRLImitate/TRPO/Treadmill_NoPhase_RND.json"
+#	"settings/terrainRLImitate/TRPO/Treadmill_NoPhase_BayesianSurprise.json"
+#	"settings/terrainRLImitate/TRPO/Treadmill_BayesianSurprise_IncludeStats_VAE.json"
 #
-	"settings/terrainRLImitate/TRPO/Falt_Walk_Forward_BayesianSurprise_ICM2.json"
+#	"settings/terrainRLImitate/TRPO/Falt_Walk_Forward_BayesianSurprise_ICM2.json"
 # 	"settings/terrainRLImitate/TRPO/Falt_Walk_Forward_BayesianSurprise_RND.json"
 	"settings/terrainRLImitate/TRPO/Flat_NoPhase_Forward_Reward_BayesianSurprise_Bonus.json"
-	"settings/terrainRLImitate/TRPO/Flat_Walk_Forward_Reward_BayesianSurprise_Bonus2.json" ## This version if SMiRL without some initial imitation data.
+#	"settings/terrainRLImitate/TRPO/Flat_Walk_Forward_Reward_BayesianSurprise_Bonus2.json" ## This version if SMiRL without some initial imitation data.
 	"settings/terrainRLImitate/TRPO/Falt_Walk_Forward_BayesianSurprise_IncludeStats_VAE.json" ## Using a VAE
-	"settings/terrainRLImitate/TRPO/Flat_NoPhase_Forward_Reward_v0.json" ## regular reward
+#	"settings/terrainRLImitate/TRPO/Flat_NoPhase_Forward_Reward_v0.json" ## regular reward
 
 )
 
