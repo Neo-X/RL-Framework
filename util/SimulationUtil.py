@@ -392,7 +392,8 @@ def getBaseDataDirectory(settings):
     return getRootDataDirectory(settings)+"/"+settings["data_folder"]+"/"+str(settings["random_seed"])+"/"
 
 def getRootDataDirectory(settings):
-    from launchers.config import LOCAL_LOG_DIR
+    LOCAL_LOG_DIR = settings['doodad_config'].base_log_dir
+    print ("LOCAL_LOG_DIR : ", LOCAL_LOG_DIR )
     if (type(settings["agent_name"]) is list):
         return LOCAL_LOG_DIR + settings["environment_type"]+"/"+settings["agent_name"][0]
     return LOCAL_LOG_DIR + settings["environment_type"]+"/"+settings["agent_name"]

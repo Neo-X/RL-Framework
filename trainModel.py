@@ -209,6 +209,7 @@ def trainModelParallel(settingsFileName, settings):
 #     settingsFileName = inputData[0]  
     print (settingsFileName)
     print (settings)
+    settings['doodad_config'] = settingsFileName
     settingsFileName=settings['settingsFileName']
 
     # Tag_FullObserve_SLAC_mini.json: True (not in settings)
