@@ -5,8 +5,13 @@
 
 class Sweeper(object):
     def __init__(self, hyper_config, repeat=1, include_name=False):
+        import numpy as np
         self.hyper_config = hyper_config
+#         print ("self.hyper_config['random_seed']0: ", self.hyper_config['random_seed'])
         self.hyper_config['random_seed'] = list(range(repeat))
+#         self.hyper_config['random_seed'] = np.array(list(range(int(hyper_config["random_seed"]),repeat)), dtype='int32')
+#         print ("self.hyper_config['random_seed']1: ", self.hyper_config['random_seed'])
+#         sys.exit()
         self.include_name=include_name
 
     def __iter__(self):

@@ -148,6 +148,7 @@ class Plotter(object):
         ### Lets always save a figure for the learning...
         from util.SimulationUtil import createEnvironment, logExperimentData, saveData, logExperimentImage, logExperimentFile
         from util.utils import current_mem_usage
+        import copy
         self._settings = settings
         
         
@@ -324,6 +325,20 @@ class Plotter(object):
                         logExperimentData(trainData, "reward_self_agreement_expert", np.mean(reward__r_1), self._settings)
                         reward__fd_1 = masterAgent.getForwardDynamics().predict_reward_fd(resultState_, resultState_)
                         logExperimentData(trainData, "reward_self_agreement_expert_fd", np.mean(reward__fd_1), self._settings)
+                        
+                        state_f = np.flip(state_, axis=1)
+                        rng = np.random.default_rng()
+                        resultState_s = copy.deepcopy(resultState_)
+                        rng.shuffle(resultState_s, axis=1)
+                        reward__r_1 = masterAgent.getForwardDynamics().predict_reward_(state_, state_f)
+                        
+                        logExperimentData(trainData, "reward_self_disagreement_agent", np.mean(reward__r_1), self._settings)
+                        reward__fd_1 = masterAgent.getForwardDynamics().predict_reward_fd(state_, state_f)
+                        logExperimentData(trainData, "reward_self_disagreement_agent_fd", np.mean(reward__fd_1), self._settings)
+                        reward__r_1 = masterAgent.getForwardDynamics().predict_reward_(resultState_, resultState_s)
+                        logExperimentData(trainData, "reward_self_disagreement_expert", np.mean(reward__r_1), self._settings)
+                        reward__fd_1 = masterAgent.getForwardDynamics().predict_reward_fd(resultState_, resultState_s)
+                        logExperimentData(trainData, "reward_self_disagreement_expert_fd", np.mean(reward__fd_1), self._settings)
                 else:
                     dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
                 
