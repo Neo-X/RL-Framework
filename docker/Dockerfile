@@ -61,7 +61,7 @@ RUN ls -l
 COPY id_rsa_remote_client /root/.ssh/id_rsa
 RUN chmod 600 ~/.ssh/id_rsa
 # make sure your domain is accepted
-RUN touch /root/.ssh/known_hosts
+RUN mkdir /root/.ssh
 RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 
 # RUN git clone https://github.com/rll/rllab.git /root/playground/rllab
