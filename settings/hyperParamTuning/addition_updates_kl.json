@@ -1,4 +1,4 @@
 {
 	"additional_on_policy_training_updates": [2, 4],
-	"kl_divergence_threshold": [0.1, 0.2], 
+	"kl_divergence_threshold": [0.1, 0.2]
 }
