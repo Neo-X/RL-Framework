@@ -16,7 +16,7 @@
     "comment__": "Config file for the simulator",
 "sim_config_file": "UniTree",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.125,
+"exploration_rate": 0.005,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 500,
     "comment__": "Number of epochs to perform per round",
