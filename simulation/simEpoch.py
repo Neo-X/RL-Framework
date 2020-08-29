@@ -134,7 +134,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         max_length= min(settings['max_epoch_length'], max(int(settings['max_epoch_length']*(1-p)), 4))
     else:
         max_length= settings['max_epoch_length']
-    print ("max_length: ", max_length)
+#     print ("max_length: ", max_length)
     while (i_ < max_length):
         
 #         state_ = [exp.getState()]
