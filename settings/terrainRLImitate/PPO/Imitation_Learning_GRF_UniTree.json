@@ -222,7 +222,6 @@
 "collect_tuples_in_batches":false,
 	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
 "reset_on_fall": true,
-"reset_on_fall_probability": 0.5
 	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
 "train_reward_predictor": true,
 	"comment__": "How many gradient steps model based action exploration should take",
@@ -511,5 +510,6 @@
 "log_model_gen_seq_output": true,
 "refresh_rewards": false,
 "virl_loss_weights": [0.5, 0.3, 0.075, 0.075, 0.025, 0.025],
-"virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00]
+"virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00],
+"use_max_T_annealing": true
 }

@@ -129,7 +129,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     state_dicts = []
     
     i_ = 0
-    while (i_ < settings['max_epoch_length']):
+    if ("use_max_T_annealing" in settings 
+        and (settings["use_max_T_annealing"])):
+        max_length= min(settings['max_epoch_length'], max(int(settings['max_epoch_length']*(1-p)), 4))
+    else:
+        max_length= settings['max_epoch_length']
+    print ("max_length: ", max_length)
+    while (i_ < max_length):
         
 #         state_ = [exp.getState()]
 #         print ("state_: ", repr(np.array(state_).shape))
