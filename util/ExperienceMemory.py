@@ -751,6 +751,7 @@ class ExperienceMemory(object):
                 if (list is not None):
                     grp_ = grp.create_group('traj'+str(i))
                     for it in range(len(list)):
+                        ### This might be storing renderings, taking up a lot of space.
                         grp_.create_dataset(str(it),data=np.array(list[it]))
                 else:
                     break
