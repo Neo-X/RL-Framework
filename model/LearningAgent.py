@@ -1149,7 +1149,7 @@ class LearningAgent(AgentInterface):
         """
         r = np.random.rand(1)[0]
         # print("float(settings['anneal_exploration']), epsilon * p: ", float(settings['anneal_exploration']), epsilon * p)
-        if ((not evaluation_) ### This logic has gotten far to complicated.... 
+        if ((not (evaluation_) ) ### This logic has gotten far to complicated.... 
             and 
             (
                 ( ### Explore if r < annealing value
@@ -1195,7 +1195,6 @@ class LearningAgent(AgentInterface):
                     action = [action__]
                 ### off policy
                 exp_action = int(0)
-                # print("Discrete action choice: ", action, " epsilon * p: ", omega * p)
             else : 
                 ### add noise to current policy
                 pa_ = self.predict(state_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)

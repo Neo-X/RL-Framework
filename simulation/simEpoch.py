@@ -148,9 +148,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 #         fig1 = plt.figure(1)
 #         plt.imshow(img_, origin='lower')
 #         fig1.savefig("char_state_"+str(i_)+".png")
-            
+        evaluation__ = evaluation
+        if ("use_stochastic_evaluation" in settings):
+            evaluation__=False
         (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
-                                                epsilon=epsilon, sampling=sampling, time_step=i_, evaluation_=evaluation)
+                                                epsilon=epsilon, sampling=sampling, time_step=i_, evaluation_=evaluation__)
         outside_bounds=False
         action_=None
         if (("clamp_actions_to_stay_inside_bounds" in settings and settings["clamp_actions_to_stay_inside_bounds"]) or 
