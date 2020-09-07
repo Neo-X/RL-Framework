@@ -204,6 +204,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         else:
             observation, reward_, done, info = actor.step(exp,action)
 
+#         print("done: ", done)
         infos.append(info)
         if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
         and (settings["use_hrl_logic"]) == "full" ):
@@ -359,16 +360,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_ = exp.computeReward(resultState_, sim_time)
             # print("reward: ", reward_)
             
-        if  ("use_fall_reward_shaping2" in settings
-             and (settings["use_fall_reward_shaping2"] == True)):
-            if type(agent_not_fell) is list:
-                for ag in range(len(agent_not_fell)):
-                    if (agent_not_fell[ag] == [0]):
-                        reward_[ag] = reward_[ag] + (-1.0 * 1/(1-settings["discount_factor"]))
-            else:
-                if (agent_not_fell == 0):
-                    reward_ = reward_ + (-1.0 * 1/(1-settings["discount_factor"]))
-            
         G_t.append(np.array([[0]])) # *(1.0-discount_factor)))
         for i in range(len(G_t)):
             if isinstance(reward_, (list, tuple, np.ndarray)):
@@ -479,7 +470,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         agent_ids.append(agents_)
         # falls.append(falls_)
         # else:
-            # print("Pushing actual fall value before : ", agent_not_fell)
+#         print("Pushing actual fall value before : ", agent_not_fell)
             # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
         if type(agent_not_fell) is list:
             falls.append(agent_not_fell)

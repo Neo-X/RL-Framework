@@ -247,7 +247,7 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy rollouts to perform per epoch",
-"num_on_policy_rollouts": 64,
+"num_on_policy_rollouts": 16,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": false,
 	"comment__": "PPO should use seperate networks for the value and policy functions",
@@ -270,13 +270,10 @@
 "network_description_type": "json",
 	"comment__": "A list describing the size of the layers for the NN",
 "critic_network_layer_sizes": [ 
-								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 128, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dropout", "rate": 0.2}
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [ 
