@@ -16,7 +16,7 @@
     "comment__": "Config file for the simulator",
 "sim_config_file": "UniTree",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.05,
+"exploration_rate": 0.1,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 1000,
     "comment__": "Number of epochs to perform per round",
@@ -108,7 +108,7 @@
     "comment__": "What method to use to select actions during bootstrapping",
 "bootsrap_with_discrete_policy": true,
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
-"max_epoch_length": 32,
+"max_epoch_length": 128,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
 "reward_lower_bound": -300.5,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
@@ -209,7 +209,7 @@
 	"comment__": "Random seed value for the simulation to use",
 "random_seed": 1234,
 	"comment__": "KL divergence threshold between policy updates",
-"kl_divergence_threshold": 0.1,
+"kl_divergence_threshold": 0.15,
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy [true|fast]",
 "on_policy": "fast",
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
@@ -512,5 +512,5 @@
 "virl_loss_weights": [0.5, 0.3, 0.075, 0.075, 0.025, 0.025],
 "virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00],
 "use_max_T_annealing": true,
-"use_stochastic_evaluation": true
+"use_stochastic_evaluation": false
 }

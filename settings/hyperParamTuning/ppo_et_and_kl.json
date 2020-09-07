@@ -1,4 +1,4 @@
 {
 	"ppo_et_factor": [1.05, 1.1],
-	"kl_divergence_threshold": [0.05, 0.1]
+	"kl_divergence_threshold": [0.1, 0.2]
 }
