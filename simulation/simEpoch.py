@@ -209,7 +209,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
         and (settings["use_hrl_logic"]) == "full" ):
             reward_ = model.addHRLReward(state_, observation, reward_, done, info)
-            # print("reward_: ", reward_)
+#         print("reward_: ", reward_)
         a = 0
         """
         # support for mixing rewards across levels
