@@ -366,6 +366,10 @@ def getOptions(_args=None):
           metavar="STRING", 
           help="Whether or not to log data to comet")
     
+    parser.add_option("--ssh_host", 
+        action="store", metavar="STRING", dest="ssh_host", default="default",
+        help="""The json config file that many of the config settings can be parsed from""")
+    
     if _args is None:
         (options, args) = parser.parse_args()
     else:

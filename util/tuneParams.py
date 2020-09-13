@@ -16,7 +16,7 @@ class Sweeper(object):
 
     def __iter__(self):
         import itertools
-        count = 6
+        count = 0
         for config in itertools.product(*[val for val in self.hyper_config.values()]):
             kwargs = {key:config[i] for i, key in enumerate(self.hyper_config.keys())}
             if self.include_name:
@@ -31,7 +31,7 @@ def run_exp(variant):
 #     from launchers.config import *
     method, variant = variant
     
-    print ("variant: ", variant)
+#     print ("variant: ", variant)
     run_experiment(
         method,
         exp_name=variant["exp_name"],
@@ -39,6 +39,7 @@ def run_exp(variant):
 #         mode='ssh',
 #         mode='local',
 #         mode='ec2',
+        ssh_host=variant["ssh_host"],
         use_gpu=False,
         variant=variant,
         region='us-east-2',
@@ -54,10 +55,10 @@ def run_sweep(experiment, sweep_ops, variant, repeats=2, meta_threads=4):
     for key in sweep_ops.keys():
         variant[key] = sweep_ops[key]
         
-    print("variant: ", variant)
+#     print("variant: ", variant)
     sweeper = Sweeper(variant, repeat=repeats)
     
-    print ("meta_threads: ", meta_threads)
+#     print ("meta_threads: ", meta_threads)
 #     sys.exit()
     pool = multiprocessing.Pool(meta_threads)
     exp_args = []

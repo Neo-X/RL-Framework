@@ -879,7 +879,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         from gym import envs
         from sim.OpenAIGymEnv import OpenAIGymEnv
         import envs.env_builder as env_builder
-        motion_file="/home/gberseth/playground/motion_imitation/motion_imitation/data/motions/dog_pace.txt"
+        motion_file="/home/gberseth/playground/motion_imitation/motion_imitation/motions/dog_pace.txt"
         env = env_builder.build_imitation_env(motion_files=[motion_file],
                                         num_parallel_envs=1,
                                         mode="train",

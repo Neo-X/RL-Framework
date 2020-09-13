@@ -56,6 +56,16 @@ SSH_HOSTS = dict(
         hostname='localhost',
 #         hostname='192.168.111.123',
     ),
+    crete=dict(
+        username='gberseth',
+        hostname='crete',
+#         hostname='192.168.111.123',
+    ),
+    paros=dict(
+        username='gberseth',
+        hostname='paros',
+#         hostname='192.168.111.123',
+    ),
 )
 SSH_DEFAULT_HOST = 'gberseth'
 SSH_PRIVATE_KEY = '~/.ssh/id_rsa'
