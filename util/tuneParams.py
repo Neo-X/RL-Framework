@@ -16,12 +16,13 @@ class Sweeper(object):
 
     def __iter__(self):
         import itertools
-        count = 0
+        count = 6
         for config in itertools.product(*[val for val in self.hyper_config.values()]):
             kwargs = {key:config[i] for i, key in enumerate(self.hyper_config.keys())}
             if self.include_name:
                 timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M_%S_%f')
-                kwargs['exp_name'] = "%s_%d" % (timestamp, count)
+#                 kwargs['exp_name'] = "%s_%d" % (timestamp, count)
+                kwargs['exp_name'] = "%d" % (count)
             count += 1
             yield kwargs
             

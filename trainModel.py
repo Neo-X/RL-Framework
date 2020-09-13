@@ -211,7 +211,8 @@ def trainModelParallel(settingsFileName, settings):
     print (settingsFileName)
     print (settings)
     settings['doodad_config'] = settingsFileName
-    timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M_%S_%f')
+#     timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M_%S_%f')
+    timestamp = datetime.now().strftime('%Y_%m_%d')
     settings['data_folder'] = settings['data_folder'] + '/' + timestamp
     settingsFileName=settings['settingsFileName']
 
