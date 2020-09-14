@@ -40,7 +40,7 @@ def run_exp(variant):
 #         mode='local',
 #         mode='ec2',
         ssh_host=variant["ssh_host"],
-        use_gpu=False,
+        use_gpu=variant["num_gpus"] > 0,
         variant=variant,
         region='us-east-2',
     )

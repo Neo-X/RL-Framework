@@ -88,7 +88,7 @@ def getOptions(_args=None):
               help="Whether or not to perform training in epochs [true|false|None]")
     
     parser.add_option("--gpus",
-              action="store", dest="num_gpus", default=None,
+              action="store", dest="num_gpus", default=0,
               # type='choice',
               # choices=['true', 'false', None],
               metavar="INTEGER", 
