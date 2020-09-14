@@ -18,7 +18,7 @@
     "comment__": "Exploration distance use when randomly generating new actions",
 "exploration_rate": 0.10,
     "comment__": "Number of rounds to perform before termination",
-"rounds": 500,
+"rounds": 250,
     "comment__": "Number of epochs to perform per round",
 "epochs": 4,
     "comment__": "Number of epoch/episode to evaluate the policy over",
@@ -577,5 +577,6 @@
 "log_model_gen_seq_output": true,
 "refresh_rewards": true,
 "virl_loss_weights": [0.5, 0.3, 0.075, 0.075, 0.025, 0.025],
-"virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00]
+"virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00],
+"use_max_T_annealing": false
 }
