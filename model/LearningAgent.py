@@ -145,16 +145,15 @@ class LearningAgent(AgentInterface):
                         ##Don't need - for BCE reward
 #                         print ("imitation_traj shape: ", imitation_traj.shape)
 #                         print ("agent_traj shape: ", agent_traj.shape)
-                        reward__r = self.getForwardDynamics().predict_reward_(agent_traj, imitation_traj)
-                        reward__fd = self.getForwardDynamics().predict_reward_fd(agent_traj, imitation_traj)
                         
-#                         reward__r_1 = self.getForwardDynamics().predict_reward_(agent_traj, agent_traj)
-#                         reward__fd_1 = self.getForwardDynamics().predict_reward_fd(agent_traj, agent_traj)
-#                         reward__r_2 = self.getForwardDynamics().predict_reward_(imitation_traj, imitation_traj)
-#                         reward__fd_2 = self.getForwardDynamics().predict_reward_fd(imitation_traj, imitation_traj)
-#                         print ("reward__r_1, reward__fd_1, reward__r_2, reward__fd_2: ", np.concatenate((reward__r_1, reward__fd_1, reward__r_2, reward__fd_2), axis=1))
-                        
-                        reward___ = ((reward__r * p ) + (reward__fd * (1 + (1-p)))) / 2.0
+                        if ("refresh_rewards_rl_method" in self._settings
+                            and (self._settings["refresh_rewards_rl_method"] == "fd")):
+                            reward__fd = self.getForwardDynamics().predict_reward_fd(agent_traj, imitation_traj)
+                            reward___ = reward__fd
+                        else:
+                            reward__r = self.getForwardDynamics().predict_reward_(agent_traj, imitation_traj)
+                            reward__fd = self.getForwardDynamics().predict_reward_fd(agent_traj, imitation_traj)
+                            reward___ = ((reward__r * p ) + (reward__fd * (1 + (1-p)))) / 2.0
 #                         print ("Refreshed reward origin, reward refresh, r, fd, diff: ", np.concatenate((reward__, reward___, reward__r, reward__fd, reward__ - reward___), axis=1))
                         reward__ = reward___
 #                         reward__1 = exp.computeImitationReward(rewmodel.predict_reward)

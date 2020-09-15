@@ -130,7 +130,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     
     i_ = 0
     if ("use_max_T_annealing" in settings 
-        and (settings["use_max_T_annealing"])):
+        and (settings["use_max_T_annealing"])
+        and not evaluation):
         max_length= min(settings['max_epoch_length'], max(int(settings['max_epoch_length']*(1-p)), 4))
     else:
         max_length= settings['max_epoch_length']
