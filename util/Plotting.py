@@ -12,7 +12,7 @@ def display_paths_gif(paths, logdir, fps=10, max_outputs=8, counter=0):
     import moviepy.editor as mpy
     import numpy as np
     images = []
-    for i in range(len(paths)):
+    for i in range( min(len(paths), max_ouputs)):
         images_ = paths[i]['rendering']
 #         images_ = images_[:max_outputs]
     #     images = np.clip(images, 0.0, 1.0)
