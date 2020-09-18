@@ -315,7 +315,8 @@ def processBounds(state_bounds, action_bounds, settings, sim):
         if (not isinstance(sim.getEnvironment().action_space, gym.spaces.Discrete)):
             a_min = sim.getEnvironment().action_space.low
             a_max = sim.getEnvironment().action_space.high
-            print (sim.getEnvironment().action_space.low)
+            print ("low: ", sim.getEnvironment().action_space.low)
+            print ("high: ", sim.getEnvironment().action_space.high)
             settings['action_bounds'] = [a_min,a_max]
         else:
             settings['action_bounds'] = [[-1] * sim.getEnvironment().action_space.n, [1] * sim.getEnvironment().action_space.n]

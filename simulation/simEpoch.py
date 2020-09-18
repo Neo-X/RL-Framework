@@ -138,17 +138,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 #     print ("max_length: ", max_length)
     while (i_ < max_length):
         
-#         state_ = [exp.getState()]
-#         print ("state_: ", repr(np.array(state_).shape))
-#         print ("state_: ", state_)
         action=None
-#         import matplotlib
-#         matplotlib.use('Agg')
-#         import matplotlib.pyplot as plt
-#         img_ = np.reshape(state_[0][1][:2304], (48,48))
-#         fig1 = plt.figure(1)
-#         plt.imshow(img_, origin='lower')
-#         fig1.savefig("char_state_"+str(i_)+".png")
         evaluation__ = evaluation
         if ("use_stochastic_evaluation" in settings):
             evaluation__=False
@@ -210,7 +200,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
         and (settings["use_hrl_logic"]) == "full" ):
             reward_ = model.addHRLReward(state_, observation, reward_, done, info)
-#         print("reward_: ", reward_)
+        print("reward_: ", reward_)
         a = 0
         """
         # support for mixing rewards across levels

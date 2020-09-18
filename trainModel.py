@@ -291,12 +291,12 @@ def trainModelParallel(settingsFileName, settings):
         video_creation_period_supplied = settings.get("checkpoint_vid_rounds", None) is not None
         create_logging_worker = create_videos and video_creation_period_supplied
         
-        if create_logging_worker:
-            loggingWorkerQueue = multiprocessing.Queue(1)
-            loggingWorker = LoggingWorker(settings, collectEmailData, loggingWorkerQueue)
-            loggingWorker.start()
-            if settings.get("test_movie_rendering", False):
-                return
+#         if create_logging_worker:
+#             loggingWorkerQueue = multiprocessing.Queue(1)
+#             loggingWorker = LoggingWorker(settings, collectEmailData, loggingWorkerQueue)
+#             loggingWorker.start()
+#             if settings.get("test_movie_rendering", False):
+#                 return
         
         
         values = []
