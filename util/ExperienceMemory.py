@@ -330,9 +330,11 @@ class ExperienceMemory(object):
         self._discounted_sum_history[self._history_update_index] = copy.deepcopy(np.array(G_t))
         self._advantage_history[self._history_update_index] = copy.deepcopy(np.array(advantage))
         self._exp_action_history[self._history_update_index] = copy.deepcopy(np.array(exp_action))
-        # print ("fall: ", fall)
-        # print ("self._fall_history: ", self._fall_history[self._history_update_index])
+
+        skip = ["rendering"]
         for key in data:
+            if key in skip: ## Skip some things...
+                continue
             if key not in self._data:
                  self._data[key] =  [[0]] * self._history_size
             self._data[key][self._history_update_index] = data[key]
