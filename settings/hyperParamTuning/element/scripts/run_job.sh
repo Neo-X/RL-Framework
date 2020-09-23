@@ -14,5 +14,5 @@ eai job submit --preemptable\
     --data $ORG_NAME.$ACCOUNT_NAME.doodad:/home/gberseth/playground/doodad_vitchry/ \
     --image gberseth/rlframe:latest \
     -e PYTHONPATH=/home/gberseth/playground/RL-Framework/:/home/gberseth/playground/doodad/ \
-    --gpu 1 --cpu 8 --mem 16 --name test_eai_terrainrl6 \
-    -- bash -c 'pushd /home/gberseth/playground/RL-Framework/; python3 trainModel.py --config=settings/terrainRLImitate/PPO/Imitation_Learning_GRF_UniTree.json -p 6 --shouldRender=false --shouldRender=false --log_comet=true --on_policy=fast --print_level=train'
+    --gpu 1 --cpu 8 --mem 16 --name test_eai_terrainrl_Laikago \
+    -- bash -c 'pushd /home/gberseth/playground/RL-Framework/; python3 trainModel.py --config=settings/terrainRLImitate/TD3/Imitation_Learning_GRF_UniTree.json -p 6 --shouldRender=false --shouldRender=false --log_comet=true --on_policy=fast --print_level=train'
