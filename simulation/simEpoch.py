@@ -251,9 +251,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             from skimage.transform import rescale, resize, downscale_local_mean
             vizData = exp.getEnvironment().render(mode="rgb_array")
             image_ = np.zeros((vizData.shape))
-            for row in range(len(vizData)):
-                image_[row] = vizData[len(vizData)-row - 1]
-#             image_ = np.array(image_, dtype="uint8")
+#             for row in range(len(vizData)):
+#                 image_[row] = vizData[len(vizData)-row - 1]
+            image_ = np.array(image_, dtype="uint8")
 # #             image_ = resize(image_, (64, 64, 3),
 #                            anti_aliasing=True)
             info["rendering"] = image_
