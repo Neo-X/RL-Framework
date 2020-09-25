@@ -224,13 +224,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_ = reward_ + settings['reward_lower_bound']  
 
         resultState_ = exp.getState()
-#         import matplotlib
-#         matplotlib.use('Agg')
-#         import matplotlib.pyplot as plt
-#         img_ = np.reshape(resultState_[0][1][:2304], (48,48))
-#         fig1 = plt.figure(1)
-#         plt.imshow(img_, origin='lower')
-#         fig1.savefig("char_state_"+str(i_)+".png")
         # if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
         #      and (settings["use_hrl_logic"]) ):
         #     resultState_ = resultState_.tolist()
@@ -253,7 +246,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             image_ = np.zeros((vizData.shape))
 #             for row in range(len(vizData)):
 #                 image_[row] = vizData[len(vizData)-row - 1]
-            image_ = np.array(image_, dtype="uint8")
+            image_ = np.array(vizData, dtype="uint8")
 # #             image_ = resize(image_, (64, 64, 3),
 #                            anti_aliasing=True)
             info["rendering"] = image_
