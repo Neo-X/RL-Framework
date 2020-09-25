@@ -31,11 +31,18 @@ declare -a simConfigs=(
 	"settings/terrainRLImitate/TRPO/Flat_Walk_Forward_Reward_BayesianSurprise_Bonus2.json" ## This version if SMiRL without some initial imitation data.
 	"settings/terrainRLImitate/TRPO/Falt_Walk_Forward_BayesianSurprise_IncludeStats_VAE.json" ## Using a VAE
 	"settings/terrainRLImitate/TRPO/Flat_NoPhase_Forward_Reward_v0.json" ## regular reward
+	
+	### SMIRL + ICM
+	"settings/terrainRLImitate/TRPO/Cliff_BayesianSurprise_ICM_IncludeStats.json"
+	"settings/terrainRLImitate/TRPO/Pedestal_BayesianSurprise_ICM_IncludeStats.json"
+	"settings/terrainRLImitate/TRPO/Treadmill_BayesianSurprise_ICM_IncludeStats.json"
+	"settings/terrainRLImitate/TRPO/Flat_Walk_BayesianSurprise_ICM_IncludeStats.json"
+	
 
 )
 
 rounds=500
-opts='--print_level=hyper_train --num_rounds=500 -p 8 --on_policy=fast --run_mode=ec2 --log_comet=true --bootstrap_sample=6 --meta_sim_sample=6 --random_seed=444 --meta_sim_threads=6 --experiment_logging="{\"use_comet\":true,\"project_name\":\"bayesiansurprise\"}"'
+opts='--print_level=hyper_train --num_rounds=500 -p 8 --on_policy=fast --run_mode=ec2 --log_comet=true --bootstrap_sample=6 --meta_sim_sample=12 --random_seed=444 --meta_sim_threads=6 --experiment_logging="{\"use_comet\":true,\"project_name\":\"bayesiansurprise\"}"'
 # opts='--print_level=hyper_train --num_rounds=500 -p 8 --on_policy=fast --run_mode=local_docker --log_comet=true --bootstrap_sample=1 --meta_sim_sample=1 --random_seed=555 --meta_sim_threads=1 --experiment_logging="{\"use_comet\":true,\"project_name\":\"bayesiansurprise\"}"'
 ### For each sim sonfig
 for simConfigFile in "${simConfigs[@]}"
