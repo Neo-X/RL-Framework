@@ -108,7 +108,7 @@
     "comment__": "What method to use to select actions during bootstrapping",
 "bootsrap_with_discrete_policy": true,
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
-"max_epoch_length": 32,
+"max_epoch_length": 64,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
 "reward_lower_bound": -300.5,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
@@ -134,7 +134,7 @@
     "comment__": "draw/render the next state suggested by the forward dynamics model",
 "visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
-"fd_learning_rate": 0.0005,
+"fd_learning_rate": 0.001,
     "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": true,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
@@ -152,7 +152,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
     "comment__": "Initial tempurature for annealing of e-greedy exploration",
-"initial_temperature": 1.0,
+"initial_temperature": 4.0,
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.05,
     "comment__": "Whether or not to draw/render the simulation",
@@ -499,7 +499,7 @@
 "seperate_posandneg_pairs": true,
 	"comment__": "Add noise to the target noise values",
 "target_noise_scale": 0.05,
-"rnn_updates": 32,	
+"rnn_updates": 64,	
 	"comment__": "Data for using comet ML for logging learning experiments",
 "experiment_logging":
 	{"use_comet": true,
@@ -510,5 +510,7 @@
 "log_model_gen_seq_output": true,
 "refresh_rewards": true,
 "virl_loss_weights": [0.5, 0.3, 0.075, 0.075, 0.025, 0.025],
-"virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00]
+"virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00],
+"use_max_T_annealing": true,
+"use_stochastic_evaluation": false
 }
