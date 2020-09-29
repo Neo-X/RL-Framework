@@ -205,8 +205,10 @@ def collectExperience(actor, model, settings, sampler):
             resultStatefd = resultState
             data___ = {}
             for key in data_:
-                
-                data___[key] = data_[key][j]
+                try:
+                    data___[key] = data_[key][j]
+                except:
+                    pass
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)):
                 statefd = state[1]

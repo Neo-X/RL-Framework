@@ -897,6 +897,20 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         conf['render'] = False
         exp = OpenAIGymEnv(env, conf)
         return exp
+    elif env_type == 'StanQuad':
+        import gym
+        from gym import wrappers
+        from gym import envs
+        from sim.OpenAIGymEnv import OpenAIGymEnv
+        import stanford_quad
+
+        env_name = config_file
+        env = gym.make(env_name)
+        # print(envs.registry.all())
+        conf = copy.deepcopy(settings)
+        conf['render'] = False
+        exp = OpenAIGymEnv(env, conf)
+        return exp
     
     elif ((env_type == 'miniGrid')):
         ### This code could be cleaned up to work better.
@@ -1023,6 +1037,7 @@ def createActor(env_type, settings, experience):
           or (env_type == 'RLSimulations')
           or (env_type == 'miniGrid')
           or (env_type == 'UniTree')
+          or (env_type == 'StanQuad')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)

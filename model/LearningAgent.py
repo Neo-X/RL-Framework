@@ -187,7 +187,10 @@ class LearningAgent(AgentInterface):
                     data___ = {}
                     for key in datas__:
                         # print ("key: ", key, " datas__", datas__[key])
-                        data___[key] = datas__[key][j] 
+                        try: ## sometimes the info dictionary has different data/keys...
+                            data___[key] = data_[key][j]
+                        except:
+                            pass
                     
                     tup = ([state__[j]], [action__[j]], [next_state__[j]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
                     if ("use_dual_state_representations" in self._settings

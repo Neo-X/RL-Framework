@@ -3,6 +3,7 @@ CODE_DIRS_TO_MOUNT = [
     '/home/gberseth/playground/RL-Framework',
     '/home/gberseth/playground/RLSimulationEnvironments',
     '/home/gberseth/playground/motion_imitation/motion_imitation',
+    '/home/gberseth/playground/StanfordQuadruped',
 ]
 NON_CODE_DIRS_TO_MOUNT = [
 ]
