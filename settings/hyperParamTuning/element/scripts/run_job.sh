@@ -19,7 +19,7 @@ eai job submit --preemptable\
     --image gberseth/rlframe:latest \
     -e PYTHONPATH=/home/gberseth/playground/RL-Framework/:/home/gberseth/playground/doodad/:/home/gberseth/playground/motion_imitation/motion_imitation/ \
     --gpu 1 --cpu 5 --mem 16 \
-    -- bash -c 'pushd /home/gberseth/playground/RL-Framework/; python3 doodad_trainModel.py --config=settings/terrainRLImitate/PPO/Imitation_Learning_GRF_UniTree_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial_BCE_refresh2.json -p 5 --shouldRender=false --log_comet=true --on_policy=fast --print_level=train'
+    -- bash -c 'pushd /home/gberseth/playground/RL-Framework/; python3 trainModel.py --config=settings/terrainRLImitate/PPO/Imitation_Learning_GRF_UniTree_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial_BCE_refresh2.json -p 5 --shouldRender=false --log_comet=true --on_policy=fast --print_level=train'
     # --gpu 1 --cpu 5 --mem 16 --name test_eai_terrainrl_laikago_ppo1 \
     # -- bash -c 'pushd /home/gberseth/playground/RL-Framework/; python3 trainModel.py --config=settings/terrainRLImitate/PPO/Imitation_Learning_GRF_UniTree.json -p 5 --shouldRender=false --shouldRender=false --log_comet=true --on_policy=fast --print_level=train'
     # -- bash -c 'pushd /home/gberseth/playground/RL-Framework/; python3 trainModel.py --config=settings/terrainRLImitate/TD3/Imitation_Learning_GRF_UniTree.json -p 6 --shouldRender=false --shouldRender=false --log_comet=true --on_policy=fast --print_level=train'

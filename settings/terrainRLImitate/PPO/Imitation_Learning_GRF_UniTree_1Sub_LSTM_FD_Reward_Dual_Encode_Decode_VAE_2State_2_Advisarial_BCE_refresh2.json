@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "UniTree/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128_BCE_anneal_refresh_17",
+"data_folder": "UniTree/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128_BCE_anneal_refresh_18",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -511,6 +511,6 @@
 "refresh_rewards": true,
 "virl_loss_weights": [0.5, 0.3, 0.075, 0.075, 0.025, 0.025],
 "virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00],
-"use_max_T_annealing": true,
+"use_max_T_annealing": false,
 "use_stochastic_evaluation": false
 }
