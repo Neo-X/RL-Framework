@@ -903,7 +903,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         from gym import envs
         from sim.OpenAIGymEnv import OpenAIGymEnv
         import stanford_quad
-
+        print(envs.registry.all())
         env_name = config_file
         env = gym.make(env_name)
         # print(envs.registry.all())
