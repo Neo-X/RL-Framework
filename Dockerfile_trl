@@ -122,32 +122,32 @@ RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 # COPY libOpenGL.so /usr/lib/nvidia/libOpenGL.so
 # ENV LD_LIBRARY_PATH /usr/lib/nvidia:${LD_LIBRARY_PATH}
 
-WORKDIR /root/playground
+WORKDIR /opt/
 # RUN git clone git@github.com:Neo-X/TerrainRLSim.git
 RUN git clone https://github.com/Neo-X/TerrainRLSim.git
-ENV TERRAINRL_PATH /root/playground/TerrainRLSim
-WORKDIR /root/playground/TerrainRLSim
+ENV TERRAINRL_PATH /opt/TerrainRLSim
+WORKDIR /opt/TerrainRLSim
 RUN wget https://github.com/UBCMOCCA/TerrainRLSim/releases/download/0.8/TerrainRLSim_external_June_21_2019.tar.xz
 RUN tar -xvf TerrainRLSim_external_June_21_2019.tar.xz
 RUN chmod +x ./deb_deps.sh
 RUN ./deb_deps.sh
 RUN cd external/caffe && make clean && make -j 8
 RUN cp -r external/caffe/build/lib . && cp external/caffe/build/lib/libcaffe.* lib/ && cp external/Bullet/bin/*.so lib/ && cp external/jsoncpp/build/debug/src/lib_json/*.so* lib/
-WORKDIR /root/playground/TerrainRLSim/simAdapter
+WORKDIR /opt/TerrainRLSim/simAdapter
 RUN chmod +x ./gen_swig.sh
 RUN ./gen_swig.sh
-WORKDIR /root/playground/TerrainRLSim/
+WORKDIR /opt/TerrainRLSim/
 RUN ls -la
 # RUN chmod +x ./premake4_linux && ./premake4_linux --file=premake4_openglES.lua gmake
 RUN chmod +x ./premake4_linux 
 RUN ./premake4_linux gmake
 ### RUN cd gmake 
-WORKDIR /root/playground/TerrainRLSim/gmake
+WORKDIR /opt/TerrainRLSim/gmake
 RUN make config=release64 -j 8
-WORKDIR /root/playground/TerrainRLSim
+WORKDIR /opt/TerrainRLSim
 RUN pip install -v -e $TERRAINRL_PATH
 RUN pip install -r requirements.txt
-WORKDIR /root/playground
+WORKDIR /opt/
 RUN echo $LD_LIBRARY_PATH
 
 COPY requirements.txt requirements.txt

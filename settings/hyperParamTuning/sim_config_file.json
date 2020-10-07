@@ -1,0 +1,4 @@
+{
+	"sim_config_file": ["PD_Humanoid_2D_Symetric-NoPhase-v0", "PD_Dog_2D_GRF_Imitate_30FPS_v0", "PD_Raptor2D_LLC_Imitate_Flat-v0"],
+	"additional_on_policy_training_updates": [2, 4]
+}
