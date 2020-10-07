@@ -386,5 +386,8 @@
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false,
 	"comment__": "Anneal the learning rate",
-"anneal_learning_rate": false
+"anneal_learning_rate": false,
+"experiment_logging":
+	{"use_comet": true,
+	"project_name": "deepcrowds"}
 }
