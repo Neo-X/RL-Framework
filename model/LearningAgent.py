@@ -1105,9 +1105,9 @@ class LearningAgent(AgentInterface):
         if self._useLock:
             self._accesLock.acquire()
         # import numpy as np
-        # print("state: ", np.array(state).shape, state)
+#         print("state: ", state.shape, state)
         state = self.processState(state)
-        # print("state after: ", np.array(state).shape, state)
+#         print("state after: ", state.shape, state)
         log.debug("State: {}".format(state))
         if (use_mbrl):
             action = self.getSampler().predict(state, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
@@ -1199,6 +1199,7 @@ class LearningAgent(AgentInterface):
                 exp_action = int(0)
             else : 
                 ### add noise to current policy
+                print ("state_: ", state_)
                 pa_ = self.predict(state_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
                 if ( ((self.getSettings()['exploration_method'] == 'OrnsteinUhlenbeck') 
                       # or (bootstrapping)

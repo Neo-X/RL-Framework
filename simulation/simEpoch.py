@@ -138,6 +138,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 #     print ("max_length: ", max_length)
     while (i_ < max_length):
         
+#         print ("state_: ", state_.shape)
         action=None
         evaluation__ = evaluation
         if ("use_stochastic_evaluation" in settings):
