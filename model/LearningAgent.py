@@ -1199,7 +1199,7 @@ class LearningAgent(AgentInterface):
                 exp_action = int(0)
             else : 
                 ### add noise to current policy
-                print ("state_: ", state_)
+#                 print ("state_: ", state_)
                 pa_ = self.predict(state_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
                 if ( ((self.getSettings()['exploration_method'] == 'OrnsteinUhlenbeck') 
                       # or (bootstrapping)
