@@ -314,6 +314,7 @@ def collectExperience(actor, model, settings, sampler):
         if ( "keep_seperate_fd_exp_buffer" in settings 
             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
             state_bounds_fd__ = getFDStateSize(settings)
+            print ("state_bounds_fd__: ", np.array(state_bounds_fd__).shape)
             if ("perform_multiagent_training" in settings):
                 ### Might be a bug because the fd sizes could be different for each agent
                 experiencefd = []
@@ -327,11 +328,19 @@ def collectExperience(actor, model, settings, sampler):
                     settings__['reward_bounds'] = settings['reward_bounds'][i]
                     state_bounds_fd__ = getFDStateSize(settings__)
                     action_bounds_fd__ = settings__['action_bounds']
-                    experience__fd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds_fd__[0]), settings['experience_length'][i],
-                                        continuous_actions=True, settings = settings__ 
-                                        # result_state_length=settings["dense_state_size"]
-                                        ) 
-                    experience__fd.setStateBounds(settings__['state_bounds'])
+                    if ("use_dense_results_state" in settings
+                        and (settings["use_dense_results_state"] == True)):
+                        experience__fd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds_fd__[0]), settings['experience_length'][i],
+                                            continuous_actions=True, settings = settings__ 
+                                            ,result_state_length=len(settings__['state_bounds'][0])
+                                            ) 
+                        experience__fd.setResultStateBounds(settings__['state_bounds'])
+                    else:
+                        experience__fd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds_fd__[0]), settings['experience_length'][i],
+                                            continuous_actions=True, settings = settings__ 
+                                            ,result_state_length=len(state_bounds_fd__[0])
+                                            ) 
+                    experience__fd.setStateBounds(state_bounds_fd__)
                     experience__fd.setActionBounds(settings__['action_bounds'])
                     experience__fd.setRewardBounds(settings__['reward_bounds'])
                     experiencefd.append(experience__fd)

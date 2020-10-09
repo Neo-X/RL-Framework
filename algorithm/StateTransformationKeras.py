@@ -102,10 +102,13 @@ class StateTransformationKeras(KERASAlgorithm):
         print ("grad: ", grad)
         return grad
     
-    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None, lstm=None):
+    def train(self, states, actions, result_states, rewards, updates=1, 
+              batch_size=None, lstm=None, datas=None, trainInfo=None):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         # self.setData(states, actions, result_states, rewards)
         # print ("Performing Critic trainning update")
+        print ("states: ", states.shape)
+        print ("result_states: ", result_states.shape)
         #if (( self._updates % self._weight_update_steps) == 0):
         #    self.updateTargetModel()
         self._updates += 1

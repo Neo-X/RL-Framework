@@ -211,6 +211,12 @@ class LearningAgent(AgentInterface):
                                 and self._settings["use_viz_for_policy"] == True):
                                 # Want viz for input and dense for output to condition the preception part of the network
                                 tup = ([state__[j][1]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
+                            elif ("use_dense_results_state" in self._settings
+                                and (self._settings["use_dense_results_state"] == True)):
+                                ### Want viz for input and dense for output to condition the preception part of the network
+#                                 print ("state__[j][0] shape: ", state__[j][0])
+#                                 print ("state__[j][1] shape: ", state__[j][1])
+                                tup = ([state__[j][1]], [action__[j]], [state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
                             else:
                                 # print ("self.getFDExperience().getStateBounds() shape : ", self.getFDExperience().getStateBounds())
                                 # print ("fd exp state shape: ", state__[j][1].shape)

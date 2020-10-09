@@ -111,6 +111,8 @@ class DeepNNKerasAdaptive(ModelInterface):
             # self._stateInput = self._ResultState 
         else:
             self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name=resultStateName)
+            print (self._ResultState)
+#             sys.exit()
             if (
                 (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True))
