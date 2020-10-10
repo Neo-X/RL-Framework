@@ -220,6 +220,11 @@ def collectExperience(actor, model, settings, sampler):
                         and (settings["replace_next_state_with_pose_state"] == True)):
                         ### grab pose data for training fd model
                         resultState = state[0]
+                        
+                    elif ("use_dense_results_state" in settings
+                        and (settings["use_dense_results_state"] == True)):
+                        resultState = resultState[0][0]
+                     
                     else:
                         ### grab viz data
                         resultState = resultState[1][0]
@@ -248,7 +253,17 @@ def collectExperience(actor, model, settings, sampler):
                 _states.append([np.array(np.array(tmp_states__[0]), dtype=settings['float_type']) for tmp_states__ in states_[i]])
                 _result_states.append([np.array(np.array(tmp_result_states__[0]), dtype=settings['float_type']) for tmp_result_states__ in resultStates_[i]])
                 _states_fd.append([np.array(np.array(tmp_states__[1]), dtype=settings['float_type']) for tmp_states__ in states_[i]])
-                _result_states_fd.append([np.array(np.array(tmp_result_states__[1]), dtype=settings['float_type']) for tmp_result_states__ in resultStates_[i]])
+                if ("use_dense_results_state" in settings
+                    and (settings["use_dense_results_state"] == True)):
+                    ### Want viz for input and dense for output to condition the preception part of the network
+    #                                 print ("state__[j][0] shape: ", state__[j][0])
+    #                                 print ("state__[j][1] shape: ", state__[j][1])
+#                     tup = ([next_state__[j][1]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
+                    _result_states_fd.append([np.array(np.array(tmp_result_states__[0]), dtype=settings['float_type']) for tmp_result_states__ in resultStates_[i]])
+#                     self.getFDExperience().insertTuple(tup)
+#                     tup = ([state__[j][1]], [action__[j]], [state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
+                else:
+                    _result_states_fd.append([np.array(np.array(tmp_result_states__[1]), dtype=settings['float_type']) for tmp_result_states__ in resultStates_[i]])
             else:
                 _states = states_
                 _result_states = resultStates_

@@ -343,7 +343,7 @@ class LearningAgent(AgentInterface):
                                        _exp_actions,
                                        _G_t,
                                        datas)
-            
+#             print ("_states: ", _states)
             (num_samples_,
              (tmp_states,
               tmp_actions,
