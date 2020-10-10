@@ -216,6 +216,8 @@ class LearningAgent(AgentInterface):
                                 ### Want viz for input and dense for output to condition the preception part of the network
 #                                 print ("state__[j][0] shape: ", state__[j][0])
 #                                 print ("state__[j][1] shape: ", state__[j][1])
+                                tup = ([next_state__[j][1]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
+                                self.getFDExperience().insertTuple(tup)
                                 tup = ([state__[j][1]], [action__[j]], [state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
                             else:
                                 # print ("self.getFDExperience().getStateBounds() shape : ", self.getFDExperience().getStateBounds())

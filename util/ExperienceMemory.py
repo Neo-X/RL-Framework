@@ -18,7 +18,8 @@ class ExperienceMemory(object):
         when performing training updates.
     """
     
-    def __init__(self, state_length, action_length, memory_length, continuous_actions=False, settings=None, result_state_length=None):
+    def __init__(self, state_length, action_length, memory_length, continuous_actions=False, settings=None, result_state_length=None,
+                 use_dense_results_state=None):
         
         if (settings == None):
             self._settings = {}
@@ -27,6 +28,7 @@ class ExperienceMemory(object):
         else:
             self._settings = settings
         
+        self._use_dense_results_state=use_dense_results_state
         self._history_size=memory_length
         self._trajectory_size=int(np.mean(memory_length)/100)
         if ("fd_experience_length" in self._settings):
@@ -320,11 +322,14 @@ class ExperienceMemory(object):
             # print("Reset history index in exp buffer:")
         
         # print ("Tuple: " + str(state) + ", " + str(action) + ", " + str(nextState) + ", " + str(reward))
+#         print ("state: ", str(state) )
+#         print ("nextState: ", str(nextState) )
         # print ("action type: ", self._action_history.dtype)
         self._state_history[self._history_update_index] = copy.deepcopy(np.array(state))
         self._action_history[self._history_update_index] = copy.deepcopy(np.array(action))
         # print("inserted action: ", self._action_history[self._history_update_index])
         self._nextState_history[self._history_update_index] = copy.deepcopy(np.array(nextState))
+#         print ("nextState2: ", self._nextState_history[self._history_update_index]) 
         self._reward_history[self._history_update_index] = copy.deepcopy(np.array(reward))
         self._fall_history[self._history_update_index] = copy.deepcopy(np.array(fall))
         self._discounted_sum_history[self._history_update_index] = copy.deepcopy(np.array(G_t))
@@ -494,14 +499,18 @@ class ExperienceMemory(object):
                         continue
             indices.add(i)
             
-                                
+                             
+#             print ("self.getStateBounds(): ", np.array(self.getStateBounds()).shape)
+#             print ("self._state_history[i]: ", self._state_history[i])   
             state.append(norm_state(self._state_history[i], self.getStateBounds()))
-            # print("Action pulled out: ", self._action_history[i])
+#             print("State pulled out: ", self._state_history[i])
             # print ("self.getActionBounds(): ", self.getActionBounds())
             if (self._continuous_actions):
                 action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
             else:
                 action.append(self._action_history[i])
+#             print ("self.getResultStateBounds(): ", np.array(self.getResultStateBounds()).shape)
+#             print ("self._nextState_history[i]: ", self._nextState_history[i])
             resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
             # reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
             reward.append(self._reward_history[i] / action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
@@ -661,15 +670,13 @@ class ExperienceMemory(object):
     def setStateBounds(self, _state_bounds):
         assert len(_state_bounds[0]) == self._state_length, "len(_state_bounds[0]) == self._state_length: " + str(len(_state_bounds[0])) + " == " + str(self._state_length)
         self._state_bounds = np.array(_state_bounds)
-        if ("use_dense_results_state" in self._settings
-            and (self._settings["use_dense_results_state"] == True)):
-            pass
-        else:
+        if (self._use_dense_results_state is None):
             self.setResultStateBounds(_state_bounds)
         # self._state_length = len(self.getStateBounds()[0])
         
     def setRewardBounds(self, _reward_bounds):
         self._reward_bounds = np.array(_reward_bounds)
+        
     def setActionBounds(self, _action_bounds):
         if ("policy_connections" in self._settings
             and (any([self._settings["agent_id"] == m[1] for m in self._settings["policy_connections"]])) ):
@@ -678,7 +685,7 @@ class ExperienceMemory(object):
             assert len(_action_bounds[0]) == self._action_length
             self._action_bounds = np.array(_action_bounds)
     def setResultStateBounds(self, _result_state_bounds):
-        assert len(_result_state_bounds[0]) == self._result_state_length, "len(_result_state_bounds[0]) == self._result_state_length: " + str(len(_result_state_bounds[0])) + " == " + str(self._result_state_length)
+#         assert len(_result_state_bounds[0]) == self._result_state_length, "len(_result_state_bounds[0]) == self._result_state_length: " + str(len(_result_state_bounds[0])) + " == " + str(self._result_state_length)
         self._result_state_bounds = np.array(_result_state_bounds)
         # self._result_state_length = len(self.getResultStateBounds()[0])
         

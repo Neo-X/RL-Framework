@@ -333,6 +333,7 @@ def collectExperience(actor, model, settings, sampler):
                         experience__fd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds_fd__[0]), settings['experience_length'][i],
                                             continuous_actions=True, settings = settings__ 
                                             ,result_state_length=len(settings__['state_bounds'][0])
+                                            ,use_dense_results_state=True
                                             ) 
                         experience__fd.setResultStateBounds(settings__['state_bounds'])
                     else:

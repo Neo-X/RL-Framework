@@ -123,10 +123,10 @@ class StateTransformationKeras(KERASAlgorithm):
           shuffle=True
           # callbacks=[early_stopping],
           )
-        loss = np.mean(score.history['loss'])
+#         loss = np.mean(score.history['loss'])
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
-        return loss
+        return score.history
     
     def predict(self, state, action):
         # print("State: ", state)
