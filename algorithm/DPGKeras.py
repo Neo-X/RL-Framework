@@ -444,6 +444,12 @@ class DPGKeras(KERASAlgorithm):
             K.set_value(self._model.getCriticNetwork().optimizer.lr, np.float32(self.getSettings()['critic_learning_rate']) * p)
             # lr = K.get_value(self._model.getCriticNetwork().optimizer.lr)
             # print ("New critic learning rate: ", lr)
+            
+        if ("use_fall_reward_shaping" in self._settings
+            and (self._settings["use_fall_reward_shaping"] == True)): ### This does not play nice with multi-tasking...
+            # print ("Shaping reward", np.concatenate((target_, falls, target_ * falls), axis=1))
+            target_tmp_ = target_tmp_ * falls
+#             print ("target_tmp_ and falls: ", np.concatenate((target_tmp_, falls), axis=-1) )
         
         loss = self._model.getCriticNetwork().fit([states, actions], target_tmp_,
                         batch_size=states.shape[0],

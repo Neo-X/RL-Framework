@@ -135,33 +135,20 @@ class ExperienceMemory(object):
         min_seq_length = 1
         if ("min_sequece_length" in self._settings):
             min_seq_length = self._settings["min_sequece_length"]
-        shortest_traj = 10000000
+        shortest_traj = 100000000
         traj_start = 0
         for t in range(len(state_)):
             if len(state_[t]) < shortest_traj:
                 shortest_traj = len(state_[t])
                 
-        ### This logic is very confusing
-        ### Pick a random start time is desired.
-#         if ( randomStart == True 
-#              and (shortest_traj > min_seq_length)):
-#             if ("shorter_smaller_rnn_batches" in self._settings
-#                 and (self._settings["shorter_smaller_rnn_batches"] == True)):
-#                 ### Make earlier start time more probable
-#                 # print ("From traj_start: ", traj_start)
-#             else:
-#                 traj_start = random.sample(set(inds), 1)[0]
         ### Choose a random time to start
         if (randomStart == True):
-            inds = range(0, shortest_traj- min_seq_length)
+            inds = range(0, max(1, shortest_traj- min_seq_length))
             ### plus one so because of index count mismatch.
-            
             if (np.random.random() > 0.5):
                 traj_start = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
             else:
-#                 inds = range(0, shortest_traj)
                 traj_start = random.sample(set(inds), 1)[0]
-#             shortest_traj = traj_start + self._settings["shorter_smaller_rnn_batches"]
              
         ### Choose a random time for trajectory to end
         inds = range(traj_start + min_seq_length, shortest_traj)
@@ -170,12 +157,10 @@ class ExperienceMemory(object):
 #                 ### shortest_traj Must be at least 2 for this to return 1
 #                 ### Make shorter sequence more probable
             shortest_traj = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
-#             else:
-#             shortest_traj = random.sample(set(inds), 1)[0]
-                # print ("To shortest_traj:", shortest_traj)
         
-        
-#         print ("shortest_traj: ", shortest_traj, " traj_start: ", traj_start)    
+        if ((shortest_traj - traj_start) > 64):
+            ### Things tend to run out of memory beyond this.
+            shortest_traj = traj_start + 64
         ### Make all trajectories as long as the shortest one...
         for t in range(len(state_)):
             state_[t] = state_[t][traj_start:shortest_traj]
