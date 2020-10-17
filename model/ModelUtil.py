@@ -50,6 +50,7 @@ def anneal_value(d, settings_):
         p = (d**settings_['initial_temperature'])
         
     return p
+
 def discounted_rewards(rewards, discount_factor):
     import scipy
     from scipy import signal, misc

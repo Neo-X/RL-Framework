@@ -647,7 +647,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                         indecies_ = np.random.choice(range(len(sequences0)), size=self._settings["lstm_batch_size"][1])
                         
 #                         print ("sequences0 shape: ", sequences0.shape)
-#                         print ("sequences1 shape: ", sequences1.shape)
+#                         print ("sequences1 shape: ", sequences1[indecies_].shape)
                         # print ("targets__ shape: ", targets__.shape)
                         # print ("targets_ shape: ", targets_.shape)
                         ### separate data into positive and negative batches

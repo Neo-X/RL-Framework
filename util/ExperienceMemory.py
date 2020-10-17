@@ -127,7 +127,8 @@ class ExperienceMemory(object):
         
         self._insertTrajectory([states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data])
         
-    def get_multitask_trajectory_batch(self, batch_size=4, excludeActionTypes=[], randomLength=False, randomStart=False):
+    def get_multitask_trajectory_batch(self, batch_size=4, excludeActionTypes=[], randomLength=False, randomStart=False,
+                                       max_length=32):
         
         state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_, data_ = self.get_trajectory_batch(batch_size=batch_size, cast=False)
         
@@ -158,9 +159,9 @@ class ExperienceMemory(object):
 #                 ### Make shorter sequence more probable
             shortest_traj = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
         
-        if ((shortest_traj - traj_start) > 64):
+        if ((shortest_traj - traj_start) > max_length):
             ### Things tend to run out of memory beyond this.
-            shortest_traj = traj_start + 64
+            shortest_traj = traj_start + max_length
         ### Make all trajectories as long as the shortest one...
         for t in range(len(state_)):
             state_[t] = state_[t][traj_start:shortest_traj]
