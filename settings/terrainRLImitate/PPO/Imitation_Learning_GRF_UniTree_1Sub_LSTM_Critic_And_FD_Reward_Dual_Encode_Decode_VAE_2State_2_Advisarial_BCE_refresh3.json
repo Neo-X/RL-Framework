@@ -267,22 +267,18 @@
 	"comment__": "Use the annealing schedule in on policy learning",
 "anneal_on_policy": true,
 	"comment__": "Train the value function using an LSTM network",
-"train_LSTM_Critic": true,
+"train_LSTM_Critic": false,
 	"comment__": "Use json network description",
 "network_description_type": "json",
 	"comment__": "A list describing the size of the layers for the NN",
 "critic_network_layer_sizes": [ 
-								{"layer_type": "Input", "shape": ["none", "none", 111]},
-								{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": "tanh"},
-								{"layer_type": "TimeDistributedConv", "net_info":
-								[ 
-									{"layer_type": "Dense", "units": 256, "use_bias": true},
-									{"layer_type": "activation", "activation_type": "leaky_rectify" },
-									{"layer_type": "Dropout", "rate": 0.2},
-									{"layer_type": "Dense", "units": 128, "use_bias": true},
-									{"layer_type": "activation", "activation_type": "leaky_rectify" },
-									{"layer_type": "Dropout", "rate": 0.2}
-								]}
+								{"layer_type": "Input", "shape": [239]},
+								{"layer_type": "Dense", "units": 256, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dropout", "rate": 0.2},
+								{"layer_type": "Dense", "units": 128, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dropout", "rate": 0.2}
 								],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [ 
@@ -516,5 +512,6 @@
 "virl_loss_weights": [0.5, 0.3, 0.075, 0.075, 0.025, 0.025],
 "virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00],
 "use_max_T_annealing": false,
-"use_stochastic_evaluation": false
+"use_stochastic_evaluation": false,
+"force_use_mod_state_for_critic": true
 }

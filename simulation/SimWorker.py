@@ -236,18 +236,6 @@ class SimWorker(Process):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Simulating a normal episode ??with exploration?? on policy")
                     settings_ = copy.deepcopy(self._settings)
-                    """
-                    r = np.random.rand(1)[0]
-                    if ( ('perform_mbae_episode_sampling' in self._settings)
-                         and (self._settings['perform_mbae_episode_sampling'] == True)
-                        and (r > self._settings['model_based_action_omega']) ): ## regular
-                        settings_['model_based_action_omega'] = 0.0
-                    elif ( ('perform_mbae_episode_sampling' in self._settings)
-                         and (self._settings['perform_mbae_episode_sampling'] == True) 
-                         ):
-                        ## This will result in an entire episode sampled from MBAE
-                        settings_['model_based_action_omega'] = 1.0
-                        """
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=settings_, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
@@ -260,18 +248,6 @@ class SimWorker(Process):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Simulating a normal episode")
                     settings_ = copy.deepcopy(self._settings)
-                    """
-                    r = np.random.rand(1)[0]
-                    if ( ('perform_mbae_episode_sampling' in self._settings)
-                         and (self._settings['perform_mbae_episode_sampling'] == True)
-                        and (r > self._settings['model_based_action_omega']) ): ## regular
-                        settings_['model_based_action_omega'] = 0.0
-                    elif ( ('perform_mbae_episode_sampling' in self._settings)
-                         and (self._settings['perform_mbae_episode_sampling'] == True) 
-                         ):
-                        ## This will result in an entire episode sampled from MBAE
-                        settings_['model_based_action_omega'] = 1.0    
-                    """
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=settings_, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
@@ -315,20 +291,6 @@ class SimWorker(Process):
                                 print ("Message: ", episodeData['type'])
                                 
                             self.updateAgent(data)
-                            """
-                            self._model.setStateBounds(data[2])
-                            self._model.setActionBounds(data[3])
-                            self._model.setRewardBounds(data[4])
-                            # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                # print("Scaling State params: ", self._model.getStateBounds())
-                                # print("Scaling Action params: ", self._model.getActionBounds())
-                                # print("Scaling Reward params: ", self._model.getRewardBounds())
-                            self._model.getPolicy().setNetworkParameters(data[5])
-                            if (self._settings['train_forward_dynamics']):
-                                self._model.getForwardDynamics().setNetworkParameters(data[6])
-                            p = data[1]
-                            self._p = p
-                            """
                             
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
@@ -373,18 +335,6 @@ class SimWorker(Process):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Simulating a normal episode ??with exploration?? on policy")
                     settings_ = copy.deepcopy(self._settings)
-                    """
-                    r = np.random.rand(1)[0]
-                    if ( ('perform_mbae_episode_sampling' in self._settings)
-                         and (self._settings['perform_mbae_episode_sampling'] == True)
-                        and (r > self._settings['model_based_action_omega']) ): ## regular
-                        settings_['model_based_action_omega'] = 0.0
-                    elif ( ('perform_mbae_episode_sampling' in self._settings)
-                         and (self._settings['perform_mbae_episode_sampling'] == True) 
-                         ):
-                        ## This will result in an entire episode sampled from MBAE
-                        settings_['model_based_action_omega'] = 1.0
-                        """
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=settings_, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
@@ -397,18 +347,6 @@ class SimWorker(Process):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Simulating a normal episode")
                     settings_ = copy.deepcopy(self._settings)
-                    """
-                    r = np.random.rand(1)[0]
-                    if ( ('perform_mbae_episode_sampling' in self._settings)
-                         and (self._settings['perform_mbae_episode_sampling'] == True)
-                        and (r > self._settings['model_based_action_omega']) ): ## regular
-                        settings_['model_based_action_omega'] = 0.0
-                    elif ( ('perform_mbae_episode_sampling' in self._settings)
-                         and (self._settings['perform_mbae_episode_sampling'] == True) 
-                         ):
-                        ## This will result in an entire episode sampled from MBAE
-                        settings_['model_based_action_omega'] = 1.0    
-                    """
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=settings_, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
@@ -439,9 +377,7 @@ class SimWorker(Process):
                     bootstrapping = True
                 else:
                     episodeData = episodeData['data']
-                # print("self._p: ", self._p)
                 # print ("Worker: Evaluating episode")
-                # print ("Nums samples in worker: ", self._namespace.experience.samples())
                 if (eval): ## No action exploration
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Running evaluation episode")
@@ -466,18 +402,6 @@ class SimWorker(Process):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Simulating a normal episode")
                     settings_ = copy.deepcopy(self._settings)
-                    """
-                    r = np.random.rand(1)[0]
-                    if ( ('perform_mbae_episode_sampling' in self._settings)
-                         and (self._settings['perform_mbae_episode_sampling'] == True)
-                        and (r > self._settings['model_based_action_omega']) ): ## regular
-                        settings_['model_based_action_omega'] = 0.0
-                    elif ( ('perform_mbae_episode_sampling' in self._settings)
-                         and (self._settings['perform_mbae_episode_sampling'] == True) 
-                         ):
-                        ## This will result in an entire episode sampled from MBAE
-                        settings_['model_based_action_omega'] = 1.0
-                        """
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=settings_, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)

@@ -89,7 +89,7 @@ class LearningAgent(AgentInterface):
         return self._expBuff_FD  
     
     def putDataInExpMem(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
-              _exp_actions=None, _G_t=None, datas=None, recomputeRewards=False, p=1.0):
+              _exp_actions=None, _G_t=None, datas=None, recomputeRewards=False, p=1.0, mode="all"):
         import numpy as np
         num_samples_ = 0
         tmp_states = []
@@ -104,11 +104,15 @@ class LearningAgent(AgentInterface):
         # Causes the new scaling values to be computed but not applied. They are applied later after the updates
         self.getExperience()._settings["state_normalization"] = "variance"
 
-        for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, advantage__,
+        for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, 
               datas__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t,
-                               _exp_actions, _advantage, datas):
+                               _exp_actions, datas):
 
             # Because the valid state checks only like numpy arrays, not lists
+            path = {}
+            path["states"] = np.array(state__)
+            path['reward'] = np.array(reward__)
+            path['agent_id'] = np.array(reward__) * 0
             state___ = state__
             next_state___ = next_state__
             
@@ -118,9 +122,12 @@ class LearningAgent(AgentInterface):
                 next_state___ = [ns[1] for ns in next_state__]
             # Validate data
             if (checkValidData(state___, action__, next_state___, reward__, verbose=True) and 
-                checkDataIsValid(advantage__, verbose=True), checkDataIsValid(G_t__, verbose=True)):
+                checkDataIsValid(G_t__, verbose=True)):
                 
-                if recomputeRewards:
+                if (recomputeRewards or
+                    (("force_use_mod_state_for_critic" in self._settings
+                    and (self._settings["force_use_mod_state_for_critic"] == True)))
+                    ):
                     path = {}
                     # timestep, agent, state
                     path["terminated"] = False
@@ -167,6 +174,20 @@ class LearningAgent(AgentInterface):
                     path['falls'] = fall__
                     path['agent_id'] = datas__['agent_id']
                     # print ("state__ shape: ", path['states'].shape)
+                    if ("force_use_mod_state_for_critic" in self._settings
+                        and (self._settings["force_use_mod_state_for_critic"] == True)):
+                        ### append recurrent state to state
+                        agent_encode, imitation_encode = self.getForwardDynamics().predict_encodings(agent_traj, imitation_traj)
+                        ## append to state
+                        path["states"] = np.concatenate((path["states"], agent_encode[0], imitation_encode[0]), axis=-1)
+                        print ("path[\"states\"] shape: ", np.array(path["states"]).shape)
+    #                         paths = compute_advantage_(self, [path], discount_factor, self._settings['GAE_lambda'])
+    #                         adv__ = paths["advantage"]
+    #                         baselines_.append(np.array(paths["baseline"]))
+    #                         advantage.append(np.array(adv__))
+                if (mode == "fd_only"):
+                    advantage__ = path["reward"]
+                else:
                     paths = compute_advantage_(self, [path], self._settings["discount_factor"], self._settings['GAE_lambda'])
                     advantage__ = paths["advantage"]
                     # baselines_.append(np.array(paths["baseline"]))
@@ -203,7 +224,8 @@ class LearningAgent(AgentInterface):
                             tup = ([state__[j][0]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
                         else:
                             tup = ([state__[j][0]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
-                    self.getExperience().insertTuple(tup)
+                    if (mode == "all" or (mode == "policy")):
+                        self.getExperience().insertTuple(tup)
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                         if ("use_dual_state_representations" in self._settings
                         and (self._settings["use_dual_state_representations"] == True)):
@@ -224,17 +246,20 @@ class LearningAgent(AgentInterface):
                                 # print ("fd exp state shape: ", state__[j][1].shape)
                                 tup = ([state__[j][1]], [action__[j]], [next_state__[j][1]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
                         # This is always done and works well for computing the adaptive state bounds.
-                        self.getFDExperience().insertTuple(tup)
+                        if (mode == "all" or (mode == "fd_only")):
+                            self.getFDExperience().insertTuple(tup)
                     num_samples_ = num_samples_ + 1
                     
         return ( num_samples_, (tmp_states, tmp_actions, tmp_result_states, tmp_rewards, tmp_falls, tmp_G_t, tmp_advantage, tmp_exp_action, tmp_datas))
         
     def recomputeRewards(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
-              _exp_actions, _G_t, datas, p=1):
+              _exp_actions, _G_t, datas, p=1,):
         """
             While learning a reward function re compute the rewards after performing critic and fd updates before policy update
         """
-        self.putDataInExpMem(_states, _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, datas, recomputeRewards=True, p=p)
+        self.putDataInExpMem(_states, _actions, _rewards, _result_states, _falls,
+                              _advantage, _exp_actions, _G_t, datas, recomputeRewards=True, p=p,
+                              mode="policy")
         
     def applyHER(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t, datas):
@@ -361,7 +386,8 @@ class LearningAgent(AgentInterface):
                                                  _advantage,
                                                  _exp_actions,
                                                  _G_t,
-                                                 datas)
+                                                 datas,
+                                                 mode="fd_only")
             
             ## Update scaling values
             # Updating the scaling values after the update(s) will help make things more accurate
@@ -653,6 +679,8 @@ class LearningAgent(AgentInterface):
                     rlPrint(self._settings, "train", "Refreshing rewards.")
                     self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
                                           __exp_actions, __G_t, __datas, p=p)
+                
+                
             loss = 0
             additional_on_poli_training_updates = 1
             if self._settings.get("additional_on_policy_training_updates", False) != False:

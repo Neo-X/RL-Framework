@@ -586,20 +586,20 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             path['task_id'] = np.array(np.array(task_ids[last_epoch_end:])[:,a,:])
         path["terminated"] = False
         ## Append so that we can preserve the paths/trajectory structure.
-        if (len(rewards[last_epoch_end:]) > 0):
-            paths = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
-            adv__ = paths["advantage"]
-            baselines_.append(np.array(paths["baseline"]))
-            advantage.append(np.array(adv__))
+#         if (len(rewards[last_epoch_end:]) > 0):
+#             paths = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
+#             adv__ = paths["advantage"]
+#             baselines_.append(np.array(paths["baseline"]))
+#             advantage.append(np.array(adv__))
 
-    if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
-        adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
-        R_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(path['reward'], rewards[last_epoch_end:], G_t)]
-        A_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(advantage, discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor), baseline)]
-        print ("last_epoch_end: ", last_epoch_end, " i_ ", i_)
-        print ("Advantage, R: ", adv_r)
-        print ("Rewards: ", R_r)
-        print ("Advantage, discounted Reward, baseline: ", np.array(A_r))
+#     if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
+#         adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
+#         R_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(path['reward'], rewards[last_epoch_end:], G_t)]
+#         A_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(advantage, discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor), baseline)]
+#         print ("last_epoch_end: ", last_epoch_end, " i_ ", i_)
+#         print ("Advantage, R: ", adv_r)
+#         print ("Rewards: ", R_r)
+#         print ("Advantage, discounted Reward, baseline: ", np.array(A_r))
 
     
     ### Fix data, Might need to unpack some vectors

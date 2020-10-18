@@ -387,6 +387,8 @@ class ExperienceMemory(object):
             
     def _updateScaling(self):
         
+        if self.inserts() < 5:
+            pass
         scale_factor = 1.0
         # state_std = np.maximum(np.sqrt(self._state_var[0]), 0.05)
         state_std = np.sqrt(self._state_var[0])

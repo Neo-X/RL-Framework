@@ -483,7 +483,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                 input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
                             else:
                                 input_ = keras.layers.Input(shape=(layer_info[i]["shape"][0],), name=stateName)
-                                self._State = input_ 
+                                self._State_ = input_ 
                         network = input_
                         self._State_ = input_   
                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):

@@ -95,6 +95,10 @@ class PPO_KERAS(KERASAlgorithm):
             and (self._settings["force_use_result_state_for_critic"] == True)):
             inputs_ = [self._model.getResultStateSymbolicVariable()]
             inputs_target = [self._modelTarget.getResultStateSymbolicVariable()]
+        elif ("force_use_mod_state_for_critic" in self._settings
+            and (self._settings["force_use_mod_state_for_critic"] == True)):
+            inputs_ = [self._model._State_]
+            inputs_target = [self._modelTarget._State_]
         else:
             inputs_ = [self._model.getStateSymbolicVariable()]
             inputs_target = [self._modelTarget.getStateSymbolicVariable()]
@@ -126,6 +130,10 @@ class PPO_KERAS(KERASAlgorithm):
             and (self._settings["force_use_result_state_for_critic"] == True)):
             inputs_ = [self._model.getResultStateSymbolicVariable()]
             inputs_target = [self._modelTarget.getResultStateSymbolicVariable()]
+        elif ("force_use_mod_state_for_critic" in self._settings
+            and (self._settings["force_use_mod_state_for_critic"] == True)):
+            inputs_ = [self._model._State_]
+            inputs_target = [self._modelTarget._State_]
         else:
             inputs_ = [self._model.getStateSymbolicVariable()]
             inputs_target = [self._modelTarget.getStateSymbolicVariable()]
@@ -358,8 +366,8 @@ class PPO_KERAS(KERASAlgorithm):
                                   # ,on_unused_input='warn'
                                   )
         
-        gradients = K.gradients(K.mean(self.__value), [self._model.getStateSymbolicVariable()]) # gradient tensors
-        self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable(),  K.learning_phase()], outputs=gradients)
+        gradients = K.gradients(K.mean(self.__value), inputs_) # gradient tensors
+        self._get_gradients = K.function(inputs=inputs_ + [K.learning_phase()], outputs=gradients)
         
         if ("force_use_result_state_for_critic" in self._settings
             and (self._settings["force_use_result_state_for_critic"] == True)):

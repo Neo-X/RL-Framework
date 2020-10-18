@@ -857,19 +857,23 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         predicted_reward = self.reward([states, actions, 0])[0]
         return predicted_reward
     
-    def predict_reward_(self, states, states2):
-        """
-            This data should NOT be normalized
-            This does a fancy trick to compute the reward over the entire sequence
-        """
+    def predict_encodings(self, states, states2):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
         states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         states2 = np.array(norm_state(states2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         h_a = self._model.processed_a_r_seq.predict([states])
         h_b = self._model.processed_b_r_seq.predict([states2])
+        return h_a, h_b
+    
+    def predict_reward_(self, states, states2):
+        """
+            This data should NOT be normalized
+            This does a fancy trick to compute the reward over the entire sequence
+        """
+        h_a, h_b = self.predict_encodings(states, states2)
 #         print ("h_b shape: ", h_b.shape) 
-        self._distance_r_weighting_
+#         self._distance_r_weighting_
         predicted_reward = self._distance_func_np([h_a, h_b])[0]
 #         predicted_reward = np.array([self._distance_func_np((np.array([h_a_]), np.array([h_b_]))) for h_a_, h_b_ in zip(h_a[0], h_b[0])])
 #         predicted_reward = np.log(predicted_reward)
