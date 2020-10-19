@@ -320,7 +320,7 @@
 	"comment__": "Batch size for the value function network",
 "value_function_batch_size": 32,
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
-"train_critic_with_fd_data": true,
+"train_critic_with_fd_data": false,
 	"comment__": "Use average of policy std as mbae learning rate",
 "use_std_avg_as_mbae_learning_rate": true,
 	"comment__": "Use the on-policy value function to compute state gradients instead of off-policy one for SMBAE.",

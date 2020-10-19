@@ -437,7 +437,7 @@
 	"comment__": "Batch size for the value function network",
 "value_function_batch_size": 64,
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
-"train_critic_with_fd_data": true,
+"train_critic_with_fd_data": false,
 	"comment__": "Additional on-policy training updates",
 "additional_on_policy_training_updates": 1,
 	"comment__": "Use average of policy std as mbae learning rate",
