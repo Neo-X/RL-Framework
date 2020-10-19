@@ -309,8 +309,6 @@
 "target_net_interp_weight": 0.001,
 	"comment__": "Batch size for the value function network",
 "value_function_batch_size": 64,
-	"comment__": "Train the critic off of the data stored in the exp for the fd model",
-"train_critic_with_fd_data": true,
 	"comment__": "Additional on-policy training updates",
 "additional_on_policy_training_updates": 2,
 	"comment__": "Use average of policy std as mbae learning rate",
@@ -499,7 +497,7 @@
 "seperate_posandneg_pairs": true,
 	"comment__": "Add noise to the target noise values",
 "target_noise_scale": 0.05,
-"rnn_updates": 128,	
+"rnn_updates": 0,	
 	"comment__": "Data for using comet ML for logging learning experiments",
 "experiment_logging":
 	{"use_comet": true,

@@ -103,7 +103,7 @@ class LearningAgent(AgentInterface):
         tmp_datas = []
         # Causes the new scaling values to be computed but not applied. They are applied later after the updates
         self.getExperience()._settings["state_normalization"] = "variance"
-
+        print ("mode: ", mode)
         for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, 
               datas__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t,
                                _exp_actions, datas):
@@ -125,13 +125,12 @@ class LearningAgent(AgentInterface):
                 checkDataIsValid(G_t__, verbose=True)):
                 
                 if (recomputeRewards or
-                    (("force_use_mod_state_for_critic" in self._settings
-                    and (self._settings["force_use_mod_state_for_critic"] == True)))
+                    ("force_use_mod_state_for_critic" in self._settings
+                    and (self._settings["force_use_mod_state_for_critic"] == True))
                     ):
-                    path = {}
                     # timestep, agent, state
                     path["terminated"] = False
-                
+                    print("totally recomputing rewards")
 
                     # This is where we can use the forward dynamics to "relable" rewards, i.e. set the reward function. E.g. for SLAC
                     if self._settings.get("use_learned_reward_function", None) == "ic2":
@@ -173,14 +172,21 @@ class LearningAgent(AgentInterface):
                     path['reward'] = reward__
                     path['falls'] = fall__
                     path['agent_id'] = datas__['agent_id']
-                    # print ("state__ shape: ", path['states'].shape)
+                    print ("state__ shape: ", np.array(path['states']).shape)
                     if ("force_use_mod_state_for_critic" in self._settings
                         and (self._settings["force_use_mod_state_for_critic"] == True)):
                         ### append recurrent state to state
                         agent_encode, imitation_encode = self.getForwardDynamics().predict_encodings(agent_traj, imitation_traj)
                         ## append to state
-                        path["states"] = np.concatenate((path["states"], agent_encode[0], imitation_encode[0]), axis=-1)
-                        print ("path[\"states\"] shape: ", np.array(path["states"]).shape)
+                        agent_states = np.array(
+                            [np.array([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
+                        print ("path[\"states\"] shape2222: ", np.array(agent_states).shape, agent_encode.shape, imitation_encode.shape)
+                        agent_states = np.concatenate((agent_states, agent_encode, imitation_encode), axis=-1)[0]
+                        print ("path[\"states\"] shape2222: ", np.array(agent_states).shape)
+                        
+                        states___ = [[mod_state, state___[1]] for tmp_states__, mod_state in zip(state__, agent_states)]
+                        path['states'] = states___
+                        datas__["mod_state"] = agent_states
     #                         paths = compute_advantage_(self, [path], discount_factor, self._settings['GAE_lambda'])
     #                         adv__ = paths["advantage"]
     #                         baselines_.append(np.array(paths["baseline"]))
@@ -209,9 +215,9 @@ class LearningAgent(AgentInterface):
                     for key in datas__:
                         # print ("key: ", key, " datas__", datas__[key])
                         try: ## sometimes the info dictionary has different data/keys...
-                            data___[key] = data_[key][j]
+                            data___[key] = datas__[key][j]
                         except:
-                            pass
+                            print("Error putting data into dictionary for tupple")
                     
                     tup = ([state__[j]], [action__[j]], [next_state__[j]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
                     if ("use_dual_state_representations" in self._settings
@@ -389,26 +395,6 @@ class LearningAgent(AgentInterface):
                                                  datas,
                                                  mode="fd_only")
             
-            ## Update scaling values
-            # Updating the scaling values after the update(s) will help make things more accurate
-            if self._settings.get("state_normalization", None) == "adaptive":
-                self.getExperience()._updateScaling()
-                self.setStateBounds(self.getExperience().getStateBounds())
-                if (self._settings["action_space_continuous"]):
-                    self.setActionBounds(self.getExperience().getActionBounds())
-                self.setRewardBounds(self.getExperience().getRewardBounds())
-                if self._settings.get('keep_seperate_fd_exp_buffer', False):
-                    self.getFDExperience()._updateScaling()
-                    if self._settings.get('train_forward_dynamics', False):
-                        self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
-                        if (self._settings["action_space_continuous"]):
-                            self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
-                        self.getForwardDynamics().setRewardBounds(self.getFDExperience().getRewardBounds())
-                log.debug("Learner, Scaling State params: ", self.getStateBounds())
-                log.debug("Learner, Scaling Action params: ", self.getActionBounds())
-                log.debug("Learner, Scaling Reward params: ", self.getRewardBounds())
-            
-            
             logExperimentData({}, "experience_mem_samples", self._expBuff.samples(), self._settings)
             
             batch_size_ = self._settings["batch_size"]        
@@ -416,15 +402,6 @@ class LearningAgent(AgentInterface):
                 batch_size_ = max(self._expBuff.samples(), 1)
                 # print ("num_samples_: ", num_samples_)
             # If for some reason the data was all garbage, skip this training update.
-            if ((self._expBuff.samples() < value_function_batch_size 
-                or (self._expBuff.samples() < batch_size_))
-                and
-                (not ("skip_rollouts" in self._settings and 
-                        (self._settings["skip_rollouts"] == True)))):
-                print("Data was mostly/all garbage or your batch size is larger than the data collected.", self._expBuff.samples(),
-                      " batch size ", batch_size_, 
-                      " value func batch size ", value_function_batch_size)
-                return 0
             t1 = time.time()
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                 sim_time_ = datetime.timedelta(seconds=(t1-t0))
@@ -675,11 +652,39 @@ class LearningAgent(AgentInterface):
 #                                       __exp_actions, __G_t, __datas)
 
             if ( "refresh_rewards" in self._settings
-                     and (self._settings["refresh_rewards"] == True)):
-                    rlPrint(self._settings, "train", "Refreshing rewards.")
-                    self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
-                                          __exp_actions, __G_t, __datas, p=p)
+                 and (self._settings["refresh_rewards"] == True)):
+                rlPrint(self._settings, "train", "Refreshing rewards.")
+                self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
+                                      __exp_actions, __G_t, __datas, p=p)
+            else:
+                (num_samples_,
+                 (tmp_states,
+                  tmp_actions,
+                  tmp_result_states,
+                  tmp_rewards,
+                  tmp_falls,
+                  tmp_G_t,
+                  tmp_advantage,
+                  tmp_exp_action,
+                  tmp_datas)) = self.putDataInExpMem(_states,
+                                                     _actions,
+                                                     _rewards,
+                                                     _result_states,
+                                                     _falls,
+                                                     _advantage,
+                                                     _exp_actions,
+                                                     _G_t,
+                                                     datas)
                 
+            if ((self._expBuff.samples() < value_function_batch_size 
+                or (self._expBuff.samples() < batch_size_))
+                and
+                (not ("skip_rollouts" in self._settings and 
+                        (self._settings["skip_rollouts"] == True)))):
+                print("Data was mostly/all garbage or your batch size is larger than the data collected.", self._expBuff.samples(),
+                      " batch size ", batch_size_, 
+                      " value func batch size ", value_function_batch_size)
+                return 0
                 
             loss = 0
             additional_on_poli_training_updates = 1
@@ -773,17 +778,6 @@ class LearningAgent(AgentInterface):
                         batch_size=batch_size_)
                 dynamicsLoss = 0
                 
-                if ('state_normalization' in self._settings and 
-                    (self._settings["state_normalization"] == "adaptive")):
-                    self.getExperience()._updateScaling()
-                    self.setStateBounds(self.getExperience().getStateBounds())
-                    self.setActionBounds(self.getExperience().getActionBounds())
-                    self.setRewardBounds(self.getExperience().getRewardBounds())
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
-                        print("Learner, Scaling State params: ", self.getStateBounds())
-                        print("Learner, Scaling Action params: ", self.getActionBounds())
-                        print("Learner, Scaling Reward params: ", self.getRewardBounds())
-                    
                 return (loss, dynamicsLoss)
                         
             for ii__ in range(additional_on_poli_training_updates):
@@ -950,37 +944,22 @@ class LearningAgent(AgentInterface):
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
                                 critic_loss = self.getPolicy().trainOnPolicyCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                             # loss = self.getPolicy().trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
-                            # print("Number of samples:", self._expBuff.samples())
-                            if ( 'give_mbae_actions_to_critic' in self._settings and 
-                                 (self._settings['give_mbae_actions_to_critic'] == False)):
-                                # if ( np.random.random() >= self._settings['model_based_action_omega']):
-                                if ( np.random.random() >= -1.0):
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
-                                    critic_loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
-                                                                 result_states=result_states__, falls=falls__, G_t=G_ts__,
-                                                                 p=p)
-                                else:
-                                    # print('off-policy action update')
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
-                                    actions____ = self.getPolicy().predict_batch(states=result_states__) 
-                                    predicted_result_states__ = self._fd.predict_batch(states=result_states__, actions=actions____)
-                                    rewards____ = self._fd.predict_reward_batch(states=result_states__, actions=actions____)
-                                    critic_loss = self.getPolicy().trainCritic(states=result_states__, actions=actions____, rewards=rewards____, 
-                                                                 result_states=predicted_result_states__, falls=falls__, G_t=G_ts__,
-                                                                 p=p)
+                            if ( 'keep_seperate_fd_exp_buffer' in self._settings 
+                                 and (self._settings['keep_seperate_fd_exp_buffer'] == True)
+                                and ('train_critic_with_fd_data' in self._settings) 
+                                 and (self._settings['train_critic_with_fd_data'] == True)
+                                 ):
+                                # print("Using seperate (off-policy) exp mem for Q model")
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self.getFDExperience().get_batch(value_function_batch_size)
                             else:
-                                if ( 'keep_seperate_fd_exp_buffer' in self._settings 
-                                     and (self._settings['keep_seperate_fd_exp_buffer'] == True)
-                                    and ('train_critic_with_fd_data' in self._settings) 
-                                     and (self._settings['train_critic_with_fd_data'] == True)
-                                     ):
-                                    # print("Using seperate (off-policy) exp mem for Q model")
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self.getFDExperience().get_batch(value_function_batch_size)
-                                else:
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
-                                critic_loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
-                                                             result_states=result_states__, falls=falls__, G_t=G_ts__,
-                                                             p=p)
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
+                                if ("force_use_mod_state_for_critic" in self._settings
+                                    and (self._settings["force_use_mod_state_for_critic"] == True)):
+                                    states__ = np.array([x for x in datas__["mod_state"]])
+                                    This needs to be normalized
+                            critic_loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
+                                                         result_states=result_states__, falls=falls__, G_t=G_ts__,
+                                                         p=p)
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print("Critic loss: ", critic_loss)
                             if not np.isfinite(loss) or (critic_loss > 500) :
@@ -1131,7 +1110,25 @@ class LearningAgent(AgentInterface):
             # print("Learning Agent: Model pointers: val, ", self.getPolicy().getModel(), " poli, ", self.getPolicy().getModel(),  " fd, ", self._fd.getModel())
             # print("pol first layer params: ", pol_params[1])
             # print("val first layer params: ", val_params[1])
-            # print("fd first layer params: ", fd_params[1])               
+            # print("fd first layer params: ", fd_params[1])         
+        ## Update scaling values
+        # Updating the scaling values after the update(s) will help make things more accurate
+        if self._settings.get("state_normalization", None) == "adaptive":
+            self.getExperience()._updateScaling()
+            self.setStateBounds(self.getExperience().getStateBounds())
+            if (self._settings["action_space_continuous"]):
+                self.setActionBounds(self.getExperience().getActionBounds())
+            self.setRewardBounds(self.getExperience().getRewardBounds())
+            if self._settings.get('keep_seperate_fd_exp_buffer', False):
+                self.getFDExperience()._updateScaling()
+                if self._settings.get('train_forward_dynamics', False):
+                    self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
+                    if (self._settings["action_space_continuous"]):
+                        self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
+                    self.getForwardDynamics().setRewardBounds(self.getFDExperience().getRewardBounds())
+            log.debug("Learner, Scaling State params: ", self.getStateBounds())
+            log.debug("Learner, Scaling Action params: ", self.getActionBounds())
+            log.debug("Learner, Scaling Reward params: ", self.getRewardBounds())      
                             
         if self._useLock:
             self._accesLock.release()

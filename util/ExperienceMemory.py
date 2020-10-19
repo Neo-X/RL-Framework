@@ -274,7 +274,7 @@ class ExperienceMemory(object):
         self.insert(state, action, nextState, reward, fall, G_t, exp_action, advantage, data)
         
     def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]], exp_action=[[0]], advantage=[[0]], data={}):
-        # print "Instert State: " + str(state)
+#         print ("Instert ", self.inserts(), " State: ", str(state))
         # state = list(state)
         # print ("state shape: ", np.array(state).shape)
         if ("use_hack_state_trans" in self.getSettings()
@@ -291,14 +291,7 @@ class ExperienceMemory(object):
         assert len(fall[0]) == 1
         assert len(G_t[0]) == 1
         assert len(exp_action[0]) == 1, "len(exp_action[0]) == 1: " + str(np.asarray(exp_action[0]).shape) + " == " + str(1)
-        """
-        state = list(state)
-        action = list(action)
-        nextState = list(nextState)
-        reward = list(reward)
-        nums = state+action+nextState+reward
-        """
-        
+
         if ( checkValidData(state, action, nextState, reward, verbose=True) == False ):
             print ("Skip inserting bad tuple: ")
             return
@@ -344,7 +337,7 @@ class ExperienceMemory(object):
         return self._history_size
     
     def updateScalling(self, state, action, nextState, reward):
-        
+        assert self.inserts() > 0
         if (self.inserts() == 1):
             self._state_mean =  self._state_history[0]
             self._state_var = np.ones_like(state)
@@ -387,8 +380,9 @@ class ExperienceMemory(object):
             
     def _updateScaling(self):
         
+        print ("_updateScaling self.inserts(): ", self.inserts())
         if self.inserts() < 5:
-            pass
+            return
         scale_factor = 1.0
         # state_std = np.maximum(np.sqrt(self._state_var[0]), 0.05)
         state_std = np.sqrt(self._state_var[0])
