@@ -316,7 +316,7 @@
 	"comment__": "The parameter used to control the average change in the control parameters",
 "average_parameter_change": 0.25,
 	"comment__": "Whether or not to train the value function some output from the forward dynamics",
-"train_critic_on_fd_output": true,
+"train_critic_with_fd_data": false,
 	"comment__": "Use to add an additional regularization term to prevent the network from moving to far from its previous values",
 "use_previous_value_regularization": false,
 	"comment__": "Controls the level of information that is printed to the terminal",
