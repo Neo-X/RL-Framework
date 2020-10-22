@@ -411,9 +411,11 @@ class Plotter(object):
 #                     logExperimentData(trainData, "falls", np.mean([met["falls"] for met in otherMetrics]), self._settings)
                 for key in otherMetrics[0].keys() - ['rendering']:
                     ### Put all info data in the logs
-                    # print ("attempting to log metrics: ", key, " values: ", [met[key] for met in otherMetrics])
-                    
-                    logExperimentData(trainData, key, np.mean([met[key] for met in otherMetrics]), self._settings)
+                    met_data=[] ### There can be different numbers of agents.
+                    for met in otherMetrics:
+                        met_data.extend(np.array(met[key]).flatten())
+#                     print ("attempting to log metrics: ", key, " values: ", met_data)
+                    logExperimentData(trainData, key, np.mean(met_data), self._settings)
                     # pass
 #                     logExperimentData(trainData, "mem_usage_sim", np.mean([met["mem_usage_sim"] for met in otherMetrics]), self._settings)
 

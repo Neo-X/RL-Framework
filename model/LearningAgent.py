@@ -113,6 +113,7 @@ class LearningAgent(AgentInterface):
             path["states"] = np.array(state__)
             path['reward'] = np.array(reward__)
             path['agent_id'] = np.array(reward__) * 0
+            path["terminated"] = False
             state___ = state__
             next_state___ = next_state__
             
@@ -171,6 +172,7 @@ class LearningAgent(AgentInterface):
                     path['states'] = state__ # np.array([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in state__])
                     path['reward'] = reward__
                     path['falls'] = fall__
+                    
                     path['agent_id'] = datas__['agent_id']
 #                     print ("state__ shape: ", np.array(path['states']).shape)
                     if ("force_use_mod_state_for_critic" in self._settings
