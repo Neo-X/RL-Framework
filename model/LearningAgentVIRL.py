@@ -6,7 +6,7 @@ import datetime
 from multiprocessing import Process
 # from pathos.multiprocessing import Pool
 import logging
-from model.AgentInterface import AgentInterface
+from model.LearningAgent import LearningAgent
 from model.ModelUtil import *
 from util.SimulationUtil import logExperimentData
 from util.utils import rlPrint
@@ -18,7 +18,7 @@ import time
 log = logging.getLogger(os.path.basename(__file__))
 # np.set_printoptions(threshold=np.nan)
 
-class LearningAgent(AgentInterface):
+class LearningAgentVIRL(LearningAgent):
     
     def __init__(self, settings_):
         super(LearningAgent,self).__init__(n_in=None, n_out=None, state_bounds=None, 
@@ -251,22 +251,7 @@ class LearningAgent(AgentInterface):
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                         if ("use_dual_state_representations" in self._settings
                         and (self._settings["use_dual_state_representations"] == True)):
-                            if ("use_viz_for_policy" in self._settings 
-                                and self._settings["use_viz_for_policy"] == True):
-                                # Want viz for input and dense for output to condition the preception part of the network
-                                tup = ([state__[j][1]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
-                            elif ("use_dense_results_state" in self._settings
-                                and (self._settings["use_dense_results_state"] == True)):
-                                ### Want viz for input and dense for output to condition the preception part of the network
-#                                 print ("state__[j][0] shape: ", state__[j][0])
-#                                 print ("state__[j][1] shape: ", state__[j][1])
-                                tup = ([next_state__[j][1]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
-                                self.getFDExperience().insertTuple(tup)
-                                tup = ([state__[j][1]], [action__[j]], [state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
-                            else:
-                                # print ("self.getFDExperience().getStateBounds() shape : ", self.getFDExperience().getStateBounds())
-                                # print ("fd exp state shape: ", state__[j][1].shape)
-                                tup = ([state__[j][1]], [action__[j]], [next_state__[j][1]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
+                            tup = ([data___["agent_obs_before"]], [action__[j]], [data___["expert_obs_before"]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)
                         # This is always done and works well for computing the adaptive state bounds.
                         if (mode == "all" or (mode == "fd_only")):
                             self.getFDExperience().insertTuple(tup)
@@ -283,71 +268,6 @@ class LearningAgent(AgentInterface):
                               _advantage, _exp_actions, _G_t, datas, recomputeRewards=True, p=p,
                               mode="policy")
         
-    def applyHER(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
-              _exp_actions, _G_t, datas):
-        import numpy as np
-        # Hindsight Experience Replay
-        ## Add Trajectories that achieved some goal
-        # For each trajectory add another trajectory with a modified goal
-
-        hindsight_relabel_probability = 1.0 if not "hindsight_relabel_probability" in self.getSettings() else self.getSettings()["hindsight_relabel_probability"]
-
-        new_states = []
-        new_result_states = []
-        new_rewards = []
-        new_actions = []
-        new_falls = []
-        new_advantage = []
-        new_exp_actions = []
-        new_G_t = []
-
-        trajectories = len(_states)
-        for traj in range(trajectories):
-            # Get the new goal(s) for the trajectory
-            # new_goals = [x for x in copy.deepcopy(_result_states[traj])]
-            states = np.array(copy.deepcopy(_states[traj]))
-            new_goals = []
-            for g in range(len(_result_states[traj])):
-                g_index = ((int(g / self._settings["hlc_timestep"])+1) * self._settings["hlc_timestep"]) -1
-                g_index = min(g_index, len(_result_states[traj])-1)
-                original_goal = states[g, -self._settings["goal_slice_index"]:]
-                if np.random.uniform() < hindsight_relabel_probability:
-                    new_goals.append(_result_states[traj][g_index][:self._settings["goal_slice_index"]])
-                else:
-                    new_goals.append(original_goal)
-
-            # Copy in the new goals
-            new_goals = np.array(new_goals)
-            result_states = np.array(copy.deepcopy(_result_states[traj]))
-            states[:,-self._settings["goal_slice_index"]:] = new_goals
-            result_states[:,-self._settings["goal_slice_index"]:] = new_goals
-            rewards = copy.deepcopy(_rewards[traj])
-            diff = result_states[:,:self._settings["goal_slice_index"]] - new_goals
-            rewards = -np.sum(diff * diff, axis=-1, keepdims=True)
-            
-            new_states.append(states)
-            new_result_states.append(result_states)
-            new_rewards.append(rewards)
-            new_actions.append(_actions[traj])
-            new_falls.append(_falls[traj])
-            new_advantage.append(_advantage[traj])
-            new_exp_actions.append(_exp_actions[traj])
-            new_G_t.append(_G_t[traj])
-            
-            """
-                achieved_goal = result_states___[-1][0, :self._settings["goal_slice_index"]]
-                states[jj][0, ...] = np.concatenate([
-                    states[jj][0, :self._settings["goal_slice_index"]],
-                    achieved_goal], 0)
-                result_states___[jj][0, ...] = np.concatenate([
-                    result_states___[jj][0, :self._settings["goal_slice_index"]],
-                    achieved_goal], 0)
-                # Basic version of reward function is indicator of reached goal threshold
-                rewards = (rewards * 0) + -1
-                rewards[-1] = [1]
-            """
-        return (new_states, new_actions, new_rewards, new_result_states, new_falls, new_advantage,
-              new_exp_actions, new_G_t, datas)
                 
     def getAgents(self):
         return [self]

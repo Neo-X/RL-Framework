@@ -7,6 +7,7 @@ from multiprocessing import Process, Queue
 import threading
 import time
 from model.LearningAgent import LearningAgent
+from model.LearningAgentVIRL import LearningAgentVIRL
 from model.ModelUtil import *
 from util.utils import rlPrint
 import os
@@ -52,7 +53,11 @@ class LearningMultiAgent(LearningAgent):
             # LearningAgent(self.getSettings())
             settings__["use_hindsight_relabeling"] = False
             settings__["agent_id"] = m
-            agent = LearningAgent(settings__)
+            if ("training_algorithm" in self.getSettings()
+                and (self.getSettings()["training_algorithm"] == "VIRL")):
+                agent = LearningAgentVIRL(settings__)
+            else:
+                agent = LearningAgent(settings__)
             self._agents.append(agent)
         # self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]
         # list of periods over which each agent is active

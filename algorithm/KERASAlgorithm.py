@@ -220,25 +220,11 @@ class KERASAlgorithm(AlgorithmInterface):
             and (self._settings["use_fall_reward_shaping"] == True)): ### This does not play nice with multi-tasking...
             # print ("Shaping reward", np.concatenate((target_, falls, target_ * falls), axis=1))
             target = target * falls
-        # states = np.array(states, dtype=self._settings['float_type'])
-        # print ("target type: ", target_.dtype)
-        # print ("states type: ", states.dtype)
-        """
-        v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-        v_ = self._model.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-        y_ = self._modelTarget.getCriticNetwork().predict(states, batch_size=states.shape[0])
-        y__ = self._value_Target([states,0])[0]
-        v__ = self._value([states,0])[0]
-        self.printWeights()
-        # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
-        c_error = np.mean(np.mean(np.square(v - target_), axis=1))
-        """
         if ('anneal_learning_rate' in self.getSettings()
             and (self.getSettings()['anneal_learning_rate'] == True)):
             K.set_value(self._model.getCriticNetwork().optimizer.lr, np.float32(self.getSettings()['critic_learning_rate']) * p)
             # lr = K.get_value(self._model.getCriticNetwork().optimizer.lr)
             # print ("New critic learning rate: ", lr)
-        # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
         # if (c_error < 10.0):
         score = self._model.getCriticNetwork().fit(states, target,
               epochs=updates, batch_size=batch_size_,
@@ -305,18 +291,11 @@ class KERASAlgorithm(AlgorithmInterface):
         if (("train_LSTM_Critic" in self._settings)
             and (self._settings["train_LSTM_Critic"] == True)):
             state = np.array([state], dtype=self._settings['float_type'])
-        # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        # print ("State shape: ", state.shape)
-        # value = scale_reward(self._model.getCriticNetwork().predict(state), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         value = (self._model.getCriticNetwork().predict(state) * action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        # value = scale_reward(self._value([state,0])[0], self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        # print ("value: ", repr(np.array(value)))
         return [np.array([np.mean(value)])]
-        # return self._q_val()[0]
         
     def q_values2(self, states, wrap=True):
         ### These versions of states are NOT normalized yet
-        # print ("states: ", np.array(states).shape)
         bounds = np.array([np.zeros((np.array(states).shape[-1])) - 1, np.zeros((np.array(states).shape[-1])) + 1 ])
         bounds[:,0:len(self._state_bounds[0])] = self._state_bounds
         
@@ -329,26 +308,14 @@ class KERASAlgorithm(AlgorithmInterface):
             # states = np.array([states], dtype=self._settings['float_type'])
             values = []
             self.reset()
-            ##if ("train_LSTM_stateful" in self._settings
-            ##    and (self._settings["train_LSTM_stateful"] == True)):
             for s in states:
                 s_ = np.array([np.array([s])])
-                # print ("s shape: ", s_.shape)
-                ### Seems to return a batch for some reason
                 v_ = np.mean(self._model.getCriticNetwork().predict([s_]))
                 b_ = action_bound_std(self.getRewardBounds())
                 value = (v_ * b_) * (1.0 / (1.0- self.getSettings()['discount_factor']))
                 values.append(value)
             return values
-            # else:
-            #     values = self._model.getCriticNetwork().predict(states)
-            #     print ("values shape: ", repr(np.array(values).shape))
-            #     return values
-        # print("states: ", repr(states))
         values = (self._model.getCriticNetwork().predict(states) * action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        # values = self._model.getCriticNetwork().predict(states)
-        # values = self._value([states,0])[0]
-        # print ("values: ", repr(np.array(values)))
         return values
             
     def q_values(self, states, wrap=True):
@@ -425,7 +392,8 @@ class KERASAlgorithm(AlgorithmInterface):
             # target_ = rewards + ((self._discount_factor * y_) * falls)
             target_ = rewards + ((self._discount_factor * y_))
             # values =  self._model.getValueFunction().predict(states, batch_size=states.shape[0])
-            values = self._value([states,0])[0]
+#             values = self._value([states,0])[0]
+            values = self._model.getCriticNetwork().predict(states)
             bellman_error = target_ - values
             return bellman_error
         # return self._bellman_errorTarget()
