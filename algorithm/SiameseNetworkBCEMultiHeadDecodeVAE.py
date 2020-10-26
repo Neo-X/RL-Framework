@@ -621,7 +621,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             else:
                 # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
                 targets__ = np.mean(targets_, axis=1)
-#                 print ("targets__: ", np.mean(targets__))
+                print ("targets__: ", np.mean(targets__))
                 logExperimentData({}, "virl_target_mean", np.mean(targets__), self._settings)
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
@@ -655,6 +655,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
 #                         indecies_ = list(range(len(targets__)))
                         # print ("targets__: ", targets__)
                         # print("indecies_: ", indecies_)
+#                         print ("targets__", np.mean(targets__))
                         if ("seperate_posandneg_pairs" in self._settings
                             and (self._settings["seperate_posandneg_pairs"] == True)):
                             less_ = np.less(targets__, 0.5)
