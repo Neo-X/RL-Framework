@@ -603,6 +603,10 @@ class LearningAgentVIRL(LearningAgent):
                 rlPrint(self._settings, "train", "Refreshing rewards.")
                 self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
                                       __exp_actions, __G_t, __datas, p=p)
+            elif (self._settings["train_actor"] == False and 
+                  self._settings["train_critic"] == False):
+                print("Not training actor or critic")
+                return 0
             else:
                 (num_samples_,
                  (tmp_states,
