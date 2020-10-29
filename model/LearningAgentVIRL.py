@@ -125,9 +125,10 @@ class LearningAgentVIRL(LearningAgent):
             if (checkValidData(state___, action__, next_state___, reward__, verbose=True) and 
                 checkDataIsValid(G_t__, verbose=True)):
                 
-                if (recomputeRewards or
-                    ("force_use_mod_state_for_critic" in self._settings
-                    and (self._settings["force_use_mod_state_for_critic"] == True))
+                if (recomputeRewards 
+#                     or
+#                     ("force_use_mod_state_for_critic" in self._settings
+#                     and (self._settings["force_use_mod_state_for_critic"] == True))
                     ):
                     # timestep, agent, state
                     path["terminated"] = False
