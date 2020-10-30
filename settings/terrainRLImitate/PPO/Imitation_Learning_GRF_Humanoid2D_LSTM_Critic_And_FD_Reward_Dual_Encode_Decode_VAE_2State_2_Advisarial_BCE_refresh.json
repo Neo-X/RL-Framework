@@ -452,7 +452,7 @@
 	"comment__": "The type of distance function the fd learning model should use to compute differences.",
 "fd_distance_function": "l1",
 	"comment__": "image noise factor that is added to the frames captured from the simulations",
-"image_noise_scale": 0.00,
+"image_noise_scale": 0.03,
 	"comment__": "Return sequences from lstm training",
 "return_rnn_sequence": false,
 	"comment__": "condition siamese network on RNN internal state as well.",
@@ -501,7 +501,7 @@
 	"comment__": "Seperate the positive and negative pairs and perform two batches over the data.",
 "seperate_posandneg_pairs": false,
 	"comment__": "Add noise to the target noise values",
-"target_noise_scale": 0.05,
+"target_noise_scale": 0.02,
 "rnn_updates": 128,	
 	"comment__": "Data for using comet ML for logging learning experiments",
 "experiment_logging":

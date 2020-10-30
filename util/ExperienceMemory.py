@@ -135,12 +135,12 @@ class ExperienceMemory(object):
         ### Find length of shortest trajectory...
         min_seq_length = 1
         if ("min_sequece_length" in self._settings):
-            min_seq_length = self._settings["min_sequece_length"]
+            min_seq_length = self._settings["min_sequece_length"] + 1
         shortest_traj = 100000000
         traj_start = 0
         for t in range(len(state_)):
             if len(state_[t]) < shortest_traj:
-                shortest_traj = len(state_[t])
+                shortest_traj = max(len(state_[t]), min_seq_length)
                 
         ### Choose a random time to start
         if (randomStart == True):
@@ -164,6 +164,8 @@ class ExperienceMemory(object):
             shortest_traj = traj_start + max_length
         ### Make all trajectories as long as the shortest one...
         for t in range(len(state_)):
+            if (len(state_[t]) < min_seq_length):
+                continue
             state_[t] = state_[t][traj_start:shortest_traj]
             action_[t] = action_[t][traj_start:shortest_traj]
             # print ("resultState_[t]: ", np.array(resultState_[t]).shape)
