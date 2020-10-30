@@ -182,7 +182,7 @@
 	"comment__": "The parameter used to control the average change in the control parameters",
 "average_parameter_change": 0.25,
 	"comment__": "Whether or not to train the value function some output from the forward dynamics",
-"train_critic_on_fd_output": true,
+"train_critic_with_fd_data": false,
 	"comment__": "Use to add an additional regularization term to prevent the network from moving to far from its previous values",
 "use_previous_value_regularization": false,
 	"comment__": "Controls the level of information that is printed to the terminal",
@@ -497,7 +497,7 @@
 "seperate_posandneg_pairs": true,
 	"comment__": "Add noise to the target noise values",
 "target_noise_scale": 0.05,
-"rnn_updates": 0,	
+"rnn_updates": 128,	
 	"comment__": "Data for using comet ML for logging learning experiments",
 "experiment_logging":
 	{"use_comet": true,
@@ -511,5 +511,6 @@
 "virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00],
 "use_max_T_annealing": false,
 "use_stochastic_evaluation": false,
-"force_use_mod_state_for_critic": true
+"force_use_mod_state_for_critic": true,
+"use_dictionary_obs_from_data": true
 }

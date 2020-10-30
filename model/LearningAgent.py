@@ -103,7 +103,7 @@ class LearningAgent(AgentInterface):
         tmp_datas = []
         # Causes the new scaling values to be computed but not applied. They are applied later after the updates
         self.getExperience()._settings["state_normalization"] = "variance"
-        print ("mode: ", mode)
+#         print ("mode: ", mode)
         for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, 
               datas__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t,
                                _exp_actions, datas):
@@ -113,6 +113,7 @@ class LearningAgent(AgentInterface):
             path["states"] = np.array(state__)
             path['reward'] = np.array(reward__)
             path['agent_id'] = np.array(reward__) * 0
+            path["terminated"] = False
             state___ = state__
             next_state___ = next_state__
             
@@ -130,7 +131,7 @@ class LearningAgent(AgentInterface):
                     ):
                     # timestep, agent, state
                     path["terminated"] = False
-                    print("totally recomputing rewards")
+#                     print("totally recomputing rewards")
 
                     # This is where we can use the forward dynamics to "relable" rewards, i.e. set the reward function. E.g. for SLAC
                     if self._settings.get("use_learned_reward_function", None) == "ic2":
@@ -144,9 +145,11 @@ class LearningAgent(AgentInterface):
                             self._marginal.add(latent_sample[k])
                     else:
                         agent_traj = np.array(
-                            [np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
+                            [np.array([np.array(np.array(tmp_states__), 
+                                                dtype=self._settings['float_type']) for tmp_states__ in datas__["agent_obs"]])])
                         
-                        imitation_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in next_state__])])
+                        imitation_traj = np.array([np.array([np.array(np.array(tmp_states__), 
+                                                                      dtype=self._settings['float_type']) for tmp_states__ in datas__["expert_obs"]])])
 #                         reward__0 = exp.computeImitationReward(rewmodel.predict)
                         ##Don't need - for BCE reward
 #                         print ("imitation_traj shape: ", imitation_traj.shape)
@@ -171,22 +174,35 @@ class LearningAgent(AgentInterface):
                     path['states'] = state__ # np.array([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in state__])
                     path['reward'] = reward__
                     path['falls'] = fall__
+                    
                     path['agent_id'] = datas__['agent_id']
-                    print ("state__ shape: ", np.array(path['states']).shape)
+#                     print ("state__ shape: ", np.array(path['states']).shape)
                     if ("force_use_mod_state_for_critic" in self._settings
                         and (self._settings["force_use_mod_state_for_critic"] == True)):
                         ### append recurrent state to state
-                        agent_encode, imitation_encode = self.getForwardDynamics().predict_encodings(agent_traj, imitation_traj)
+                        agent_traj_before = np.array(
+                            [np.array([np.array(np.array(tmp_states__), dtype=self._settings['float_type']) for tmp_states__ in datas__["agent_obs_before"]])])
+                        imitation_traj_before = np.array([np.array([np.array(np.array(tmp_states__), dtype=self._settings['float_type']) for tmp_states__ in datas__["expert_obs_before"]])])
+                        
+                        agent_encode, imitation_encode = self.getForwardDynamics().predict_encodings(agent_traj_before, imitation_traj_before)
+                       
+                        agent_encode_next, imitation_encode_next = self.getForwardDynamics().predict_encodings(agent_traj, imitation_traj)
                         ## append to state
                         agent_states = np.array(
                             [np.array([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
-                        print ("path[\"states\"] shape2222: ", np.array(agent_states).shape, agent_encode.shape, imitation_encode.shape)
+#                         print ("path[\"states\"] shape2222: ", np.array(agent_states).shape, agent_encode.shape, imitation_encode.shape)
                         agent_states = np.concatenate((agent_states, agent_encode, imitation_encode), axis=-1)[0]
-                        print ("path[\"states\"] shape2222: ", np.array(agent_states).shape)
+                        agent_states_next = np.array(
+                            [np.array([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in next_state__])])
+                        agent_states_next = np.concatenate((agent_states_next, agent_encode_next, imitation_encode), axis=-1)[0]
+#                         print ("path[\"states\"] shape2222: ", np.array(agent_states).shape)
                         
                         states___ = [[mod_state, state___[1]] for tmp_states__, mod_state in zip(state__, agent_states)]
                         path['states'] = states___
+                        ### (state, encode_state_agent, encode_state_expert)
                         datas__["mod_state"] = agent_states
+                        ### (state, encode_state_agent_next, encode_state_expert_next)
+                        datas__["mod_state_next"] = agent_states_next
     #                         paths = compute_advantage_(self, [path], discount_factor, self._settings['GAE_lambda'])
     #                         adv__ = paths["advantage"]
     #                         baselines_.append(np.array(paths["baseline"]))
@@ -394,6 +410,17 @@ class LearningAgent(AgentInterface):
                                                  _G_t,
                                                  datas,
                                                  mode="fd_only")
+            if self._settings.get("state_normalization", None) == "adaptive":
+                if self._settings.get('keep_seperate_fd_exp_buffer', False):
+                    self.getFDExperience()._updateScaling()
+                    if self._settings.get('train_forward_dynamics', False):
+                        self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
+                        if (self._settings["action_space_continuous"]):
+                            self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
+                        self.getForwardDynamics().setRewardBounds(self.getFDExperience().getRewardBounds())
+                log.debug("Learner, Scaling State params: ", self.getStateBounds())
+                log.debug("Learner, Scaling Action params: ", self.getActionBounds())
+                log.debug("Learner, Scaling Reward params: ", self.getRewardBounds())
             
             logExperimentData({}, "experience_mem_samples", self._expBuff.samples(), self._settings)
             
@@ -956,7 +983,8 @@ class LearningAgent(AgentInterface):
                                 if ("force_use_mod_state_for_critic" in self._settings
                                     and (self._settings["force_use_mod_state_for_critic"] == True)):
                                     states__ = np.array([x for x in datas__["mod_state"]])
-                                    This needs to be normalized
+                                    result_states__ = np.array([x for x in datas__["mod_state_next"]])
+                                    ### TODO This needs to be normalized
                             critic_loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
                                                          result_states=result_states__, falls=falls__, G_t=G_ts__,
                                                          p=p)
@@ -1484,6 +1512,11 @@ class LearningAgent(AgentInterface):
             import numpy as np
             state = np.array(state)
             state = state[:,:len(self.getStateBounds()[0])]
+        if ("force_use_mod_state_for_critic" in self._settings
+            and (self._settings["force_use_mod_state_for_critic"] == True)):
+            import numpy as np
+            state = np.array([x for x in datas["mod_state"]])
+            result_state = np.array([x for x in datas["mod_state_next"]])
         err = self.getPolicy().bellman_error(state, action, reward, result_state, fall)
         if self._useLock:
             self._accesLock.release()

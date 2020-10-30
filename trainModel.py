@@ -177,6 +177,7 @@ def createLearningAgent(settings, output_experience_queue, print_info=False):
         Create the Learning Agent to be used
     """
     from model.LearningAgent import LearningWorker
+    from model.LearningAgent import LearningWorker
     from model.LearningMultiAgent import LearningMultiAgent
     
     learning_workers = []

@@ -19,32 +19,31 @@ source activate <env-name>
 pip install -r requirements.txt
 ```
 
-## Install On Windows
-
-  1. Install [Anaconda](https://www.continuum.io/downloads)
-  1. Follow the [setup instruction for Theano](http://deeplearning.net/software/theano/install_windows.html#install-requirements-and-optional-packages)
-   which are 
-   ```
-   	conda install numpy scipy mkl-service libpython m2w64-toolchain <nose> <nose-parameterized> <sphinx> <pydot-ng>
-   ```
-
-
-
-### For GPU training
-
- 1. sudo apt-get install nvidia-cuda-toolkit nvidia-cuda-dev nvidia-modprobe  
-	These libraries are needed to compile code for the GPU as well as to check what GPU devices are available
-
-NOTE: Ran into this issue on Ubuntu 16.04 (https://github.com/Theano/Theano/issues/4425)
-As a temporary workaround, I use the following hack:
-
-    Add cmd.append('-D_FORCE_INLINES') just before p = subprocess.Popen( in the file nvcc_compiler.py
-
 
 ## Using The system
 
+Train a simple policy to navigate a particle
+
 ```
 python3 trainModel.py --config=settings/particleSim/PPO/PPO.json
+```
+
+Train a model to imitate humanoid motion.
+
+```
+python3 doodad_trainModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase.json
+```
+
+Train a humanoid3d LLC for heirarchical training
+
+```
+python3 doodad_trainModel.py --config=settings/terrainRLImitate3D/PPO/Humanoid_Flat_Tensorflow_MultiAgent_WithObs_LLC_v3.json
+```
+
+Train a hierarchical model to navigate agents across many different scenarios
+
+```
+python3 doodad_trainModel.py --config=settings/terrainRLMultiChar/HLC/TD3/ScenarioMixture_WithObs_SimpleReward_Humanoid_1_Tensorflow_v4.json --log_comet=true --shouldRender=false --bootstrap_samples=1 --run_mode=local_docker --meta_sim_samples=4 --meta_sim_threads=4
 ```
 
 ### Running meta simulations
@@ -52,11 +51,12 @@ python3 trainModel.py --config=settings/particleSim/PPO/PPO.json
 These simulations are designed to sample a few simulations in order to get a more reasonable average of the performance of a method.
 
 ```
-python3 tuneHyperParameters.py --config=tests/settings/particleSim/PPO/PPO_KERAS_Tensorflow.json --metaConfig=settings/hyperParamTuning/elementAI.json --meta_sim_samples=5 --meta_sim_threads=5 --tuning_threads=2
+python3 doodad_trainModel.py --config=tests/settings/particleSim/PPO/PPO_KERAS_Tensorflow.json --metaConfig=settings/hyperParamTuning/elementAI.json --meta_sim_samples=5 --meta_sim_threads=5 --tuning_threads=2
 ```
 
+## Info about how the code works
 
-## References
+1. This code uses doodad to help make running many simulations on different compute systems easy.
+2. Hyperparameters can be sampled using the `--tuningConfig=` command on the command line.
+3. One of the simulation platforms TerrainRLSim provides a large number of physics-based robot simulations. This library is coded in C++ and very fast. 
 
- 1. https://github.com/Newmu/Theano-Tutorials
- 2. https://github.com/spragunr/deep_q_rl

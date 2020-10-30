@@ -241,7 +241,7 @@
     "use_parameterized_control": false,
     "epochs": 5,
     "fix_actor_batch_size": true,
-    "train_critic_on_fd_output": true,
+    "train_critic_with_fd_data": false,
     "activation_type": "tanh",
     "rho": 0.95,
     "forward_dynamics_model_type": "model.ForwardDynamicsDenseNetworkDropoutTesting.ForwardDynamicsDenseNetworkDropoutTesting",

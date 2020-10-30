@@ -384,7 +384,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
 
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
-                                    clipnorm=2.5)
+                                    clipnorm=1.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
@@ -655,6 +655,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
 #                         indecies_ = list(range(len(targets__)))
                         # print ("targets__: ", targets__)
                         # print("indecies_: ", indecies_)
+#                         print ("targets__", np.mean(targets__))
                         if ("seperate_posandneg_pairs" in self._settings
                             and (self._settings["seperate_posandneg_pairs"] == True)):
                             less_ = np.less(targets__, 0.5)
@@ -667,7 +668,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                                 
                         
                         score = self._model._reward_net.fit([sequences0[indecies_], sequences1[indecies_]], 
-                                      [targets__[indecies_], 
+                                      [targets__[indecies_] * 0, 
                                        targets_[indecies_],
 #                                        np.flip(sequences0_[indecies_], axis=1),
 #                                        np.flip(sequences1_[indecies_], axis=1),
@@ -700,10 +701,9 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                                       verbose=0
                                       )
                             loss_ = score_.history['loss']
-                            if 'loss' in score.history:
-                                score.history['loss'].extend(loss_)
-                            else:
-                                score.history['loss']= loss_
+                            for key in score_.history.keys():
+                                if key in score.history:
+                                    score.history[key].extend(score_.history[key])
                         
                     else:
                         score = self._model._reward_net.fit([sequences0, sequences1], [targets__],

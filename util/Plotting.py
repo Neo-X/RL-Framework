@@ -339,6 +339,9 @@ class Plotter(object):
                         logExperimentData(trainData, "reward_self_disagreement_expert", np.mean(reward__r_1), self._settings)
                         reward__fd_1 = masterAgent.getForwardDynamics().predict_reward_fd(resultState_, resultState_s)
                         logExperimentData(trainData, "reward_self_disagreement_expert_fd", np.mean(reward__fd_1), self._settings)
+                        
+                        reward_1 = masterAgent.getForwardDynamics().predict_reward_(state_, resultState_)
+                        logExperimentData(trainData, "reward_agreement_adversarial_distance", np.mean(reward_1), self._settings)
                 else:
                     dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
                 
@@ -411,9 +414,11 @@ class Plotter(object):
 #                     logExperimentData(trainData, "falls", np.mean([met["falls"] for met in otherMetrics]), self._settings)
                 for key in otherMetrics[0].keys() - ['rendering']:
                     ### Put all info data in the logs
-                    # print ("attempting to log metrics: ", key, " values: ", [met[key] for met in otherMetrics])
-                    
-                    logExperimentData(trainData, key, np.mean([met[key] for met in otherMetrics]), self._settings)
+                    met_data=[] ### There can be different numbers of agents.
+                    for met in otherMetrics:
+                        met_data.extend(np.array(met[key]).flatten())
+#                     print ("attempting to log metrics: ", key, " values: ", met_data)
+                    logExperimentData(trainData, key, np.mean(met_data), self._settings)
                     # pass
 #                     logExperimentData(trainData, "mem_usage_sim", np.mean([met["mem_usage_sim"] for met in otherMetrics]), self._settings)
 

@@ -883,9 +883,10 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         import gym
         from gym import wrappers
         from gym import envs
+        from util.info_dict_wrapper import InfoDictStateWrapperLaikago
         from sim.OpenAIGymEnv import OpenAIGymEnv
         import envs.env_builder as env_builder
-        motion_file="/home/gberseth/playground/motion_imitation/motion_imitation/motions/dog_pace.txt"
+        motion_file="/home/gberseth/playground/motion_imitation/motions/dog_pace.txt"
         env = env_builder.build_imitation_env(motion_files=[motion_file],
                                         num_parallel_envs=1,
                                         mode="train",
@@ -893,6 +894,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
                                         enable_rendering=render, 
                                         dual_state = settings["use_dual_state_representations"])
         # print(envs.registry.all())
+        env = InfoDictStateWrapperLaikago(env)
         conf = copy.deepcopy(settings)
         conf['render'] = False
         exp = OpenAIGymEnv(env, conf)
@@ -901,11 +903,13 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         import gym
         from gym import wrappers
         from gym import envs
+        from util.info_dict_wrapper import InfoDictStateWrapper
         from sim.OpenAIGymEnv import OpenAIGymEnv
         import stanford_quad
         print(envs.registry.all())
         env_name = config_file
         env = gym.make(env_name)
+        env = InfoDictStateWrapper(env)
         # print(envs.registry.all())
         conf = copy.deepcopy(settings)
         conf['render'] = False
