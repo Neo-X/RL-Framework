@@ -383,15 +383,15 @@ def create_sequences2(traj0, traj1, settings):
             targets = np.zeros(tar_shape) + compare_adjustment
             targets_.append(add_noise(target_noise_scale, targets))
             
-#             sequences0.append(add_noise(noise_scale, tr1[:-1]))
-#             sequences1.append(add_noise(noise_scale, tr0[1:]))
-#             targets = np.zeros(tar_shape) + compare_adjustment
-#             targets_.append(add_noise(target_noise_scale, targets))
-#             
-#             sequences0.append(add_noise(noise_scale, tr0[:-1]))
-#             sequences1.append(add_noise(noise_scale, tr1[1:]))
-#             targets = np.zeros(tar_shape) + compare_adjustment
-#             targets_.append(add_noise(target_noise_scale, targets))
+            sequences0.append(add_noise(noise_scale, tr1[:-1]))
+            sequences1.append(add_noise(noise_scale, tr0[1:]))
+            targets = np.zeros(tar_shape) + compare_adjustment
+            targets_.append(add_noise(target_noise_scale, targets))
+             
+            sequences0.append(add_noise(noise_scale, tr0[:-1]))
+            sequences1.append(add_noise(noise_scale, tr1[1:]))
+            targets = np.zeros(tar_shape) + compare_adjustment
+            targets_.append(add_noise(target_noise_scale, targets))
             
             sequences0.append(add_noise(noise_scale, tr1[:-1]))
             sequences1.append(add_noise(noise_scale, tr0[:-1]))
