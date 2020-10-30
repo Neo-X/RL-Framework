@@ -370,6 +370,13 @@ def getOptions(_args=None):
         action="store", metavar="STRING", dest="ssh_host", default="default",
         help="""The json config file that many of the config settings can be parsed from""")
     
+    parser.add_option("--save_eval_video",
+          action="store", dest="save_eval_video", default='false',
+          type='choice',
+          choices=['true', 'false'],
+          metavar="STRING", 
+          help="Whether or not to log data to comet")
+    
     if _args is None:
         (options, args) = parser.parse_args()
     else:

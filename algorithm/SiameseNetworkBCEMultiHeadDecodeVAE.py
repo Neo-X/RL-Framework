@@ -668,7 +668,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                                 
                         
                         score = self._model._reward_net.fit([sequences0[indecies_], sequences1[indecies_]], 
-                                      [targets__[indecies_], 
+                                      [targets__[indecies_] * 0, 
                                        targets_[indecies_],
 #                                        np.flip(sequences0_[indecies_], axis=1),
 #                                        np.flip(sequences1_[indecies_], axis=1),
