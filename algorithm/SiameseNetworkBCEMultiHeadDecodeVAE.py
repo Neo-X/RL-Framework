@@ -619,9 +619,9 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                         # print ("lstm train loss: ", score.history['loss'])
                         loss_.append(np.mean(score.history['loss']))
             else:
-                # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
+                print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
                 targets__ = np.mean(targets_, axis=1)
-#                 print ("targets__: ", np.mean(targets__))
+                print ("targets__: ", np.mean(targets__))
                 logExperimentData({}, "virl_target_mean", np.mean(targets__), self._settings)
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
