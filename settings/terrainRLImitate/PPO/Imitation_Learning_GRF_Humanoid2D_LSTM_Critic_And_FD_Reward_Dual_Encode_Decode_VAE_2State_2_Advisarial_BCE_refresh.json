@@ -16,7 +16,7 @@
     "comment__": "Config file for the simulator",
 "sim_config_file": "PD_Humanoid_2D_GRF_Viz3D_48x48_1Sub_Imitate_30FPS_DualState_v1",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.10,
+"exploration_rate": 0.15,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 500,
     "comment__": "Number of epochs to perform per round",
@@ -109,7 +109,7 @@
     "comment__": "What method to use to select actions during bootstrapping",
 "bootsrap_with_discrete_policy": true,
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
-"max_epoch_length": 64,
+"max_epoch_length": 32,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
 "reward_lower_bound": -300.5,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
@@ -248,7 +248,7 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy rollouts to perform per epoch",
-"num_on_policy_rollouts": 16,
+"num_on_policy_rollouts": 32,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": false,
 	"comment__": "PPO should use seperate networks for the value and policy functions",
@@ -379,9 +379,9 @@
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
-							{"layer_type": "Input", "shape": ["none", "none", 64]},
+							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
+							{"layer_type": "GRU", "units": 32, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -463,7 +463,7 @@
 "train_lstm_fd_and_reward_and_decoder_together": true,
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [ 
-								{"layer_type": "slice", "slice_index": 61, "slice_label": "out_vel" },
+								{"layer_type": "slice", "slice_index": 29, "slice_label": "out_vel" },
 								{"layer_type": "Dense", "units": 1152, "use_bias": false},
 								{"layer_type": "BatchNormalization"},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -482,16 +482,16 @@
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [
-							{"layer_type": "Input", "shape": ["none", "none", 64]},
-							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": "tanh"},
+							{"layer_type": "Input", "shape": ["none", "none", 32]},
+							{"layer_type": "GRU", "units": 64, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": "tanh"},
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
-								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "linear" }
 							]}
 							],
 	"comment__": "The encoding vector size used for the fd models",
-"encoding_vector_size": 64,
+"encoding_vector_size": 32,
 	"comment__": "Inform the system that a encoder decoder model is being used",
 "using_encoder_decoder_fd": false,
 	"comment__": "Inform the system that a encoder decoder model is being used",

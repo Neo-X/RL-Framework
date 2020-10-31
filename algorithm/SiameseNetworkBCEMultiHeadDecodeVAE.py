@@ -316,7 +316,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
 #         # self._model.decode_b_r = Model(inputs=[encoder_b_outputs], outputs=decode_b_r)
         
         from keras.layers import LSTM, Dense, GRU
-        decoder_lstm = GRU(128, return_sequences=True, return_state=True)
+        decoder_lstm = GRU(32, return_sequences=True, return_state=True)
         decode_a_r, _ = decoder_lstm(encoder_a_outputs, initial_state=encoder_state_a)
         decode_b_r, _ = decoder_lstm(encoder_b_outputs, initial_state=encoder_state_b)
 #         decoder_dense = Dense(64, activation='sigmoid')
@@ -577,12 +577,12 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
 #             targets_ = 1.0 - np.array(targets_)
             targets_ = np.array(targets_)
             
-#             if ( "add_label_noise" in self._settings):
-#                 if (np.random.rand() < self._settings["add_label_noise"]):
-#                     # print ("targets_[0]: ", targets_[0])
-#                     targets_ = 1.0 - targets_ ### Invert labels
-#                     # print ("Inverting label values this time")
-#                     # print ("targets_[0]: ", targets_[0])
+            if ( "add_label_noise" in self._settings):
+                if (np.random.rand() < self._settings["add_label_noise"]):
+                    # print ("targets_[0]: ", targets_[0])
+                    targets_ = 1.0 - targets_ ### Invert labels
+                    # print ("Inverting label values this time")
+                    # print ("targets_[0]: ", targets_[0])
             # print ("targets_ shape: ", targets_.shape)
             # te_pair1, te_pair2, te_y = seq
             # score = self._model._forward_dynamics_net.train_on_batch([sequences0, sequences1], targets_)
@@ -620,7 +620,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                         loss_.append(np.mean(score.history['loss']))
             else:
                 targets_ = np.clip(targets_, a_min=0.01, a_max=0.99)
-#                 print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
+                print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
 #                 print (np.mean(targets_, axis=1).shape, np.array(sequences0).shape)
                 targets__ = np.max(targets_, axis=1)
 #                 print ("targets__: ", np.mean(targets__))
