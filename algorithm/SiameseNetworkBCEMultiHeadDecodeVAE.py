@@ -620,7 +620,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                         loss_.append(np.mean(score.history['loss']))
             else:
                 targets_ = np.clip(targets_, a_min=0.01, a_max=0.99)
-                print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
+#                 print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
 #                 print (np.mean(targets_, axis=1).shape, np.array(sequences0).shape)
                 targets__ = np.max(targets_, axis=1)
 #                 print ("targets__: ", np.mean(targets__))

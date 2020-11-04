@@ -513,7 +513,7 @@
 "log_model_gen_seq_output": true,
 "refresh_rewards": true,
 "comment__": "['model_24_loss': [0.2926342785358429], 'bce_time_dist_loss': [0.2867318093776703], 'auto_encoder_a_rnn_loss': [0.1378629356622696], 'auto_encoder_b_rnn_loss': [0.13809692859649658], 'vae_over_seq_a_rnn_loss': [0.764801025390625], 'vae_over_seq_b_rnn_loss': [0.7534447908401489]}",
-"virl_loss_weights": [0.8, 0.10, 0.00, 0.00, 0.00, 0.00],
+"virl_loss_weights": [0.8, 0.10, 0.01, 0.01, 0.01, 0.01],
 "virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00],
 "use_max_T_annealing": false,
 "refresh_rewards_rl_method": false,
