@@ -425,9 +425,6 @@ class LearningAgent(AgentInterface):
             logExperimentData({}, "experience_mem_samples", self._expBuff.samples(), self._settings)
             
             batch_size_ = self._settings["batch_size"]        
-            if (self._settings["batch_size"] == "all"):
-                batch_size_ = max(self._expBuff.samples(), 1)
-                # print ("num_samples_: ", num_samples_)
             # If for some reason the data was all garbage, skip this training update.
             t1 = time.time()
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
@@ -702,7 +699,9 @@ class LearningAgent(AgentInterface):
                                                      _exp_actions,
                                                      _G_t,
                                                      datas)
-                
+            if (self._settings["batch_size"] == "all"):
+                batch_size_ = max(self._expBuff.samples(), 1)
+#             print ("num_samples_: ", batch_size_)
             if ((self._expBuff.samples() < value_function_batch_size 
                 or (self._expBuff.samples() < batch_size_))
                 and

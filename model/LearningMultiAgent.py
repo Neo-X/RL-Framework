@@ -8,6 +8,7 @@ import threading
 import time
 from model.LearningAgent import LearningAgent
 from model.LearningAgentVIRL import LearningAgentVIRL
+from model.LearningAgentLight import LearningAgentLight
 from model.ModelUtil import *
 from util.utils import rlPrint
 import os
@@ -55,7 +56,10 @@ class LearningMultiAgent(LearningAgent):
             settings__["agent_id"] = m
             if ("training_algorithm" in self.getSettings()
                 and (self.getSettings()["training_algorithm"] == "VIRL")):
-                agent = LearningAgentVIRL(settings__)
+                agent = LearningAgentVIRL(settings_=settings__)
+            elif ("training_algorithm" in self.getSettings()
+                and (self.getSettings()["training_algorithm"] == "model.LearningAgentLight")):
+                agent = LearningAgentLight(settings_=settings__)
             else:
                 agent = LearningAgent(settings__)
             self._agents.append(agent)
