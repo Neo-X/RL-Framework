@@ -3,7 +3,7 @@ CODE_DIRS_TO_MOUNT = [
     '/home/gberseth/playground/RL-Framework',
     '/home/gberseth/playground/RLSimulationEnvironments',
     '/home/gberseth/playground/motion_imitation/motion_imitation',
-    '/home/gberseth/playground/StanfordQuadruped',
+#     '/home/gberseth/playground/StanfordQuadruped',
 ]
 NON_CODE_DIRS_TO_MOUNT = [
 ]
@@ -14,6 +14,10 @@ DIR_AND_MOUNT_POINT_MAPPINGS = [
     dict(
         local_dir='/home/gberseth/.mujoco/',
         mount_point='/root/.mujoco',
+    ),
+    dict(
+        local_dir='/home/gberseth/playground/TerrainRLSim/args/envs.json',
+        mount_point='/opt/TerrainRLSim/args/envs.json',
     ),
 #     dict(
 #         local_dir='/home/gberseth/playground/CoMPS',
