@@ -11,6 +11,8 @@ declare -a metaExps=(
 ## declare an array variable
 declare -a simConfigs=(
 	"settings/terrainRLImitate3D/TRPO/smirl/Pedestal_NoPhase_BayesianSurprise.json"
+	"settings/terrainRLImitate3D/TRPO/smirl/Treadmil_NoPhase_BayesianSurprise.json"
+	"settings/terrainRLImitate3D/TRPO/smirl/Cliff_NoPhase_BayesianSurprise.json"
 #
 )
 
