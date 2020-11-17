@@ -873,6 +873,8 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             This data should NOT be normalized
             This does a fancy trick to compute the reward over the entire sequence
         """
+        states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        states2 = np.array(norm_state(states2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         h_a, h_b = self.predict_encodings(states, states2)
 #         print ("h_b shape: ", h_b.shape) 
 #         self._distance_r_weighting_

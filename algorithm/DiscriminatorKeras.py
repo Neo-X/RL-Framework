@@ -280,6 +280,7 @@ class DiscriminatorKeras(KERASAlgorithm):
         ## These input should already be normalized.
         # self._model.setStates(states)
         # self._model.setActions(actions)
+        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         state_ = self._model.getCriticNetwork().predict([state])
         return state_
     
@@ -341,6 +342,7 @@ class DiscriminatorKeras(KERASAlgorithm):
     def predict_reward_(self, state, action):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         reward_ = self.predict_reward_batch(state, action)
         # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_state(predicted_reward, self._reward_bounds)
