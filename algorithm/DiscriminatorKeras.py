@@ -260,7 +260,7 @@ class DiscriminatorKeras(KERASAlgorithm):
 #             lossReward = self._train_reward()
 #             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
 #                 print ("Loss Reward: ", lossReward)
-        return (loss, lossActor)
+        return loss
     
     def predict(self, state, next_state):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
