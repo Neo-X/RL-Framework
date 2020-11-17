@@ -36,8 +36,8 @@ AWS_S3_PATH = 's3://comps-test/rlframe'
 
 # The docker image is looked up on dockerhub.com.
 DOODAD_DOCKER_IMAGE = 'gberseth/rlframe:latest'
-INSTANCE_TYPE = 'c4.2xlarge' # 8 core 16 gb mem
-SPOT_PRICE = 0.12
+INSTANCE_TYPE = 'c5.2xlarge' # 8 core 16 gb mem
+SPOT_PRICE = 0.13
 
 GPU_DOODAD_DOCKER_IMAGE = 'TODO'
 GPU_INSTANCE_TYPE = 'g3.4xlarge'
