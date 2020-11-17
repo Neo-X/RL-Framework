@@ -20,9 +20,10 @@ log = logging.getLogger(os.path.basename(__file__))
 
 class LearningAgentVIRL(LearningAgent):
     
-    def __init__(self, settings_):
-        super(LearningAgentVIRL,self).__init__(n_in=None, n_out=None, state_bounds=None, 
-                                           action_bounds=None, reward_bound=None, settings_=settings_)
+    def __init__(self, n_in=None, n_out=None, state_bounds=None, 
+                                           action_bounds=None, reward_bound=None, settings_=None):
+        super(LearningAgentVIRL,self).__init__(n_in=n_in, n_out=n_out, state_bounds=state_bounds, 
+                               action_bounds=action_bounds, reward_bound=reward_bound, settings_=settings_)
         self._useLock = False
         if self._useLock:
             self._accesLock = threading.Lock()
@@ -604,6 +605,11 @@ class LearningAgentVIRL(LearningAgent):
                 rlPrint(self._settings, "train", "Refreshing rewards.")
                 self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
                                       __exp_actions, __G_t, __datas, p=p)
+            elif ( "refresh_rewards" in self._settings
+                 and (self._settings["refresh_rewards"] == "gail")):
+                rlPrint(self._settings, "train", "Refreshing rewards.")
+                self.recomputeRewards(_states, _actions, _rewards, _result_states, _falls, _advantage, 
+                                      _exp_actions, _G_t, datas, p=p)
             elif (self._settings["train_actor"] == False and 
                   self._settings["train_critic"] == False):
                 print("Not training actor or critic")
@@ -746,11 +752,11 @@ class LearningAgentVIRL(LearningAgent):
                         and (self._settings['fd_updates_per_actor_update'] >= 1)):
                         for i in range(self._settings['fd_updates_per_actor_update']):
                             
-                            if ("fd_algorithm" in self._settings
-                                and (self._settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")): 
-                                ### hack to train a batch from the policy state distribution
-                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self.getExperience().get_batch(value_function_batch_size)
-                                dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__*0, datas=datas__, trainInfo=trainInfo)
+#                             if ("fd_algorithm" in self._settings
+#                                 and (self._settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")): 
+#                                 ### hack to train a batch from the policy state distribution
+#                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__, datas__ = self.getExperience().get_batch(value_function_batch_size)
+#                                 dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__*0, datas=datas__, trainInfo=trainInfo)
                                 
                             if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                                 # print("Using seperate (off-policy) exp mem for FD model")
@@ -768,7 +774,7 @@ class LearningAgentVIRL(LearningAgent):
                                 log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                             
                                 # loss = self.getPolicy().trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
-                            if (self._settings['train_critic_on_fd_output'] and 
+                            if ("train_critic_on_fd_output" in self._settings and self._settings['train_critic_on_fd_output'] and 
                                 (( self.getPolicy().numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
                                 ( ( self.getPolicy().numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
                                 ( ( self.getPolicy().numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))

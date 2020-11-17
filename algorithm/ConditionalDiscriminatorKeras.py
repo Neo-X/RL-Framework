@@ -56,14 +56,12 @@ class DiscriminatorKeras(KERASAlgorithm):
         
     def compile(self):
         
-        self._discriminate = K.function([self._model.getStateSymbolicVariable()],
+        self._discriminate = K.function([self._model.getStateSymbolicVariable(), 
+                        self._model.getResultStateSymbolicVariable()],
                         [self._model.getCriticNetwork()])
-        self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable()], 
+        self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable(), 
+                            self._model.getResultStateSymbolicVariable()], 
                              outputs=[self._model._critic])
-        
-#         self._model._critic = keras.layers.Dense(1, activation = 'sigmoid')(self._model._critic)
-#         self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable()], 
-#                              outputs=[self._model._critic])
         
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
@@ -214,30 +212,22 @@ class DiscriminatorKeras(KERASAlgorithm):
         rewards_ = np.clip(rewards + np.random.normal(0,0.1, size=(states.shape[0],1)), 0.01, 0.99)
         if ( "add_label_noise" in self._settings):
             if (np.random.rand() < self._settings["add_label_noise"]):
-#                 print ("rewards_[0]: ", rewards_[0])
+                print ("rewards_[0]: ", rewards_[0])
                 rewards_ = 1.0 - rewards_ ### Invert labels
-#                 print ("Inverting label values this time")
-#                 print ("rewards_[0]: ", rewards_[0])
+                print ("Inverting label values this time")
+                print ("rewards_[0]: ", rewards_[0])
         # print ("Descriminator targets: ", np.mean(rewards_))
-        ### SHould be positive 1 for the expert data
-        score = self._model.getCriticNetwork().fit([result_states], [rewards_],
+        score = self._model.getCriticNetwork().fit([states, result_states], [rewards_],
               epochs=updates, batch_size=batch_size_,
               verbose=0,
               shuffle=True
               # callbacks=[early_stopping],
               )
-        score2 = self._model.getCriticNetwork().fit([states], [1-rewards_],
-              epochs=updates, batch_size=batch_size_,
-              verbose=0,
-              shuffle=True
-              # callbacks=[early_stopping],
-              )
-#         out = self._discriminate([states, result_states, 0])[0]
+        out = self._discriminate([states, result_states, 0])[0]
         # print ("Descriminator predictions: ", np.mean(out))
         loss = np.mean(score.history['loss'])
-        score.history['loss'].extend(score2.history['loss'])
         # print("Discriminator loss: ", loss)
-        return score.history
+        return loss
         
     def trainActor(self, states, actions, result_states, rewards, updates=1, batch_size=None):
         # self.setData(states, actions, result_states, rewards)
@@ -245,7 +235,7 @@ class DiscriminatorKeras(KERASAlgorithm):
         return 0
         
     def train(self, states, actions, result_states, rewards, updates=1, batch_size=None,
-              lstm=False, datas=None, trainInfo=None):
+              lstm=False):
         if (batch_size is None):
             batch_size_=states.shape[0]
         else:
@@ -257,16 +247,16 @@ class DiscriminatorKeras(KERASAlgorithm):
             # print ("self._reward_bounds: ", self._reward_bounds)
             # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
             self.setData(states, actions, result_states, rewards)
-#             lossReward = self._train_reward()
-#             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-#                 print ("Loss Reward: ", lossReward)
+            lossReward = self._train_reward()
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("Loss Reward: ", lossReward)
         return (loss, lossActor)
     
     def predict(self, state, next_state):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         next_state = np.array(norm_state(next_state, self._result_state_bounds), dtype=self.getSettings()['float_type'])
         # noise = np.random.normal(self._noise_mean,self._noise_std, size=(1,1))
-        prob = self._model.getCriticNetwork().predict([state])[0]
+        prob = self._discriminate([state, next_state, 0])[0]
         return prob
     
     def predictWithDropout(self, state, action):
@@ -280,14 +270,31 @@ class DiscriminatorKeras(KERASAlgorithm):
         ## These input should already be normalized.
         # self._model.setStates(states)
         # self._model.setActions(actions)
-        state_ = self._model.getCriticNetwork().predict([state])
+        self.setData(states,actions)
+        # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
+        noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
+        # print ("State bounds: ", self._state_bounds)
+        # print ("fd output: ", self._forwardDynamics()[0])
+        # state_ = scale_state(self._generate(), self._state_bounds)
+        state_ = self._generate([state, action, noise, 0])
         return state_
     
     def q_value(self, state):
         """
             For returning a vector of q values, state should NOT be normalized
         """
-        pass
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        self._modelTarget.setStates(state)
+        action = self._q_action()
+        self._model.setActions(action)
+        self._modelTarget.setActions(action)
+        return scale_reward(self._discriminate(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # return self._q_valTarget()[0]
+        # return self._q_val()[0]
         
     def q_value(self, state, action, next_state):
         """
@@ -303,7 +310,7 @@ class DiscriminatorKeras(KERASAlgorithm):
         # nextState = np.reshape(nextState, (1,20))
         
         # return scale_reward(self._discriminate(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        return self._model.getCriticNetwork().predict([state])[0]
+        return self._discriminate([state, action, nextState])
         # return self._q_valTarget()[0]
         # return self._q_val()[0]
     
@@ -311,7 +318,16 @@ class DiscriminatorKeras(KERASAlgorithm):
         """
             For returning a vector of q values, state should already be normalized
         """
-        pass
+        state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        self._modelTarget.setStates(state)
+        action = self._q_action()
+        self._model.setActions(action)
+        self._modelTarget.setActions(action)
+        return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # return self._q_valTarget()
+        # return self._q_val()
         
     def predict_std(self, state, deterministic_=True, p=1.0):
         """
@@ -331,7 +347,9 @@ class DiscriminatorKeras(KERASAlgorithm):
         # states[0, ...] = state
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        predicted_reward = self._model.getCriticNetwork().predict([state])
+        self._model.setStates(state)
+        self._model.setActions(action)
+        predicted_reward = self._predict_reward()
         reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_state(predicted_reward, self._reward_bounds)
@@ -349,12 +367,18 @@ class DiscriminatorKeras(KERASAlgorithm):
 
     def predict_reward_batch(self, states, actions):
         
-        predicted_reward = self._model.getCriticNetwork().predict([states[0]])
-#         print ("predicted_reward: ", predicted_reward.shape)
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        # state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        # action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        self._model.setStates(states)
+        self._model.setActions(actions)
+        predicted_reward = self._predict_reward()
+        # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # reward_ = scale_state(predicted_reward, self._reward_bounds)
+        # print ("reward, predicted reward: ", reward_, predicted_reward)
         return predicted_reward
-    
-    def predict_reward_fd(self, states, actions):
-        return 0
     
     def bellman_error(self, states, actions, result_states, rewards):
         noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))

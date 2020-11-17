@@ -20,9 +20,10 @@ log = logging.getLogger(os.path.basename(__file__))
 
 class LearningAgent(AgentInterface):
     
-    def __init__(self, settings_):
-        super(LearningAgent,self).__init__(n_in=None, n_out=None, state_bounds=None, 
-                                           action_bounds=None, reward_bound=None, settings_=settings_)
+    def __init__(self, n_in=None, n_out=None, state_bounds=None, 
+                                           action_bounds=None, reward_bound=None, settings_=None):
+        super(LearningAgent,self).__init__(n_in=n_in, n_out=n_out, state_bounds=state_bounds, 
+                               action_bounds=action_bounds, reward_bound=reward_bound, settings_=settings_)
         self._useLock = False
         if self._useLock:
             self._accesLock = threading.Lock()

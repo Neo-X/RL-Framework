@@ -420,7 +420,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
 	"comment__": "specify the learning algorithm to use for the fd model",
-"fd_algorithm" : "algorithm.GANKeras.GANKeras",
+"fd_algorithm" : "algorithm.DiscriminatorKeras.DiscriminatorKeras",
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice","slice_index": 2304, "slice_label": "vel"},
@@ -440,7 +440,9 @@
 							{"layer_type": "Flatten"},
 							{"layer_type": "Dense", "units": 128, "use_bias": true},
 							{"layer_type": "Concatenate", "slice_label": "vel"},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" }
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dense", "units": 1, "use_bias": true},
+							{"layer_type": "activation", "activation_type": "sigmoid" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [ 
@@ -461,7 +463,9 @@
 							{"layer_type": "Flatten"},
 							{"layer_type": "Dense", "units": 128, "use_bias": true},
 							{"layer_type": "Concatenate", "slice_label": "vel"},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" }
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dense", "units": 1, "use_bias": true},
+							{"layer_type": "activation", "activation_type": "sigmoid" }
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -470,7 +474,7 @@
 	"comment__": "last policy type of activation to use",
 "last_fd_layer_activation_type": "sigmoid",
 	"comment__": "The number of fd network to be done per actor update.",
-"fd_updates_per_actor_update": 1.0,
+"fd_updates_per_actor_update": 4,
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false,
 	"comment__": "Leave off the final layer of the network that would result in a state sized output",
@@ -591,9 +595,10 @@
 "save_eval_video": true,
 "anneal_dual_reward": true,
 "log_model_gen_seq_output": true,
-"refresh_rewards": true,
+"refresh_rewards": "gail",
 "virl_loss_weights": [0.5, 0.3, 0.075, 0.075, 0.025, 0.025],
 "virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00],
 "use_max_T_annealing": false,
-"refresh_rewards_rl_method": false
+"refresh_rewards_rl_method": false,
+"training_algorithm": "VIRL"
 }
