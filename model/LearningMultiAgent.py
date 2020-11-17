@@ -220,7 +220,7 @@ class LearningMultiAgent(LearningAgent):
                     print ("agent_traj shape: ", agent_traj.shape)
                     imitation_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in next_state__])])
                     print ("imitation_traj shape: ", imitation_traj.shape)
-                    reward__ = self.getForwardDynamics().predict_reward_(agent_traj, imitation_traj)
+                    reward__ = self.getForwardDynamics().predict_reward(agent_traj, imitation_traj)
                     # print ("reward__", reward__)
                     path['states'] = state__ # np.array([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in state__])
                     path['reward'] = reward__

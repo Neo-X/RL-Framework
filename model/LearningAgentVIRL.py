@@ -162,7 +162,7 @@ class LearningAgentVIRL(LearningAgent):
                             reward__fd = self.getForwardDynamics().predict_reward_fd(agent_traj, imitation_traj)
                             reward___ = reward__fd
                         else:
-                            reward__r = self.getForwardDynamics().predict_reward_(agent_traj, imitation_traj)
+                            reward__r = self.getForwardDynamics().predict_reward(agent_traj, imitation_traj)
                             reward__fd = self.getForwardDynamics().predict_reward_fd(agent_traj, imitation_traj)
                             reward___ = ((reward__r * p ) + (reward__fd * (1 + (1-p)))) / 2.0
 #                         print ("Refreshed reward origin, reward refresh, r, fd, diff: ", np.concatenate((reward__, reward___, reward__r, reward__fd, reward__ - reward___), axis=1))
