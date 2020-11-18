@@ -12,9 +12,11 @@ eai data push $ORG_NAME.$ACCOUNT_NAME.motionimitation /home/gberseth/playground/
 eai data push $ORG_NAME.$ACCOUNT_NAME.stanquad /home/gberseth/playground/StanfordQuadruped/
 # eai data push $ORG_NAME.$ACCOUNT_NAME.learning_data /home/gberseth/learning_data_eai/
 
-for i in `seq 1 2`;
-    do
-	eai job submit --preemptable\
+# for simConfigFile in "${simConfigs[@]}"
+# do
+	for i in `seq 1 2`;
+	    do
+		eai job submit --preemptable\
 	    --data $ORG_NAME.$ACCOUNT_NAME.rlframe:/home/gberseth/playground/RL-Framework/ \
 	    --data $ORG_NAME.$ACCOUNT_NAME.doodad:/home/gberseth/playground/doodad/ \
 	    --data $ORG_NAME.$ACCOUNT_NAME.motionimitation:/home/gberseth/playground/motion_imitation/ \
@@ -32,4 +34,5 @@ for i in `seq 1 2`;
 	    # -- bash -c 'pushd /home/gberseth/playground/RL-Framework/; python3 trainModel.py --config=settings/terrainRLImitate/TD3/Imitation_Learning_GRF_UniTree.json -p 6 --shouldRender=false --shouldRender=false --log_comet=true --on_policy=fast --print_level=train'
 	    # -- bash -c 'pushd /home/gberseth/playground/RL-Framework/; python3 trainModel.py --config=settings/terrainRLImitate/PPO/settings/terrainRLImitate/PPO/Imitation_Learning_GRF_UniTree_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial_BCE_refresh2.json -p 5 --shouldRender=false --log_comet=true --on_policy=fast --print_level=train'    
         echo $i
-    done 
+    done
+# done
