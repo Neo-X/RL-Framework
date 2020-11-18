@@ -331,8 +331,8 @@ class DiscriminatorKeras(KERASAlgorithm):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        predicted_reward = self._model.getCriticNetwork().predict([state])
+#         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        predicted_reward = self._model.getCriticNetwork().predict([state[0]])
         reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_state(predicted_reward, self._reward_bounds)
