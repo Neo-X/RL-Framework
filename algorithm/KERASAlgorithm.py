@@ -304,6 +304,14 @@ class KERASAlgorithm(AlgorithmInterface):
         if (("train_LSTM_Critic" in self._settings)
             and (self._settings["train_LSTM_Critic"] == True)
             and (wrap == True) ):
+                        ### This is a trajectory
+            # states = np.array([states], dtype=self._settings['float_type'])
+            self.reset()
+#                 s_ = np.array([np.array([s])])
+            v_ = self._model.getCriticNetwork().predict([states])
+            b_ = action_bound_std(self.getRewardBounds())
+            value = (v_ * b_) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            print( np.reshape(value, (1,)+value.shape))
             ### This is a trajectory
             # states = np.array([states], dtype=self._settings['float_type'])
             values = []

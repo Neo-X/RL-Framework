@@ -859,18 +859,17 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
     def predict_reward_(self, states, states2):
         """
             This data should NOT be normalized
-            This does a fancy trick to compute the reward over the entire sequence
+            This does a fancy trick to compute the reward over the entire sequence. Not just the last reward output
         """
-        if (("train_LSTM_Reward" in self._settings)
-            and (self._settings["train_LSTM_Reward"] == True)):
-            ### Used because we need to keep two separate RNN networks and not mix the hidden states
-            # reward_ = [0]
-            predicted_reward = self._model._reward_net.predict([states, states])
-            # print ("siamese dist: ", state_)
-            # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
-        else:
-            predicted_reward = self._model._reward_net.predict([state, state2])[0]
-            # reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        h_a, h_b = self.predict_encodings(states, states2)
+#         print ("h_b shape: ", h_b.shape) 
+#         self._distance_r_weighting_
+        predicted_reward = self._distance_func_np([h_a, h_b])[0]
+#         predicted_reward = np.array([self._distance_func_np((np.array([h_a_]), np.array([h_b_]))) for h_a_, h_b_ in zip(h_a[0], h_b[0])])
+#         predicted_reward = np.log(predicted_reward)
+#         print ("predicted_reward_: ", predicted_reward)
+        predicted_reward = self._distance_r_weighting_.predict([predicted_reward])
+        # predicted_reward = self._model._reward_net_seq.predict([states, actions], batch_size=1)[0]
         return predicted_reward
     
     def predict_reward_fd(self, states, states2):
