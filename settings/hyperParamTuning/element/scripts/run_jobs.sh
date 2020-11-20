@@ -8,7 +8,7 @@ export ACCOUNT_ID=$ORG_NAME.$ACCOUNT_NAME
 
 eai data push $ORG_NAME.$ACCOUNT_NAME.rlframe /home/gberseth/playground/RL-Framework/
 # eai data push $ORG_NAME.$ACCOUNT_NAME.doodad /home/gberseth/playground/doodad_vitchry/
-# eai data push $ORG_NAME.$ACCOUNT_NAME.motionimitation /home/gberseth/playground/motion_imitation/
+eai data push $ORG_NAME.$ACCOUNT_NAME.motionimitation /home/gberseth/playground/motion_imitation/
 # eai data push $ORG_NAME.$ACCOUNT_NAME.stanquad /home/gberseth/playground/StanfordQuadruped/
 # eai data push $ORG_NAME.$ACCOUNT_NAME.learning_data /home/gberseth/learning_data_eai/
 
