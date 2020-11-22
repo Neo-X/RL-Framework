@@ -16,6 +16,10 @@ declare -a simConfigs=(
 	"settings/terrainRLImitate3D/PPO/smirl/Pedestal_NoPhase_BayesianSurprise.json"
 	"settings/terrainRLImitate3D/PPO/smirl/Treadmil_NoPhase_BayesianSurprise.json"
 	"settings/terrainRLImitate3D/PPO/smirl/Cliff_NoPhase_BayesianSurprise.json"
+	
+	"settings/terrainRLImitate3D/PPO/smirl/Cliff_BayesianSurprise_IncludeStats_VAE.json"
+	"settings/terrainRLImitate3D/PPO/smirl/Precipice_BayesianSurprise_IncludeStats_VAE2.json"
+	"settings/terrainRLImitate3D/PPO/smirl/Treadmill_BayesianSurprise_IncludeStats_VAE.json"
 #
 )
 

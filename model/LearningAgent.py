@@ -843,7 +843,7 @@ class LearningAgent(AgentInterface):
                                 log.info("Forward Dynamics Loss: {}".format(dynamicsLoss))
                             
                                 # loss = self.getPolicy().trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
-                            if (self._settings['train_critic_on_fd_output'] and 
+                            if ("train_critic_on_fd_output" in self._settings and self._settings['train_critic_on_fd_output'] and 
                                 (( self.getPolicy().numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
                                 ( ( self.getPolicy().numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
                                 ( ( self.getPolicy().numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))

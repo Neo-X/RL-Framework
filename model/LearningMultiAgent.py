@@ -61,7 +61,7 @@ class LearningMultiAgent(LearningAgent):
                 and (self.getSettings()["training_algorithm"] == "model.LearningAgentLight")):
                 agent = LearningAgentLight(settings_=settings__)
             else:
-                agent = LearningAgent(settings__)
+                agent = LearningAgent(settings_=settings__)
             self._agents.append(agent)
         # self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]
         # list of periods over which each agent is active
