@@ -375,9 +375,9 @@
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
-							{"layer_type": "Input", "shape": ["none", "none", 64]},
+							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
+							{"layer_type": "GRU", "units": 32, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -459,7 +459,7 @@
 "train_lstm_fd_and_reward_and_decoder_together": true,
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [ 
-								{"layer_type": "slice", "slice_index": 61, "slice_label": "out_vel" },
+								{"layer_type": "slice", "slice_index": 29, "slice_label": "out_vel" },
 								{"layer_type": "Dense", "units": 2304, "use_bias": false},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dropout", "rate": 0.2},
@@ -475,16 +475,16 @@
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [
-							{"layer_type": "Input", "shape": ["none", "none", 64]},
+							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": "tanh"},
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
-								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "linear" }
 							]}
 							],
 	"comment__": "The encoding vector size used for the fd models",
-"encoding_vector_size": 64,
+"encoding_vector_size": 32,
 	"comment__": "Inform the system that a encoder decoder model is being used",
 "using_encoder_decoder_fd": false,
 	"comment__": "Inform the system that a encoder decoder model is being used",

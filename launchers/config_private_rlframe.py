@@ -8,7 +8,7 @@ CODE_DIRS_TO_MOUNT = [
 NON_CODE_DIRS_TO_MOUNT = [
 ]
 # LOCAL_LOG_DIR = '/tmp/doodad-output/'
-LOCAL_LOG_DIR = '/home/gberseth/learning_data/'
+LOCAL_LOG_DIR = '/home/gberseth/learning_data/rlframe/20-11-21-PD-Biped3D-Cliff-v0/-6/'
 OUTPUT_DIR_FOR_DOODAD_TARGET = '/tmp/doodad-output/'
 DIR_AND_MOUNT_POINT_MAPPINGS = [
     dict(

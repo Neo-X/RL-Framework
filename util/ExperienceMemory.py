@@ -382,7 +382,7 @@ class ExperienceMemory(object):
             
     def _updateScaling(self):
         
-        print ("_updateScaling self.inserts(): ", self.inserts())
+#         print ("_updateScaling self.inserts(): ", self.inserts())
         if self.inserts() < 5:
             return
         scale_factor = 1.0
