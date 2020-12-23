@@ -586,9 +586,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             path['task_id'] = np.array(np.array(task_ids[last_epoch_end:])[:,a,:])
         path["terminated"] = False
         ## Append so that we can preserve the paths/trajectory structure.
-        if (len(rewards[last_epoch_end:]) > 0 and 
+        if (
+            len(rewards[last_epoch_end:]) > 0 and 
              ("force_use_mod_state_for_critic" in settings and 
-                 (settings["force_use_mod_state_for_critic"] == True)) ):
+                 (settings["force_use_mod_state_for_critic"] == True)
+                 ) 
+             ):
 #             paths = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
             adv__ = path["reward"]
             baselines_.append(np.array(path["reward"] * 0))

@@ -14,12 +14,12 @@ eai data push $ORG_NAME.$ACCOUNT_NAME.motionimitation /home/gberseth/playground/
 
 ## declare an array variable
 declare -a simConfigs=(
+ 	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_StanQuad_LSTM_Critic_And_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial_BCE_refresh.json"
  	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_UniTree_1Sub_LSTM_Critic_And_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial_BCE_refresh3.json"
-	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_StanQuad_LSTM_Critic_And_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial_BCE_refresh.json"
 #
 )
 
-opts=' -p 5 --shouldRender=false --log_comet=true --on_policy=fast --print_level=hyper_train'
+opts=' -p 5 --shouldRender=false --log_comet=true --on_policy=fast --print_level=hyper_train --simulation_timeout=1800'
 for simConfigFile in "${simConfigs[@]}"
 do
 	for i in `seq 1 2`;
