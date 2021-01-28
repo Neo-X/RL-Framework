@@ -1,22 +1,22 @@
-
+BASE_DIR = 'home/gberseth/'
 CODE_DIRS_TO_MOUNT = [
-    '/home/gberseth/playground/RL-Framework',
-    '/home/gberseth/playground/RLSimulationEnvironments',
-    '/home/gberseth/playground/motion_imitation/motion_imitation',
+    BASE_DIR + 'playground/RL-Framework',
+    BASE_DIR + 'playground/RLSimulationEnvironments',
+    BASE_DIR + 'playground/motion_imitation/motion_imitation',
 #     '/home/gberseth/playground/StanfordQuadruped',
 ]
 NON_CODE_DIRS_TO_MOUNT = [
 ]
 # LOCAL_LOG_DIR = '/tmp/doodad-output/'
-LOCAL_LOG_DIR = '/home/gberseth/learning_data/rlframe/20-11-21-PD-Biped3D-Cliff-v0/-6/'
+LOCAL_LOG_DIR = BASE_DIR + '/learning_data/rlframe/'
 OUTPUT_DIR_FOR_DOODAD_TARGET = '/tmp/doodad-output/'
 DIR_AND_MOUNT_POINT_MAPPINGS = [
     dict(
-        local_dir='/home/gberseth/.mujoco/',
+        local_dir=BASE_DIR + '/.mujoco/',
         mount_point='/root/.mujoco',
     ),
     dict(
-        local_dir='/home/gberseth/playground/TerrainRLSim/args/envs.json',
+        local_dir=BASE_DIR + '/playground/TerrainRLSim/args/envs.json',
         mount_point='/opt/TerrainRLSim/args/envs.json',
     ),
 #     dict(
