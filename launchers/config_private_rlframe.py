@@ -1,14 +1,15 @@
-BASE_DIR = 'home/gberseth/'
+
+BASE_DIR = '/home/gberseth/'
 CODE_DIRS_TO_MOUNT = [
     BASE_DIR + 'playground/RL-Framework',
     BASE_DIR + 'playground/RLSimulationEnvironments',
-    BASE_DIR + 'playground/motion_imitation/motion_imitation',
+#     BASE_DIR + 'playground/motion_imitation/motion_imitation',
 #     '/home/gberseth/playground/StanfordQuadruped',
 ]
 NON_CODE_DIRS_TO_MOUNT = [
 ]
 # LOCAL_LOG_DIR = '/tmp/doodad-output/'
-LOCAL_LOG_DIR = BASE_DIR + '/learning_data/rlframe/'
+LOCAL_LOG_DIR = BASE_DIR + 'learning_data/rlframe/'
 OUTPUT_DIR_FOR_DOODAD_TARGET = '/tmp/doodad-output/'
 DIR_AND_MOUNT_POINT_MAPPINGS = [
     dict(
