@@ -35,14 +35,7 @@ class OpenAIGymEnv(SimInterface):
         print(self.getEnvironment().action_space)
         ## Should print the type of state space, continuous/discrete, how many parameters
         print(self.getEnvironment().observation_space)
-        """
-        if ( settings['sim_config_file'] == 'RoboschoolHopper-v1'):
-            self._state_param_mask = [  True ,  False       ,  False      ,  True ,  False        ,
-                                        True,  False        ,  True,  True,  True,
-                                        True,  True,  True ,  True,  True]
-        else:
-            self._state_param_mask = [   True] * len(settings['state_bounds'][0])
-        """
+
     def init(self):
         # self.getEnvironment().init()
         self._previous_observation = self.getEnvironment().reset()

@@ -87,6 +87,12 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to perform training in epochs [true|false|None]")
     
+    parser.add_option("--training_processor_type",
+                  action="store", metavar="STRING", dest="training_processor_type", default="cpu",
+                  type='choice',
+                  choices=['cpu', 'gpu'],
+                  help="""the name showing up on comet""")
+    
     parser.add_option("--gpus",
               action="store", dest="num_gpus", default=0,
               # type='choice',

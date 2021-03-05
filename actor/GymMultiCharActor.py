@@ -79,6 +79,7 @@ class GymMultiCharActor(ActorInterface):
     def step(self, sim, action_):
         # print ("action_: ", np.array(action_).shape)
         reward = self.actContinuous(sim, action_, bootstrapping=False)
+#         print ("env", sim._worker_id, "reward", reward)
         ob = sim.getState()
         done = sim.endOfEpoch()
         # falls = sim.getEnvironment().agentHasFallenMultiAgent()
@@ -113,6 +114,7 @@ class GymMultiCharActor(ActorInterface):
             self.updateActor(sim, action_)
             updates_+=1
             reward_ = reward_ + np.array(sim.getEnvironment().calcRewards())
+#             print ("reward_: ", reward_)
             if (sim.getMovieWriter() is not None
                 and (sim.movieWriterSupport())):
                 ### If the sim does not have it's own writing support
