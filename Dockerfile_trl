@@ -122,6 +122,17 @@ RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
 # COPY libOpenGL.so /usr/lib/nvidia/libOpenGL.so
 # ENV LD_LIBRARY_PATH /usr/lib/nvidia:${LD_LIBRARY_PATH}
 
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        git 
+
+RUN ls       
+RUN pip install pybullet
+
+
+RUN ls
 WORKDIR /opt/
 # RUN git clone git@github.com:Neo-X/TerrainRLSim.git
 RUN git clone https://github.com/Neo-X/TerrainRLSim.git
@@ -150,13 +161,3 @@ RUN pip install -r requirements.txt
 WORKDIR /opt/
 RUN echo $LD_LIBRARY_PATH
 
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
-
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        git 
-
-RUN ls       
-RUN pip install pybullet
-
-RUN ls
