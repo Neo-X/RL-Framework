@@ -514,5 +514,8 @@
 "virl_loss_weights": [0.5, 0.3, 0.075, 0.075, 0.025, 0.025],
 "virl_loss_weights_": [0.0, 1.0, 0.00, 0.00, 0.00, 0.00],
 "use_max_T_annealing": false,
-"refresh_rewards_rl_method": false
+"refresh_rewards_rl_method": false,
+"force_use_mod_state_for_critic": false,
+"use_dictionary_obs_from_data": true,
+"training_algorithm": "VIRL"
 }
