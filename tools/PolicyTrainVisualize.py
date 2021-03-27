@@ -125,18 +125,13 @@ class PolicyTrainVisualize(object):
             leng.get_frame().set_alpha(0.3)
             """
             # self._reward_ax.set_title('Mean Reward')
-            self._reward_ax.set_ylabel(self._y_label, fontsize=16)
+            self._reward_ax.set_ylabel(self._y_label, fontsize=26)
             self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
-            plt.xlabel("Iteration x" + str(self._iteration_scale), fontsize=16)
-            self._fig.suptitle(self._title, fontsize=18)
-            self._reward_ax.set_xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale), fontsize=16)
-            """
-            self._value_ax.set_ylabel(self._y_label, fontsize=16)
-            self._value_ax.grid(b=True, which='major', color='black', linestyle='--')
-            plt.xlabel("Iteration x" + str(self._iteration_scale), fontsize=16)
-            self._fig_value.suptitle(self._title, fontsize=18)
-            self._value_ax.set_xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale), fontsize=16)
-            """
+            plt.xlabel("Iteration x" + str(self._iteration_scale), fontsize=24)
+            self._reward_ax.tick_params(axis='x', labelsize=22)
+            self._reward_ax.tick_params(axis='y', labelsize=22)
+            self._fig.suptitle(self._title, fontsize=22)
+            self._reward_ax.set_xlabel("Simulated Actions x" + str(self._sim_iteration_scale), fontsize=26)
             # plt.grid(b=True, which='major', color='black', linestyle='--')
             # plt.grid(b=True, which='minor', color='g', linestyle='--'
             
@@ -295,18 +290,13 @@ class PolicyTrainVisualize(object):
                          ncol=1, shadow=True, fancybox=True)
             leng.get_frame().set_alpha(0.3)
             # self._reward_ax.set_title('Mean Reward')
-            self._reward_ax.set_ylabel(self._y_label, fontsize=16)
+            self._reward_ax.set_ylabel(self._y_label, fontsize=26)
             self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
-            plt.xlabel("Iteration x" + str(self._iteration_scale))
-            self._fig.suptitle(self._title, fontsize=18)
-            self._reward_ax.set_xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale), fontsize=16)
-            """
-            self._value_ax.set_ylabel(self._y_label, fontsize=16)
-            self._value_ax.grid(b=True, which='major', color='black', linestyle='--')
-            plt.xlabel("Iteration x" + str(self._iteration_scale), fontsize=16)
-            self._fig_value.suptitle(self._title, fontsize=18)
-            self._value_ax.set_xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale), fontsize=16)
-            """
+            plt.xlabel("Iteration x" + str(self._iteration_scale), fontsize=24)
+            self._reward_ax.tick_params(axis='x', labelsize=22)
+            self._reward_ax.tick_params(axis='y', labelsize=22)
+            self._fig.suptitle(self._title, fontsize=22)
+            self._reward_ax.set_xlabel("Simulated Actions x" + str(self._sim_iteration_scale), fontsize=26)
             # plt.grid(b=True, which='major', color='black', linestyle='--')
             # plt.grid(b=True, which='minor', color='g', linestyle='--'
             

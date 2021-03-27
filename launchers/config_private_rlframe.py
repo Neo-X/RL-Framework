@@ -40,7 +40,7 @@ DOODAD_DOCKER_IMAGE = 'gberseth/rlframe:latest'
 INSTANCE_TYPE = 'c5.2xlarge' # 8 core 16 gb mem
 SPOT_PRICE = 0.13
 
-GPU_DOODAD_DOCKER_IMAGE = 'TODO'
+GPU_DOODAD_DOCKER_IMAGE = 'gberseth/rlframe:latest'
 GPU_INSTANCE_TYPE = 'g3.4xlarge'
 GPU_SPOT_PRICE = 0.5
 REGION_TO_GPU_AWS_IMAGE_ID = {
