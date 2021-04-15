@@ -244,6 +244,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             ### If the sim does not have it's own writing support
             from skimage.transform import rescale, resize, downscale_local_mean
             vizData = exp.getEnvironment().render(mode="rgb_array")
+#             print ("vizData: ", vizData.shape)
             image_ = np.zeros((vizData.shape))
 #             for row in range(len(vizData)):
 #                 image_[row] = vizData[len(vizData)-row - 1]
