@@ -20,6 +20,10 @@ DIR_AND_MOUNT_POINT_MAPPINGS = [
         local_dir=BASE_DIR + '/playground/TerrainRLSim/args/envs.json',
         mount_point='/opt/TerrainRLSim/args/envs.json',
     ),
+    dict(
+        local_dir=BASE_DIR + '/playground/TerrainRLSim/simAdapter/terrainRLSim.py',
+        mount_point='/opt/TerrainRLSim/simAdapter/terrainRLSim.py',
+    ),
 #     dict(
 #         local_dir='/home/gberseth/playground/CoMPS',
 #         mount_point='/root/playground/CoMPS',
