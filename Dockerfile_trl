@@ -134,13 +134,13 @@ RUN pip install pybullet
 RUN ls -ls
 WORKDIR /opt/
 # RUN git clone git@github.com:Neo-X/TerrainRLSim.git
-RUN git clone https://github.com/Neo-X/TerrainRLSim.git
+RUN git clone https://github.com/GAIDG-Lab/TerrainRLSim.git
 ENV TERRAINRL_PATH /opt/TerrainRLSim
 WORKDIR /opt/TerrainRLSim
 RUN wget https://github.com/UBCMOCCA/TerrainRLSim/releases/download/0.8/TerrainRLSim_external_June_21_2019.tar.xz
 RUN tar -xvf TerrainRLSim_external_June_21_2019.tar.xz
-RUN chmod +x ./deb_deps_nogl.sh
-RUN ./deb_deps_nogl.sh
+RUN chmod +x ./deb_deps.sh
+RUN ./deb_deps.sh
 RUN cd external/caffe && make clean && make -j 8
 RUN cp -r external/caffe/build/lib . && cp external/caffe/build/lib/libcaffe.* lib/ && cp external/Bullet/bin/*.so lib/ && cp external/jsoncpp/build/debug/src/lib_json/*.so* lib/
 WORKDIR /opt/TerrainRLSim/simAdapter
@@ -148,10 +148,10 @@ RUN chmod +x ./gen_swig.sh
 RUN ./gen_swig.sh
 WORKDIR /opt/TerrainRLSim/
 RUN ls -la
-RUN git pull origin master
+# RUN git pull origin master
 RUN chmod +x ./premake4_linux 
-# RUN ./premake4_linux gmake
-RUN ./premake4_linux --file=premake4_openglES.lua gmake
+RUN ./premake4_linux gmake
+#RUN ./premake4_linux --file=premake4_openglES.lua gmake
 ### RUN cd gmake 
 WORKDIR /opt/TerrainRLSim/gmake
 RUN make config=release64 -j 8

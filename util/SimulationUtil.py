@@ -237,26 +237,25 @@ def setupEnvironmentVariable(settings, eval=False):
         try:
             ### This will only start if experiment logging settings are specified and a meta log file is specified
             ### This is to avoid this logging from occuring when just debugging and coding. 
-            if ("experiment_logging" in settings 
+            if ("experiment_logging" in settings
                 and settings["log_comet"]
                 and (not eval)):
                 from comet_ml import Experiment
-                exp_config = settings["experiment_logging"]
-                if (isinstance(exp_config, str)):
-                    print ("exp_config: ", exp_config)
-                    exp_config = json.loads(exp_config)
+                #exp_config = settings["experiment_logging"]
+                #if (isinstance(exp_config, str)):
+                #    print ("exp_config: ", exp_config)
+                #    exp_config = json.loads(exp_config)
 
                 # Add the following code anywhere in your machine learning file
-                print ("Tracking training via commet.ml")
                 if ("logger_instance_key" in settings):
                     from comet_ml import ExistingExperiment
-                    experiment = ExistingExperiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu", previous_experiment=settings["logger_instance_key"],
-                                                 project_name=exp_config["project_name"], workspace="glenb")
+                    experiment = ExistingExperiment(api_key="fMuyxBGohPprmF4vjPLLJFrn7", previous_experiment=settings["logger_instance_key"],
+                                                 project_name=exp_config["collision"], workspace="brandonh")
                     print("Continuing existing experiment: ", experiment)
                 else:
                     
-                    experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",
-                                            project_name=exp_config["project_name"], workspace="glenb")
+                    experiment = Experiment(api_key="fMuyxBGohPprmF4vjPLLJFrn7",
+                                            project_name="collision", workspace="brandonh")
                     experiment.log_parameters(settings)
                     experiment.add_tag("comet_test")
                     experiment.set_name(settings["data_folder"])
