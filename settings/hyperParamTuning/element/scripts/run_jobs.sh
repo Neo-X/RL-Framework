@@ -7,14 +7,14 @@ export ACCOUNT_NAME=$(eai account get --fields name --no-header)
 export ACCOUNT_ID=$ORG_NAME.$ACCOUNT_NAME
 
 eai data push $ORG_NAME.$ACCOUNT_NAME.rlframe /home/gberseth/playground/RL-Framework/
-# eai data push $ORG_NAME.$ACCOUNT_NAME.doodad /home/gberseth/playground/doodad_vitchry/
+eai data push $ORG_NAME.$ACCOUNT_NAME.doodad /home/gberseth/playground/doodad_vitchry/
 eai data push $ORG_NAME.$ACCOUNT_NAME.motionimitation /home/gberseth/playground/motion_imitation/
 # eai data push $ORG_NAME.$ACCOUNT_NAME.stanquad /home/gberseth/playground/StanfordQuadruped/
 # eai data push $ORG_NAME.$ACCOUNT_NAME.learning_data /home/gberseth/learning_data_eai/
 
 ## declare an array variable
 declare -a simConfigs=(
- 	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_StanQuad_LSTM_Critic_And_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial_BCE_refresh.json"
+#  	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_StanQuad_LSTM_Critic_And_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial_BCE_refresh.json"
  	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_UniTree_1Sub_LSTM_Critic_And_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial_BCE_refresh3.json"
 #
 )

@@ -1,9 +1,20 @@
 CODE_DIRS_TO_MOUNT = [
+     # "folder your code is stored in"
 ]
 NON_CODE_DIRS_TO_MOUNT = [
+    # "Some data you want to include but not put on the PYTHONPATH"
 ]
+# Where to store experiment data locally
 LOCAL_LOG_DIR = '/tmp/doodad-output/'
+# Where to store experiment data in docker/singularity
 OUTPUT_DIR_FOR_DOODAD_TARGET = '/tmp/doodad-output/'
+# locations to mount files in the docker container.
+DIR_AND_MOUNT_POINT_MAPPINGS = [
+    dict(
+        local_dir="/home/user/.mujoco/",
+        mount_point='/root/.mujoco',
+    ),
+]
 
 
 """
