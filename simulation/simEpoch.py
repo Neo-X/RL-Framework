@@ -636,21 +636,21 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_actions.extend(actions[s])
         if ("replace_next_state_with_imitation_viz_state" in settings
             and (settings["replace_next_state_with_imitation_viz_state"] == True)):
-            state_dicts[s]['state_char']
+            # print (state_dicts[s])
             tmp_res_states.extend(state_dicts[s]['state_char'])
         else:
             tmp_res_states.extend(result_states___[s])
        
-#         import matplotlib
-#         matplotlib.use('Agg')
-#         import matplotlib.pyplot as plt
-#         # img_ = viewData
-#         img_ = np.reshape(tmp_states[s][1][:2304], (48,48))
-#         img__ = np.reshape(tmp_res_states[s][1][:2304], (48, 48))
-#         fig1 = plt.figure(1)
-#         img__ = np.concatenate((img_, img__), axis=1)
-#         plt.imshow(img__, origin='lower')
-#         fig1.savefig("char_viz_imitation_states_end"+str(s)+".png")
+        # import matplotlib
+        # matplotlib.use('Agg')
+        # import matplotlib.pyplot as plt
+        # # img_ = viewData
+        # img_ = np.reshape(tmp_states[s][1][:2304], (48,48))
+        # img__ = np.reshape(tmp_res_states[s][1][:2304], (48, 48))
+        # fig1 = plt.figure(1)
+        # img__ = np.concatenate((img_, img__), axis=1)
+        # plt.imshow(img__, origin='lower')
+        # fig1.savefig("char_viz_imitation_states_end"+str(s)+".png")
         
         tmp_rewards.extend(rewards[s])
         tmp_discounted_sum.extend(discounted_sum[s])

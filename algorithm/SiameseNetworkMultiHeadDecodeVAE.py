@@ -434,7 +434,8 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
     def updateTargetModel(self):
         pass
                 
-    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True, datas=None, trainInfo=None):
+    def train(self, states, actions, result_states, rewards, falls=None,
+               updates=1, batch_size=None, p=1, lstm=True, datas=None, trainInfo=None):
         """
             states will come for the agent and
             results_states can come from the imitation agent
