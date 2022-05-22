@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_Morph_2D_GRF_Viz3D_48x48_1Sub_Imitate_30FPS_DualState_v1/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128_BCE_anneal_refresh_16",
+"data_folder": "PD_Humanoid_GRF_3D_Mixed_Half_Viz3D_1Sub_Imitate_30FPS_DenseState_v1/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128_BCE_anneal_refresh_16",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -500,7 +500,7 @@
 "seperate_posandneg_pairs": false,
 	"comment__": "Add noise to the target noise values",
 "target_noise_scale": 0.02,
-"rnn_updates": 12,	
+"rnn_updates": 64,	
 	"comment__": "Data for using comet ML for logging learning experiments",
 "experiment_logging":
 	{"use_comet": true,
