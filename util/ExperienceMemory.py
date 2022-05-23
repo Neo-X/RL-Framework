@@ -171,7 +171,7 @@ class ExperienceMemory(object):
             traj_end = traj_start + max_length
         ### Make all trajectories as long as the shortest one...
         for t in range(len(state_)):
-            print ("state shape: ", state_[t].shape)
+            # print ("state shape: ", state_[t].shape)
             # if (len(state_[t]) < min_seq_length):
             #     continue
             state_[t] = state_[t][traj_start:traj_end]
@@ -186,7 +186,7 @@ class ExperienceMemory(object):
             advantage_[t] = advantage_[t][traj_start:traj_end]
             for key in data_[t]:
                 data_[t][key] = data_[t][key][traj_start:traj_end]
-            print ("state shape after: ", state_[t].shape)
+            # print ("state shape after: ", state_[t].shape)
         # print (state_, traj_end, min_seq_length)
         
         state_ = np.array(state_, dtype=self._settings['float_type'])
