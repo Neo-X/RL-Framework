@@ -125,6 +125,10 @@ class ExperienceMemory(object):
         assert len(states[0]) == self._state_length
         assert len(actions[0]) == self._action_length
         
+        if ("min_sequece_length" in self._settings and 
+            (len(states) < self._settings["min_sequece_length"])):
+            return ### Skip short sequences
+        
         self._insertTrajectory([states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data])
         
     def get_multitask_trajectory_batch(self, batch_size=4, excludeActionTypes=[], randomLength=False, randomStart=False,
@@ -132,19 +136,21 @@ class ExperienceMemory(object):
         
         state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_, data_ = self.get_trajectory_batch(batch_size=batch_size, cast=False)
         
-        ### Find length of shortest trajectory...
+        ### Find length of shortest trajectory. 
+        ### Trajectories need to be the same length for training.
         min_seq_length = 1
         if ("min_sequece_length" in self._settings):
-            min_seq_length = self._settings["min_sequece_length"] + 1
+            min_seq_length = self._settings["min_sequece_length"]
         shortest_traj = 100000000
         traj_start = 0
         for t in range(len(state_)):
             if len(state_[t]) < shortest_traj:
-                shortest_traj = max(len(state_[t]), min_seq_length)
+                shortest_traj = len(state_[t])
                 
         ### Choose a random time to start
+        assert shortest_traj >= min_seq_length ### This must be true or the indexing breaks
         if (randomStart == True):
-            inds = range(0, max(1, shortest_traj- min_seq_length))
+            inds = range(0, (shortest_traj- min_seq_length)+1) ## Find a start index that will leave at least min_seq_length elements.
             ### plus one so because of index count mismatch.
             if (np.random.random() > 0.5):
                 traj_start = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
@@ -153,32 +159,36 @@ class ExperienceMemory(object):
              
         ### Choose a random time for trajectory to end
         inds = range(traj_start + min_seq_length, shortest_traj)
+        traj_end = shortest_traj
         if ( ( randomLength == True )
             and (shortest_traj > traj_start + min_seq_length)):  
 #                 ### shortest_traj Must be at least 2 for this to return 1
 #                 ### Make shorter sequence more probable
-            shortest_traj = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
+            traj_end = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
         
-        if ((shortest_traj - traj_start) > max_length):
+        if ((traj_end - traj_start) > max_length):
             ### Things tend to run out of memory beyond this.
-            shortest_traj = traj_start + max_length
+            traj_end = traj_start + max_length
         ### Make all trajectories as long as the shortest one...
         for t in range(len(state_)):
-            if (len(state_[t]) < min_seq_length):
-                continue
-            state_[t] = state_[t][traj_start:shortest_traj]
-            action_[t] = action_[t][traj_start:shortest_traj]
+            print ("state shape: ", state_[t].shape)
+            # if (len(state_[t]) < min_seq_length):
+            #     continue
+            state_[t] = state_[t][traj_start:traj_end]
+            action_[t] = action_[t][traj_start:traj_end]
             # print ("resultState_[t]: ", np.array(resultState_[t]).shape)
-            resultState_[t] = resultState_[t][traj_start:shortest_traj]
+            resultState_[t] = resultState_[t][traj_start:traj_end]
             # print ("resultState_[t] after: ", np.array(resultState_[t]).shape)
-            reward_[t] = reward_[t][traj_start:shortest_traj]
-            fall_[t] = fall_[t][traj_start:shortest_traj]
-            G_ts_[t] = G_ts_[t][traj_start:shortest_traj]
-            exp_actions_[t] = exp_actions_[t][traj_start:shortest_traj]
-            advantage_[t] = advantage_[t][traj_start:shortest_traj]
+            reward_[t] = reward_[t][traj_start:traj_end]
+            fall_[t] = fall_[t][traj_start:traj_end]
+            G_ts_[t] = G_ts_[t][traj_start:traj_end]
+            exp_actions_[t] = exp_actions_[t][traj_start:traj_end]
+            advantage_[t] = advantage_[t][traj_start:traj_end]
             for key in data_[t]:
-                data_[t][key] = data_[t][key][traj_start:shortest_traj]
-            
+                data_[t][key] = data_[t][key][traj_start:traj_end]
+            print ("state shape after: ", state_[t].shape)
+        # print (state_, traj_end, min_seq_length)
+        
         state_ = np.array(state_, dtype=self._settings['float_type'])
         if (self._continuous_actions):
             action_ = np.array(action_, dtype=self._settings['float_type'])
