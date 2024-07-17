@@ -637,6 +637,5 @@
 							{"layer_type": "LayerNormalization"},
 							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "activation": null},
 							{"layer_type": "activation", "activation_type": "tanh" }
-							],
-"training_algorithm": "VIRL"
+							]
 }
